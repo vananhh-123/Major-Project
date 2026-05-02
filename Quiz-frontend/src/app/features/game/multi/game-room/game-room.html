@@ -1,160 +1,302 @@
-<!-- ══════════════════════════════════════════
-     PHASE: LOADING
-     ══════════════════════════════════════════ -->
-<div class="gr-loading" *ngIf="gamePhase === 'loading'">
-  <div class="gr-spinner"></div>
-  <p>Đang tải quiz<span class="dot-anim">...</span></p>
-</div>
+<!-- ROOT CONTAINER -->
+<div class="gr-root" [class.focus-bg]="gameMode === 'focus'">
 
+  <!-- ========================================================================= -->
+  <!-- HOST VIEW                                                                 -->
+  <!-- ========================================================================= -->
+  <ng-container *ngIf="isHost">
 
-<!-- ══════════════════════════════════════════
-     PHASE: COUNTDOWN (3-2-1)
-     ══════════════════════════════════════════ -->
-<div class="gr-countdown" *ngIf="gamePhase === 'countdown'">
-  <div class="gr-cd-circle">{{ countdown }}</div>
-  <p class="gr-cd-label">Chuẩn bị!</p>
-</div>
+    <!-- HOST ONLY: Hi?n th? ngay c? khi Player chua v�o c�u h?i,
+         nhung v?i logic, host show question cho m?i form -->
 
+    <div class="host-layout" *ngIf="gamePhase !== 'loading' && currentQuestion">
 
-<!-- ══════════════════════════════════════════
-     PHASE: QUESTION
-     ══════════════════════════════════════════ -->
-<div class="gr-question-view" *ngIf="gamePhase === 'question' && currentQuestion">
+      <!-- ==================== LEFT COLUMN (Main game area) ==================== -->
+      <div class="host-left">
+        <!-- Badge Th? lo?i (c� th? fix c?ng ho?c d?ng) -->
+        <div class="category-badge">
+          <span class="material-icons cat-icon">science</span>
+          <span>KNOWLEDGE</span>
+        </div>
 
-  <!-- Top bar: câu số + timer + điểm -->
-  <div class="gr-topbar">
-    <div class="gr-q-badge">
-      Câu {{ currentQuestionIdx + 1 }} / {{ questions.length }}
+        <!-- Question Counter -->
+        <h2 class="question-counter">Question {{ currentQuestionIdx + 1 | number:'2.0' }} of {{ questions.length | number:'2.0' }}</h2>
+
+        <!-- Question Text Card -->
+        <div class="question-card">
+          <h3 class="question-text">{{ currentQuestion.content }}</h3>
+        </div>
+
+        <!-- GRID 4 ��P �N -->
+        <div class="answers-grid" [class.focus-grid]="gameMode === 'focus'">
+          <!-- V�ng l?p ra 4 t�y ch?n -->
+          <div *ngFor="let opt of currentQuestion.options; let i = index"
+               class="ans-card ans-{{ i }}"
+               [ngClass]="hostCardClass(i)">
+
+            <div class="ans-letter-box">{{ getLetter(i) }}</div>
+            <div class="ans-text">{{ opt.text }}</div>
+            <span class="material-icons ans-icon">{{ answerIcons[i] }}</span>
+          </div>
+        </div>
+
+        <!-- BOTTOM BUTTONS: Show Answer & Next Question -->
+        <div class="host-bottom-btns">
+            <!-- CH? HI?N T? GIAI �O?N ANSWER REVEAL TR? �I �? PREVENT CLICK MULTIPLE TIMES HO?C HOST SHOW S?M -->
+          <!-- N�t SHOW ANSWER -->
+          <button class="btn-show-answer"
+                  *ngIf="gamePhase === 'question' || gamePhase === 'answer_reveal'"
+                  [disabled]="gamePhase !== 'question' && gameMode === 'classic'"
+                  (click)="hostRevealAnswer()">
+            <span class="material-icons">visibility</span>
+            <span>SHOW ANSWER</span>
+          </button>
+
+          <!-- N�t NEXT QUESTION -->
+          <button class="btn-next-question"
+                  *ngIf="gamePhase === 'answer_reveal'"
+                  (click)="nextQuestionOrEnd()">
+            <span>NEXT QUESTION</span>
+            <span class="material-icons">arrow_forward</span>
+          </button>
+        </div>
+
+      </div> <!-- End host-left -->
+
+      <!-- ==================== RIGHT COLUMN (Timer & Stats) ==================== -->
+      <div class="host-right">
+
+        <!-- TIMER CARD -->
+        <div class="timer-card">
+          <div class="timer-wrap">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+              <circle class="timer-track" cx="50" cy="50" r="45"></circle>
+              <!-- Dasharray 283 = chu vi (2 * PI * 45) -->
+              <circle class="timer-progress" cx="50" cy="50" r="45"
+                      stroke-dasharray="283"
+                      [style.stroke-dashoffset]="timerOffset">
+              </circle>
+            </svg>
+            <div class="timer-number">{{ timeLeft }}</div>
+          </div>
+          <div class="timer-label">SECONDS LEFT</div>
+        </div>
+
+        <!-- SUBMISSIONS CARD -->
+        <div class="sidebar-card">
+          <div class="sub-header">
+            <span class="sub-title">Submissions</span>
+            <span class="material-icons sub-icon">group_add</span>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="sub-row">
+            <div class="sub-bar">
+              <!-- Width = % s? ngu?i d� n?p -->
+              <div class="sub-bar-fill"
+                   [style.width.%]="players.length ? (submissionsCount / players.length) * 100 : 0"></div>
+            </div>
+            <div class="sub-count">
+              <strong>{{ submissionsCount }}</strong> / {{ players.length }}
+            </div>
+          </div>
+
+          <!-- Text 'Players are thinking...' -->
+          <div class="thinking-row">
+            <div class="thinking-dot"></div>
+            <span>Players are thinking...</span>
+          </div>
+        </div>
+
+        <!-- HOST CONTROLS CARD -->
+        <div class="sidebar-card">
+          <span class="controls-label">CONTROLS</span>
+          <div class="controls-row">
+            <div class="ctrl-btn">
+              <span class="material-icons">volume_up</span>
+              <span class="ctrl-text">MUSIC</span>
+            </div>
+            <div class="ctrl-btn">
+              <span class="material-icons">fullscreen</span>
+              <span class="ctrl-text">FULL</span>
+            </div>
+            <div class="ctrl-btn" style="color:#DC2626" (click)="endGameNow()">
+              <span class="material-icons">power_settings_new</span>
+              <span class="ctrl-text">END</span>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- End host-right -->
+
+    </div>
+  </ng-container>
+
+  <!-- ========================================================================= -->
+  <!-- PLAYER VIEW (S?p x?p chi?u d?c theo thi?t k? Mobile/Web)                  -->
+  <!-- ========================================================================= -->
+  <ng-container *ngIf="!isHost">
+
+    <div class="player-root" *ngIf="gamePhase !== 'loading' && currentQuestion">
+      <div class="player-layout">
+
+        <!-- ===== D�NG TR�N C�NG: Title + Question Counter + Timer ===== -->
+        <div class="player-top-row" *ngIf="gamePhase === 'question' || gamePhase === 'answer_reveal'">
+          <div class="player-meta">
+            <div class="player-quiz-title">General Knowledge</div>
+            <h2 class="player-question-counter">Question {{ currentQuestionIdx + 1 | number:'2.0' }}</h2>
+          </div>
+
+          <!-- Timer pill nh? g�c ph?i (Ch? hi?n l�c dang tr? l?i, kh�ng hi?n l�c countdown) -->
+          <div class="player-timer-pill" *ngIf="gamePhase === 'question'">
+            <div class="player-timer-wrap sm">
+              <svg class="timer-svg sm" viewBox="0 0 100 100">
+                <circle class="timer-track" cx="50" cy="50" r="45"></circle>
+                <circle class="timer-progress" cx="50" cy="50" r="45"
+                        stroke-dasharray="283"
+                        [style.stroke-dashoffset]="timerOffset">
+                </circle>
+              </svg>
+              <div class="timer-number sm">{{ timeLeft }}</div>
+            </div>
+            <div class="timer-label sm">SECONDS<br>LEFT</div>
+          </div>
+        </div>
+
+        <!-- TH�NG B�O KQ (D�nh cho FOCUS MODE)
+             N?m ngay tr�n c�c n�t -->
+        <div *ngIf="gameMode === 'focus' && hasAnswered && !!lastAnswerResult"
+             class="focus-feedback-banner"
+             [ngClass]="lastAnswerResult.isCorrect ? 'banner-correct' : 'banner-wrong'">
+
+          <span class="material-icons feedback-icon">
+            {{ lastAnswerResult.isCorrect ? 'check_circle' : 'cancel' }}
+          </span>
+          <div class="feedback-text">
+            <div class="feedback-title">
+              {{ lastAnswerResult.isCorrect ? 'Correct!' : 'Incorrect' }}
+            </div>
+            <div class="feedback-pts">
+              {{ lastAnswerResult.isCorrect ? '+' + lastAnswerResult.points + ' PTS' : '0 PTS' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Text (D�nh cho Classic Mode) -->
+        <div class="question-card player-question-card" *ngIf="gameMode === 'classic' && (gamePhase === 'question' || gamePhase === 'answer_reveal')">
+          <h3 class="question-text">{{ currentQuestion.content }}</h3>
+        </div>
+
+        <!-- ===== GRID 4 N�T TR? L?I ===== -->
+        <!-- Focus mode grid b?, Classic grid b�nh thu?ng -->
+        <div class="answers-grid" [class.focus-grid]="gameMode === 'focus'" *ngIf="gamePhase === 'question' || gamePhase === 'answer_reveal'">
+          <div *ngFor="let opt of currentQuestion.options; let i = index"
+               class="ans-card ans-{{ i }}"
+               [ngClass]="playerCardClass(i)"
+               (click)="selectAnswer(i)">
+
+            <!-- Layout CLASSIC -->
+            <ng-container *ngIf="gameMode === 'classic'">
+              <div class="ans-letter-box">{{ getLetter(i) }}</div>
+              <div class="ans-text">{{ opt.text }}</div>
+              <span class="material-icons ans-icon">{{ answerIcons[i] }}</span>
+            </ng-container>
+
+            <!-- Layout FOCUS (Ch? vu�ng to, ch? c�i gi?a) -->
+            <ng-container *ngIf="gameMode === 'focus'">
+              <!-- L�c CHUA TR? L?I ho?c l�c XEM KQ NHUNG KH�NG CH?N N�T N�Y -->
+              <ng-container *ngIf="!hasAnswered || selectedAnswers[0] !== i">
+                <div class="focus-letter-box">{{ getLetter(i) }}</div>
+                <span class="material-icons focus-bg-icon">{{ answerIcons[i] }}</span>
+              </ng-container>
+
+              <!-- L�c �� TR? L?I V� N�T N�Y �U?C CH?N -->
+              <ng-container *ngIf="hasAnswered && selectedAnswers[0] === i">
+                <div class="focus-result-icon">
+                  <span class="material-icons focus-result-mat">
+                    {{ lastAnswerResult?.isCorrect ? 'check' : 'close' }}
+                  </span>
+                </div>
+                <div class="focus-letter-box focus-letter-small">{{ getLetter(i) }}</div>
+              </ng-container>
+            </ng-container>
+
+          </div>
+        </div>
+
+        <!-- ===== K?T QU? CU?I (CLASSIC MODE) =====
+             Thanh ngang b�o d�ng sai hi?n l�n sau khi n?p (Ch? Classic Mode) -->
+        <div *ngIf="gameMode === 'classic' && hasAnswered && !!lastAnswerResult"
+             class="classic-result-bar"
+             [ngClass]="lastAnswerResult.isCorrect ? 'result-bar-correct' : 'result-bar-wrong'">
+          <div class="result-bar-left">
+            <div class="result-bar-icon-wrap">
+              <span class="material-icons result-bar-icon">
+                {{ lastAnswerResult.isCorrect ? 'check' : 'close' }}
+              </span>
+            </div>
+            <div class="result-bar-text">
+              <div class="result-bar-title">
+                 {{ lastAnswerResult.isCorrect ? 'Awesome job!' : 'Oops, wrong answer' }}
+              </div>
+              <div class="result-bar-sub">
+                 {{ lastAnswerResult.isCorrect ? 'You nailed it. Get ready for the next one.' : 'Better luck on the next question.' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== THANH STATS PLAYER DU?I C�NG ===== -->
+        <div class="player-stats-bar">
+          <div class="stat-block">
+            <span class="stat-label">PIN</span>
+            <div class="stat-value">{{ gamePin }}</div>
+          </div>
+
+          <div class="stat-divider"></div>
+
+          <div class="stat-block">
+            <span class="stat-label">SCORE</span>
+            <div class="stat-value">
+              <span>{{ playerScore }}</span>
+              <span class="material-icons stat-ico">stars</span>
+            </div>
+          </div>
+
+          <div class="stat-divider"></div>
+
+          <!-- Mode Pill -->
+          <div class="mode-pill" [class.mode-pill-focus]="gameMode === 'focus'">
+            <span class="material-icons mode-ico">
+              {{ gameMode === 'focus' ? 'center_focus_strong' : 'auto_awesome_mosaic' }}
+            </span>
+            <div class="mode-pill-text">
+              <span class="mode-sub">MODE</span>
+              <span class="mode-name" [class.focus-name]="gameMode === 'focus'">
+                {{ gameMode | uppercase }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Avatar btn dummy -->
+          <button class="avatar-btn" title="Profile profile">
+            <span class="material-icons">person</span>
+          </button>
+        </div>
+
+      </div>
     </div>
 
-    <!-- Timer circle -->
-    <div class="gr-timer-wrap">
-      <svg class="gr-timer-svg" viewBox="0 0 60 60">
-        <circle cx="30" cy="30" r="26" class="gr-timer-track"/>
-        <circle cx="30" cy="30" r="26" class="gr-timer-fill"
-                [style.stroke-dashoffset]="163.4 - (163.4 * timePercent / 100)"/>
-      </svg>
-      <span class="gr-timer-num">{{ timeLeft }}</span>
+    <!-- M�n h�nh ch? n?u phase load -->
+    <div style="text-align:center; padding-top: 100px" *ngIf="gamePhase === 'loading' || gamePhase === 'countdown'">
+        <div *ngIf="gamePhase === 'countdown'">
+            <h1 style="font-size: 100px; color:#7C3AED">{{ countdown }}</h1>
+            <p>Get ready!</p>
+        </div>
+        <div *ngIf="gamePhase === 'loading'">
+            <h2>Waiting for host to start...</h2>
+        </div>
     </div>
+  </ng-container>
 
-    <div class="gr-score-badge">
-      <span class="material-icons">star</span>
-      {{ myScore }} pts
-    </div>
-  </div>
-
-  <!-- Progress bar thời gian -->
-  <div class="gr-progress-bar">
-    <div class="gr-progress-fill"
-         [style.width.%]="timePercent"
-         [class.gr-progress-danger]="timePercent < 30"></div>
-  </div>
-
-  <!-- Câu hỏi -->
-  <div class="gr-question-card">
-    <p class="gr-question-text">{{ currentQuestion.content }}</p>
-    <div class="gr-q-meta">
-      <span class="gr-points-chip">
-        <span class="material-icons">bolt</span>
-        {{ currentQuestion.points }} pts
-      </span>
-      <span class="gr-multi-chip" *ngIf="currentQuestion.multiple_correct">
-        <span class="material-icons">check_box</span>
-        Chọn nhiều
-      </span>
-    </div>
-  </div>
-
-  <!-- 4 ô đáp án -->
-  <div class="gr-answers-grid">
-    <button
-      *ngFor="let ans of currentQuestion.options; let i = index"
-      class="gr-answer-btn"
-      [class.gr-answer-selected]="isSelected(i)"
-      [class.gr-answer-disabled]="hasAnswered"
-      [style.--ans-color]="answerColors[i]"
-      (click)="selectAnswer(i)">
-      <span class="gr-ans-icon">
-        <span class="material-icons">{{ answerIcons[i] }}</span>
-      </span>
-      <span class="gr-ans-text">{{ ans.text }}</span>
-    </button>
-  </div>
-
-  <!-- Player: submit nhiều đáp án -->
-  <div class="gr-multi-submit" *ngIf="currentQuestion.multiple_correct && !hasAnswered && selectedAnswers.length > 0">
-    <button class="gr-btn-submit" (click)="submitAnswer()">
-      <span class="material-icons">send</span>
-      Nộp {{ selectedAnswers.length }} đáp án
-    </button>
-  </div>
-
-  <!-- Đã nộp -->
-  <div class="gr-answered-badge" *ngIf="hasAnswered">
-    <span class="material-icons">hourglass_top</span>
-    Đã nộp! Chờ kết quả...
-  </div>
-
-  <!-- HOST ONLY: nút Next Question -->
-  <div class="gr-host-controls" *ngIf="isHost">
-    <button class="gr-btn-next" (click)="nextQuestion()">
-      <span class="material-icons">skip_next</span>
-      {{ currentQuestionIdx < questions.length - 1 ? 'Câu tiếp theo' : 'Kết thúc game' }}
-    </button>
-  </div>
-
-</div>
-
-
-<!-- ══════════════════════════════════════════
-     PHASE: ANSWER REVEAL (chỉ player)
-     ══════════════════════════════════════════ -->
-<div class="gr-result-view" *ngIf="gamePhase === 'answer_reveal' && lastAnswerResult">
-  <div class="gr-result-icon" [class.gr-result-correct]="lastAnswerResult.isCorrect" [class.gr-result-wrong]="!lastAnswerResult.isCorrect">
-    <span class="material-icons">{{ lastAnswerResult.isCorrect ? 'check_circle' : 'cancel' }}</span>
-  </div>
-  <h2 class="gr-result-title">{{ lastAnswerResult.isCorrect ? 'Chính xác! 🎉' : 'Sai rồi! 😢' }}</h2>
-  <div class="gr-result-points" *ngIf="lastAnswerResult.isCorrect">
-    +{{ lastAnswerResult.points }} điểm
-  </div>
-  <div class="gr-result-total">
-    Tổng điểm: <strong>{{ lastAnswerResult.totalScore }}</strong>
-  </div>
-  <p class="gr-waiting-label">Chờ host chuyển câu tiếp theo...</p>
-</div>
-
-
-<!-- ══════════════════════════════════════════
-     PHASE: SCOREBOARD (sau mỗi câu, host xem)
-     ══════════════════════════════════════════ -->
-<div class="gr-scoreboard" *ngIf="gamePhase === 'scoreboard'">
-  <h2 class="gr-sb-title">🏆 Bảng điểm</h2>
-  <p class="gr-sb-subtitle">Sau câu {{ currentQuestionIdx + 1 }}</p>
-
-  <div class="gr-sb-list">
-    <div *ngFor="let p of players; let i = index"
-         class="gr-sb-row"
-         [class.gr-sb-me]="p.isCurrentUser">
-      <span class="gr-sb-rank">{{ i + 1 }}</span>
-      <img [src]="p.avatar" [alt]="p.name" class="gr-sb-avatar"/>
-      <span class="gr-sb-name">{{ p.name }}</span>
-      <span class="gr-sb-score">{{ p.score }} pts</span>
-    </div>
-  </div>
-
-  <!-- HOST ONLY: next -->
-  <button class="gr-btn-next" *ngIf="isHost" (click)="nextQuestion()">
-    <span class="material-icons">{{ currentQuestionIdx < questions.length - 1 ? 'skip_next' : 'flag' }}</span>
-    {{ currentQuestionIdx < questions.length - 1 ? 'Câu tiếp theo' : 'Kết thúc game' }}
-  </button>
-</div>
-
-
-<!-- ══════════════════════════════════════════
-     PHASE: ENDED
-     ══════════════════════════════════════════ -->
-<div class="gr-ended" *ngIf="gamePhase === 'ended'">
-  <div class="gr-ended-icon">🎮</div>
-  <h2>Game kết thúc!</h2>
-  <p>Đang chuyển đến trang kết quả...</p>
 </div>

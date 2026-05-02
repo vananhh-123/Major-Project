@@ -131,6 +131,18 @@ export class QuizEdit implements OnInit {
     this.currentQuestionIndex = this.questions.length - 1;
   }
 
+  duplicateQuestion(index: number) {
+    const questionToDuplicate = this.questions[index];
+    // Deep copy
+    const duplicatedOption = questionToDuplicate.options.map((o: any) => ({...o}));
+    const newQuestion = {
+        ...questionToDuplicate,
+        options: duplicatedOption
+    };
+    this.questions.splice(index + 1, 0, newQuestion);
+    this.currentQuestionIndex = index + 1;
+  }
+
   removeQuestion(index: number) {
     if (this.questions.length > 1) {
       this.questions.splice(index, 1);
@@ -146,6 +158,44 @@ export class QuizEdit implements OnInit {
 
   nextQuestion() {
     if (this.currentQuestionIndex < this.questions.length - 1) this.currentQuestionIndex++;
+  }
+
+  cancelEdit() {
+    if (confirm('Are you sure you want to discard your changes?')) {
+      this.router.navigate(['/app/quiz-detail', this.quizId]);
+    }
+  }
+
+  toggleOptionCorrect(optIndex: number) {
+    const currentQ = this.questions[this.currentQuestionIndex];
+    if (!currentQ.allowMultiple) {
+      if (!currentQ.options[optIndex].isCorrect) {
+        currentQ.options.forEach((o: any, idx: number) => {
+            o.isCorrect = (idx === optIndex);
+        });
+      } else {
+        currentQ.options[optIndex].isCorrect = false;
+      }
+    } else {
+      currentQ.options[optIndex].isCorrect = !currentQ.options[optIndex].isCorrect;
+    }
+  }
+
+  onAllowMultipleChange() {
+     const currentQ = this.questions[this.currentQuestionIndex];
+     if (!currentQ.allowMultiple) {
+        const correctCount = currentQ.options.filter((o: any) => o.isCorrect).length;
+        if (correctCount > 1) {
+            let firstKept = false;
+            currentQ.options.forEach((o: any) => {
+                if (o.isCorrect && !firstKept) {
+                    firstKept = true;
+                } else if (o.isCorrect) {
+                    o.isCorrect = false;
+                }
+            });
+        }
+     }
   }
 
   saveQuiz() {

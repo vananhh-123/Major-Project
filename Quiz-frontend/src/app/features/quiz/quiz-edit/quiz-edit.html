@@ -87,7 +87,7 @@
 
 
           <div class="header-actions">
-            <button class="icon-button-action" title="Duplicate Question">
+              <button class="icon-button-action" title="Duplicate Question" (click)="duplicateQuestion(currentQuestionIndex)">
               <span class="material-icons">content_copy</span>
             </button>
             <button class="icon-button-action delete" title="Delete Question" (click)="removeQuestion(currentQuestionIndex)">
@@ -106,8 +106,8 @@
         <div class="toggle-option-row">
           <span>Allow multiple correct answers</span>
           <label class="switch-ui">
-            <input type="checkbox" [(ngModel)]="questions[currentQuestionIndex].allowMultiple">
-            <span class="slider-ui"></span>
+              <input type="checkbox" [(ngModel)]="questions[currentQuestionIndex].allowMultiple" (ngModelChange)="onAllowMultipleChange()">
+              <span class="slider-ui"></span>
           </label>
         </div>
 
@@ -115,7 +115,7 @@
         <div class="answers-2-col">
           <div class="ans-box" *ngFor="let opt of questions[currentQuestionIndex].options; let optIndex = index"
                [class.selected]="opt.isCorrect">
-            <button class="radio-check-btn" [class.active]="opt.isCorrect" (click)="opt.isCorrect = !opt.isCorrect">
+              <button class="radio-check-btn" [class.active]="opt.isCorrect" (click)="toggleOptionCorrect(optIndex)">
               <span class="material-icons" *ngIf="opt.isCorrect">done</span>
             </button>
             <input type="text" [(ngModel)]="opt.text" placeholder="Add answer {{ optIndex + 1 }}" maxlength="100">
@@ -160,8 +160,8 @@
 
 
       <div class="form-btns">
-        <button class="btn-primary">Discard Changes</button>
-        <button class="btn-primary">Save Progress</button>
+        <button class="btn-primary" (click)="cancelEdit()">Discard Changes</button>
+        <button class="btn-primary" (click)="saveQuiz()">Save Progress</button>
       </div>
     </main>
   </div>

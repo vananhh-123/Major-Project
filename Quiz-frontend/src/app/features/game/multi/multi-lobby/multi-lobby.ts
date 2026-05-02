@@ -79,7 +79,7 @@ export class MultiLobby implements OnInit, OnDestroy {
         this.gameMode = params['mode'] || 'classic';
         this.isHost   = params['role'] !== 'player';
         this.gamePin  = params['pin']  || this.generatePin();
-        this.quizId   = params['quizId'] || '';
+        this.quizId   = params['quizId'] || params['id'] || '';
 
         this.connectAndJoin();
       })
