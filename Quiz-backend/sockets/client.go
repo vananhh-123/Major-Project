@@ -89,10 +89,11 @@ func ServeWs(hub *Hub, c *gin.Context) {
 
 	// Gửi tin nhắn chào mừng cho phòng là có người mới join
 	welcomeMsg := Message{
-		Action: "player_joined",
+		Action: "system_message",
 		RoomID: roomID,
 		UserID: "SYSTEM",
 		Data:   userID + " đã tham gia phòng",
 	}
 	hub.Broadcast <- welcomeMsg
 }
+

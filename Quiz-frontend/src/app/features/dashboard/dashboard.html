@@ -25,7 +25,7 @@
           }
         </div>
         
-        <button class="btn-join" [disabled]="joinPin.length < 6">
+        <button class="btn-join" [disabled]="joinPin.length < 6" (click)="joinGame()">
           JOIN GAME <span class="material-icons bolt-icon">bolt</span>
         </button>
       </div>
@@ -92,3 +92,4 @@
     </section>
   </div>
 </div>
+

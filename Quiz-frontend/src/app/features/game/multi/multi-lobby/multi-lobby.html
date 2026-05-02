@@ -32,7 +32,7 @@
     <div class="host-players-bar">
       <div class="count-badge">
         <span class="material-icons count-icon">group</span>
-        <strong>{{ players.length }}</strong>&nbsp;Players Joined
+        <strong>{{ joinedPlayerCount }}</strong>&nbsp;Players Joined
       </div>
       <div class="host-bar-actions">
         <button class="btn-lock-game">
@@ -48,7 +48,8 @@
     <div class="host-players-grid">
       <div *ngFor="let p of players" class="host-player-tile">
         <img [src]="p.avatar" [alt]="p.name" class="host-tile-avatar" />
-        <span class="host-tile-name">{{ p.name }}</span>
+        <span class="host-tile-name" [style.margin-bottom]="p.isHost ? '0' : '8px'">{{ p.name }}</span>
+        <span class="host-badge" *ngIf="p.isHost">HOST</span>
       </div>
 
       <!-- Waiting slot cuối -->
@@ -64,7 +65,7 @@
     <button class="btn-start-game"
             [class.btn-start-classic]="gameMode === 'classic'"
             [class.btn-start-focus]="gameMode === 'focus'"
-            [disabled]="players.length < 1"
+            [disabled]="joinedPlayerCount < 1"
             (click)="startGame()">
       START GAME
       <span class="material-icons">play_circle</span>
@@ -113,7 +114,7 @@
       <div class="joined-count-pill"
            [class.joined-count-classic]="gameMode === 'classic'"
            [class.joined-count-focus]="gameMode === 'focus'">
-        {{ players.length }} Players Joined
+        {{ joinedPlayerCount }} Players Joined
       </div>
       <button class="btn-leave-room" (click)="leaveRoom()">
         <span class="material-icons">logout</span>
@@ -130,7 +131,8 @@
           <img [src]="p.avatar" [alt]="p.name" class="player-tile-avatar" />
           <span class="you-chip" *ngIf="p.isCurrentUser">YOU</span>
         </div>
-        <span class="player-tile-name">{{ p.name }}</span>
+        <span class="player-tile-name" [style.margin-bottom]="p.isHost ? '0' : '8px'">{{ p.name }}</span>
+        <span class="host-badge" *ngIf="p.isHost">HOST</span>
       </div>
     </div>
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -55,11 +55,14 @@ export class MultiLobby implements OnInit, OnDestroy {
     }
     return { name: 'Classic Mode', icon: 'groups', desc: 'Standard competition' };
   }
-
+  get joinedPlayerCount(): number {
+    return this.players.filter(p => !p.isHost).length;
+  }
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private ws: WebsocketService
+    private ws: WebsocketService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   // ─────────────────────────────────────────
@@ -97,7 +100,7 @@ export class MultiLobby implements OnInit, OnDestroy {
 
   private loadCurrentUser(): void {
     // Đọc từ localStorage (do auth service lưu sau login)
-    const userStr = localStorage.getItem('currentUser');
+    const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
@@ -154,8 +157,8 @@ export class MultiLobby implements OnInit, OnDestroy {
 
     // Lắng nghe lỗi Websocket
     this.subs.add(
-      this.ws.on(''error'').subscribe((msg: any) => {
-        alert(msg.data || ''Lỗi kết nối phòng'');
+      this.ws.on('error').subscribe((msg: any) => {
+        alert(msg.data || 'Lỗi kết nối phòng');
         this.leaveRoom();
       })
     );
@@ -169,7 +172,8 @@ export class MultiLobby implements OnInit, OnDestroy {
           // Đánh dấu player hiện tại
           isCurrentUser: p.userId === this.currentUserId
         } as PlayerInfo & { isCurrentUser: boolean }));
-        console.log(`👥 Player joined. Total: ${this.players.length}`);
+        console.log(`👥 Player joined. Total: ${this.players.length}`, data);
+        this.cdr.detectChanges(); // Bắt buộc render lại giao diện
       })
     );
 
@@ -218,3 +222,4 @@ export class MultiLobby implements OnInit, OnDestroy {
     this.router.navigate(['/play/multi/mode']);
   }
 }
+

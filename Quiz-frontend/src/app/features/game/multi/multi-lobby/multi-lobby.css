@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 
@@ -24,20 +24,20 @@
 
 
 /* =============================================
-   HOST VIEW — BACKGROUND
+   HOST VIEW â€” BACKGROUND
    
    Classic:
-   - Base: #F5EEFF (tím rất nhạt)
-   - Blob trái: tím nhạt (~20% opacity)
-   - Blob dưới-phải: hồng nhạt #FFD6F0 (~30% opacity)
+   - Base: #F5EEFF (tÃ­m ráº¥t nháº¡t)
+   - Blob trÃ¡i: tÃ­m nháº¡t (~20% opacity)
+   - Blob dÆ°á»›i-pháº£i: há»“ng nháº¡t #FFD6F0 (~30% opacity)
    
    Focus:
    - Base: #F8EEFF
-   - Blob trái: tím nhạt
-   - Blob dưới-phải: hồng đậm hơn (~50% opacity)
+   - Blob trÃ¡i: tÃ­m nháº¡t
+   - Blob dÆ°á»›i-pháº£i: há»“ng Ä‘áº­m hÆ¡n (~50% opacity)
    
-   QUAN TRỌNG: KHÔNG dùng min-height: 100vh
-   → để footer hiển thị bình thường từ game-layout
+   QUAN TRá»ŒNG: KHÃ”NG dÃ¹ng min-height: 100vh
+   â†’ Ä‘á»ƒ footer hiá»ƒn thá»‹ bÃ¬nh thÆ°á»ng tá»« game-layout
    ============================================= */
 .host-view {
   position: relative;
@@ -52,7 +52,7 @@
 }
 
 
-/* Focus: blob hồng dưới đậm hơn */
+/* Focus: blob há»“ng dÆ°á»›i Ä‘áº­m hÆ¡n */
 .host-view.focus-bg {
   background:
     radial-gradient(ellipse 40% 60% at 0% 50%,   rgba(183,148,255,0.20) 0%, transparent 70%),
@@ -148,7 +148,7 @@
 }
 
 
-/* Classic: tím đặc #6B21E8 */
+/* Classic: tÃ­m Ä‘áº·c #6B21E8 */
 .classic-pill {
   background: #6B21E8;
   color: white;
@@ -156,7 +156,7 @@
 }
 
 
-/* Focus: gradient hồng→tím chính xác từ mẫu */
+/* Focus: gradient há»“ngâ†’tÃ­m chÃ­nh xÃ¡c tá»« máº«u */
 .focus-pill {
   background: linear-gradient(135deg, #d42083 );
   color: white;
@@ -333,8 +333,8 @@
 /* =============================================
    START GAME BUTTON
    
-   Classic: #5B21B6 — tím đậm (khớp màu title + PIN)
-   Focus:   #7B1FA2 → dùng gradient hồng→tím khớp focus-pill
+   Classic: #5B21B6 â€” tÃ­m Ä‘áº­m (khá»›p mÃ u title + PIN)
+   Focus:   #7B1FA2 â†’ dÃ¹ng gradient há»“ngâ†’tÃ­m khá»›p focus-pill
    ============================================= */
 .btn-start-game {
   display: inline-flex;
@@ -363,7 +363,7 @@
 }
 
 
-/* Focus START GAME: gradient đồng màu với focus-pill */
+/* Focus START GAME: gradient Ä‘á»“ng mÃ u vá»›i focus-pill */
 .btn-start-focus {
   background: linear-gradient(135deg, #E91E8C 0%, #9C27B0 100%);
   box-shadow: 0 6px 24px rgba(233,30,140,0.38);
@@ -380,8 +380,8 @@
 /* =============================================
    PLAYER VIEW
    
-   Background: #F9F0FF flat — đồng nhất Classic & Focus
-   KHÔNG dùng min-height: 100vh → footer hiện
+   Background: #F9F0FF flat â€” Ä‘á»“ng nháº¥t Classic & Focus
+   KHÃ”NG dÃ¹ng min-height: 100vh â†’ footer hiá»‡n
    ============================================= */
 .player-view {
   background-color: #F9F0FF;
@@ -392,7 +392,7 @@
 
 
 /* =============================================
-   PLAYER — WAITING ROOM BADGE
+   PLAYER â€” WAITING ROOM BADGE
    ============================================= */
 .wr-badge {
   display: inline-flex;
@@ -426,7 +426,7 @@
 
 
 /* =============================================
-   PLAYER — HERO ROW
+   PLAYER â€” HERO ROW
    ============================================= */
 .player-hero-row {
   display: flex;
@@ -453,7 +453,7 @@
 
 
 /* =============================================
-   PLAYER — INFO BOXES
+   PLAYER â€” INFO BOXES
    ============================================= */
 .player-hero-right {
   display: flex;
@@ -497,11 +497,11 @@
 }
 
 
-/* Classic pill — tím #6B21E8 */
+/* Classic pill â€” tÃ­m #6B21E8 */
 .info-mode-classic { background: #6B21E8; }
 
 
-/* Focus pill — gradient đồng màu focus-pill host */
+/* Focus pill â€” gradient Ä‘á»“ng mÃ u focus-pill host */
 .info-mode-focus {
   background: linear-gradient(135deg, #E91E8C );
 }
@@ -517,7 +517,7 @@
 
 
 /* =============================================
-   PLAYER — SECTION BAR
+   PLAYER â€” SECTION BAR
    ============================================= */
 .player-section-bar {
   display: flex;
@@ -545,11 +545,11 @@
 }
 
 
-/* Classic — tím */
+/* Classic â€” tÃ­m */
 .joined-count-classic { background: #9C27B0; }
 
 
-/* Focus — gradient hồng→tím */
+/* Focus â€” gradient há»“ngâ†’tÃ­m */
 .joined-count-focus {
   background: linear-gradient(135deg,#9C27B0 );
 }
@@ -576,7 +576,7 @@
 
 
 /* =============================================
-   PLAYER — PLAYERS GRID
+   PLAYER â€” PLAYERS GRID
    ============================================= */
 .player-players-grid {
   display: grid;
@@ -650,7 +650,7 @@
 
 
 /* =============================================
-   PLAYER — PRO TIP
+   PLAYER â€” PRO TIP
    ============================================= */
 .pro-tip-box {
   background: white;
@@ -718,4 +718,6 @@
   .player-hero-row { flex-direction: column; }
   .player-hero-right { width: 100%; }
   .info-box { flex: 1; min-width: unset; }
-}
+} 
+.host-badge { background: #7339e1; color: white; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 99px; letter-spacing: 0.5px; line-height: 1; margin-top: -6px; }
+
