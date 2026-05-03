@@ -68,7 +68,7 @@ export class GameRoom implements OnInit, OnDestroy {
     const ratio = this.timeLeft / max;
     return 283 - (283 * ratio);
   }
-
+  
   private apiUrl = `http://${window.location.hostname}:8080/api`;
 
   constructor(
@@ -104,6 +104,12 @@ export class GameRoom implements OnInit, OnDestroy {
   }
 
   private init(): void {
+    // Đọc lại danh sách Player từ Lobby truyền qua
+    const storedPlayers = sessionStorage.getItem('roomPlayers');
+    if (storedPlayers) {
+        this.players = JSON.parse(storedPlayers);
+    }
+
     this.listenToWsEvents();
     if (this.isHost) {
       this.loadQuiz();
@@ -188,8 +194,8 @@ export class GameRoom implements OnInit, OnDestroy {
     );
 
     this.subs.add(
-      this.ws.on('player_list_update').subscribe((msg: any) => {
-        this.players = msg.data.players
+      this.ws.on('score_update').subscribe((msg: any) => {
+        this.players = msg.data
           .map((p: any) => ({ ...p, isCurrentUser: p.userId === this.currentUserId }))
           .sort((a: any, b: any) => b.score - a.score);
       })
@@ -217,7 +223,7 @@ export class GameRoom implements OnInit, OnDestroy {
     this.ws.sendQuestion(this.gamePin, this.currentUserId, {
       index:          this.currentQuestionIdx,
       content:        q.content,
-      answers:        q.options.map((o: any) => ({ text: o.text })),
+      answers:        q.options.map((o: any) => ({ text: o.text, is_correct: o.is_correct })),
       timeLimit:      q.time_limit,
       points:         q.points,
       multipleCorrect: q.multiple_correct
@@ -226,6 +232,7 @@ export class GameRoom implements OnInit, OnDestroy {
   }
 
   private startCountdown(): void {
+    this.clearTimers(); // Dọn dẹp Interval bị kẹt
     this.gamePhase = 'countdown';
     this.countdown = 3;
     this.selectedAnswers = [];
@@ -258,6 +265,7 @@ export class GameRoom implements OnInit, OnDestroy {
       if (this.timeLeft <= 0) {
         clearInterval(this.questionTimer);
         if (!this.isHost && !this.hasAnswered) {
+          this.gamePhase = 'answer_reveal';
           this.submitAnswer();
         }
         if (this.isHost) {
@@ -284,17 +292,39 @@ export class GameRoom implements OnInit, OnDestroy {
 
   submitAnswer(): void {
     if (this.hasAnswered) return;
-    const q = this.currentQuestion;
+    const q = this.currentQuestion; // The one containing is_correct from prepareQuestion
     if (!q) return;
 
     this.hasAnswered = true;
     
     if (!this.isHost) {
-        let timeBonus = 0;
-        if (this.timeLeft > 0) {
-            timeBonus = Math.floor(q.points * (this.timeLeft / q.time_limit));
+        let isCorrectLocal = false;
+        const correctIndices = q.options
+          .map((a: any, idx: number) => a.is_correct ? idx : -1)
+          .filter((idx: number) => idx !== -1);
+        
+        if (q.multiple_correct) {
+          if (correctIndices.length === this.selectedAnswers.length && 
+              this.selectedAnswers.every((ans: any) => correctIndices.indexOf(ans) !== -1)) {
+            isCorrectLocal = true;
+          }
+        } else {
+          if (correctIndices.indexOf(this.selectedAnswers[0]) !== -1) {
+            isCorrectLocal = true;
+          }
         }
-        this.ws.submitAnswer(this.gamePin, this.currentUserId, { questionIdx: this.currentQuestionIdx, answerIdx: this.selectedAnswers, isCorrect: false /* FIXME */, points: timeBonus, timeUsed: q.time_limit - this.timeLeft });
+
+        let timeBonus = 0;
+        if (isCorrectLocal && this.timeLeft > 0) {
+            timeBonus = q.points; 
+        }
+        this.ws.submitAnswer(this.gamePin, this.currentUserId, { 
+            questionIdx: this.currentQuestionIdx,
+            answerIdx: this.selectedAnswers, 
+            isCorrect: isCorrectLocal,
+            points: timeBonus,
+            timeUsed: q.time_limit - this.timeLeft
+        });
     }
   }
 
@@ -339,7 +369,7 @@ export class GameRoom implements OnInit, OnDestroy {
   }
 
   playerCardClass(idx: number): any {
-    const isSelected = this.selectedAnswers.includes(idx);
+    const isSelected = this.selectedAnswers.indexOf(idx) !== -1;
 
     if (this.gameMode === 'focus') {
       const base = 'focus-card';

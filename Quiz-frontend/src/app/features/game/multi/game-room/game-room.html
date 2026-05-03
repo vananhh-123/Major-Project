@@ -298,14 +298,3 @@
 
 </div>
 
-  <!-- Màn hình chờ nếu phase load -->
-  <div style="text-align:center; padding-top: 100px" *ngIf="gamePhase === 'loading' || gamePhase === 'countdown'">
-      <div *ngIf="gamePhase === 'countdown'">
-          <h1 style="font-size: 100px; color:#7C3AED">{{ countdown }}</h1>
-          <p>Get ready!</p>
-      </div>
-      <div *ngIf="gamePhase === 'loading'">
-          <h2>Waiting for host to start...</h2>
-      </div>
-  </div>
-
