@@ -3,7 +3,7 @@
 
 /* ================================================================
    ROOT BACKGROUND
-   Design: tím nh?t bên trái, h?ng nh?t góc ph?i du?i
+   Design: tï¿½m nh?t bï¿½n trï¿½i, h?ng nh?t gï¿½c ph?i du?i
 ================================================================ */
 .gr-root {
   font-family: 'Inter', sans-serif;
@@ -22,7 +22,7 @@
 }
 
 /* ================================================================
-   HOST LAYOUT — trái r?ng / ph?i 264px
+   HOST LAYOUT ï¿½ trï¿½i r?ng / ph?i 264px
 ================================================================ */
 .host-layout {
   display: grid;
@@ -87,7 +87,7 @@
 .player-question-card { margin-bottom: 16px; }
 
 /* ================================================================
-   ANSWERS GRID — 2 × 2
+   ANSWERS GRID ï¿½ 2 ï¿½ 2
 ================================================================ */
 .answers-grid {
   display: grid;
@@ -140,8 +140,13 @@
 }
 /* Decorative icon */
 .ans-icon {
-  font-size: 48px;
-  color: rgba(255,255,255,0.18);
+  font-family: 'Inter', sans-serif;
+  position: absolute;
+  right: -5px;
+  bottom: -20px;
+  font-size: 80px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.15);
   flex-shrink: 0;
   pointer-events: none;
 }
@@ -168,7 +173,7 @@
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%) !important;
 }
 
-/* SELECTED (player focus — chua reveal) */
+/* SELECTED (player focus ï¿½ chua reveal) */
 .ans-card.ans-selected {
   box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(109,40,217,0.55);
 }
@@ -181,8 +186,8 @@
 }
 
 /* ================================================================
-   FOCUS PLAYER CARD — ch? hi?n ch? cái, card cao
-   FIX: pointer-events: none trên icon d? không block click
+   FOCUS PLAYER CARD ï¿½ ch? hi?n ch? cï¿½i, card cao
+   FIX: pointer-events: none trï¿½n icon d? khï¿½ng block click
 ================================================================ */
 .ans-card.focus-card {
   height: 160px;
@@ -220,8 +225,8 @@
 
 /* ================================================================
    HOST BOTTOM BUTTONS
-   Classic & Focus d?u có: SHOW ANSWER (h?ng) + NEXT QUESTION (tím)
-   N?m du?i grid answers, can trái theo c?t trái
+   Classic & Focus d?u cï¿½: SHOW ANSWER (h?ng) + NEXT QUESTION (tï¿½m)
+   N?m du?i grid answers, can trï¿½i theo c?t trï¿½i
 ================================================================ */
 .host-bottom-btns {
   display: flex;
@@ -268,7 +273,7 @@
 .btn-next-question .material-icons { font-size: 16px; }
 
 /* ================================================================
-   RIGHT SIDEBAR — TIMER CARD
+   RIGHT SIDEBAR ï¿½ TIMER CARD
 ================================================================ */
 .timer-card {
   background: white;
@@ -460,8 +465,8 @@
 .avatar-btn .material-icons { font-size: 18px; }
 
 /* ================================================================
-   CLASSIC — dimmed-correct: card dúng nhung player không ch?n
-   Hi?n nh? d? player bi?t dâu là dáp án dúng
+   CLASSIC ï¿½ dimmed-correct: card dï¿½ng nhung player khï¿½ng ch?n
+   Hi?n nh? d? player bi?t dï¿½u lï¿½ dï¿½p ï¿½n dï¿½ng
 ================================================================ */
 .ans-card.ans-dimmed-correct {
   opacity: 0.55;
@@ -469,10 +474,10 @@
 }
 
 /* ================================================================
-   FOCUS — Kahoot style: sau khi player ch?n
+   FOCUS ï¿½ Kahoot style: sau khi player ch?n
 ================================================================ */
 
-/* Card du?c ch?n ÐÚNG ? green override */
+/* Card du?c ch?n ï¿½ï¿½NG ? green override */
 .ans-card.focus-answered-correct {
   background: linear-gradient(135deg, #15803D 0%, #22C55E 100%) !important;
   cursor: default !important;
@@ -513,7 +518,7 @@
   100% { transform: scale(1);   opacity: 1; }
 }
 
-/* Letter nh? bên c?nh icon result */
+/* Letter nh? bï¿½n c?nh icon result */
 .focus-letter-small {
   width: 44px !important; height: 44px !important;
   font-size: 20px !important;
@@ -523,7 +528,7 @@
 }
 
 /* ================================================================
-   FOCUS FEEDBACK BANNER — xu?t hi?n phía trên grid sau khi ch?n
+   FOCUS FEEDBACK BANNER ï¿½ xu?t hi?n phï¿½a trï¿½n grid sau khi ch?n
 ================================================================ */
 .focus-feedback-banner {
   display: flex;
@@ -570,8 +575,8 @@
 }
 
 /* ================================================================
-   CLASSIC — RESULT BAR (Wayground style)
-   Xu?t hi?n sau khi player ch?n dáp án, n?m gi?a grid và stats bar
+   CLASSIC ï¿½ RESULT BAR (Wayground style)
+   Xu?t hi?n sau khi player ch?n dï¿½p ï¿½n, n?m gi?a grid vï¿½ stats bar
 ================================================================ */
 .classic-result-bar {
   display: flex;

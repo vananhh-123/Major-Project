@@ -35,6 +35,10 @@ export class GameRoom implements OnInit, OnDestroy {
 
   questions: Question[] = [];
   currentQuestionIdx: number = 0;
+  get nonHostPlayersCount(): number {
+    return this.players.filter(p => !p.isHost).length;
+  }
+
   get currentQuestion(): Question | null {
     return this.questions[this.currentQuestionIdx] || null;
   }
@@ -114,7 +118,7 @@ export class GameRoom implements OnInit, OnDestroy {
           ...q,
           options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
         })) || [];
-        this.startCountdown();
+        this.prepareQuestion();
       },
       error: (err) => console.error('Load quiz error:', err)
     });
@@ -205,6 +209,22 @@ export class GameRoom implements OnInit, OnDestroy {
     );
   }
 
+  private prepareQuestion(): void {
+    if (!this.isHost) return;
+    const q = this.currentQuestion;
+    if (!q) return;
+
+    this.ws.sendQuestion(this.gamePin, this.currentUserId, {
+      index:          this.currentQuestionIdx,
+      content:        q.content,
+      answers:        q.options.map((o: any) => ({ text: o.text })),
+      timeLimit:      q.time_limit,
+      points:         q.points,
+      multipleCorrect: q.multiple_correct
+    });
+    this.startCountdown();
+  }
+
   private startCountdown(): void {
     this.gamePhase = 'countdown';
     this.countdown = 3;
@@ -231,17 +251,6 @@ export class GameRoom implements OnInit, OnDestroy {
     this.gamePhase = 'question';
     this.timeLeft = q.time_limit;
     this.cdr.detectChanges();
-
-    if (this.isHost) {
-      this.ws.sendQuestion(this.gamePin, this.currentUserId, {
-        index:          this.currentQuestionIdx,
-        content:        q.content,
-        answers:        q.options.map(o => ({ text: o.text })),
-        timeLimit:      q.time_limit,
-        points:         q.points,
-        multipleCorrect: q.multiple_correct
-      });
-    }
 
     this.questionTimer = setInterval(() => {
       this.timeLeft--;
@@ -285,7 +294,7 @@ export class GameRoom implements OnInit, OnDestroy {
         if (this.timeLeft > 0) {
             timeBonus = Math.floor(q.points * (this.timeLeft / q.time_limit));
         }
-        this.ws.submitAnswer(this.gamePin, this.currentUserId, this.selectedAnswers, timeBonus);
+        this.ws.submitAnswer(this.gamePin, this.currentUserId, { questionIdx: this.currentQuestionIdx, answerIdx: this.selectedAnswers, isCorrect: false /* FIXME */, points: timeBonus, timeUsed: q.time_limit - this.timeLeft });
     }
   }
 
@@ -298,14 +307,14 @@ export class GameRoom implements OnInit, OnDestroy {
     if (!q) return;
     
     const correctIndices = q.options.map((o, idx) => o.is_correct ? idx : -1).filter(i => i !== -1);
-    this.ws.revealAnswer(this.gamePin, this.currentUserId, correctIndices);
+    this.ws.send({ action: "reveal_answer", roomId: this.gamePin, userId: this.currentUserId, data: { correctIndices } });
   }
 
   nextQuestionOrEnd(): void {
     if (!this.isHost) return;
     if (this.currentQuestionIdx + 1 < this.questions.length) {
       this.currentQuestionIdx++;
-      this.startCountdown();
+      this.prepareQuestion();
     } else {
       this.endGameNow();
     }
