@@ -59,7 +59,7 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   }
 
   loadQuizFromAPI() {
-    this.http.get('http://localhost:8080/api/quizzes/' + this.quizId).subscribe({
+    this.http.get('http://127.0.0.1:8080/api/quizzes/' + this.quizId).subscribe({
       next: (res: any) => {
         console.log('Quiz Data Loaded from API:', res);
         if (res && res.questions && res.questions.length > 0) {

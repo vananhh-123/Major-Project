@@ -75,7 +75,7 @@ export class Profile implements OnInit {
   }
 
   fetchUserStats() {
-    this.http.get<any>(`http://localhost:8080/api/stats/${this.user.id}`).subscribe({
+    this.http.get<any>(`http://127.0.0.1:8080/api/stats/${this.user.id}`).subscribe({
       next: (res) => {
         this.stats = res;
         this.updateDisplayedStats();
@@ -85,7 +85,7 @@ export class Profile implements OnInit {
   }
 
   fetchUserHistory() {
-    this.http.get<any[]>(`http://localhost:8080/api/users/${this.user.id}/history`).subscribe({
+    this.http.get<any[]>(`http://127.0.0.1:8080/api/users/${this.user.id}/history`).subscribe({
       next: (history) => {
         if (history) {
            this.rawHistory = history;
@@ -168,7 +168,7 @@ export class Profile implements OnInit {
   }
 
   fetchMyQuizzes() {
-    this.http.get<any[]>('http://localhost:8080/api/quizzes').subscribe({
+    this.http.get<any[]>('http://127.0.0.1:8080/api/quizzes').subscribe({
       next: (allQuizzes) => {
         // Nếu user.id rỗng (chưa đăng nhập chuẩn), hiện tất cả. Nếu có, hiện những cái khớp ID hoặc không có ID (quá khứ)
         const myQuizzes = allQuizzes.filter(q => (this.user.id && q.created_by === this.user.id) || (q.creator && q.creator.id === this.user.id) || (!q.creator && q.created_by && q.created_by !== null)); 

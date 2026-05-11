@@ -23,11 +23,11 @@ export class Dashboard implements OnInit {
     try {
       // Get all quizzes
       const res: any = await firstValueFrom(
-        this.http.get('http://localhost:8080/api/quizzes')
+        this.http.get('http://127.0.0.1:8080/api/quizzes')
       );
       
       if (res && Array.isArray(res)) {
-        // Ch? hi?n th? các quiz c?a Admin d?a vào email (?n d?nh hon username vì username có th? thay d?i)
+        // Ch? hi?n th? cï¿½c quiz c?a Admin d?a vï¿½o email (?n d?nh hon username vï¿½ username cï¿½ th? thay d?i)
         const adminQuizzes = res.filter(q => q.creator && q.creator.email === 'just4quiz@gmail.com');
 
         // L?y t?i da 4 quiz

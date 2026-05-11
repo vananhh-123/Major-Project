@@ -62,7 +62,7 @@ export class WebsocketService {
     this.currentRoomId = roomId;
     this.currentUserId = userId;
 
-    const host = window.location.hostname;
+    const host = '127.0.0.1';
     const url = `ws://${host}:8080/api/ws?roomId=${roomId}&userId=${userId}`;
     this.socket = new WebSocket(url);
 

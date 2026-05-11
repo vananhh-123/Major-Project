@@ -314,7 +314,21 @@ func (h *Hub) handleSubmitAnswer(client *Client, data map[string]interface{}) {
 		Data:   h.getPlayerList(roomID),
 	})
 
-	fmt.Printf("[ROOM %s] %s answered Q%v. Correct: %v\n", roomID, client.UserID, int(questionIdx), isCorrect)
+	h.sendToClient(roomID, state.HostID, Message{
+                Action: "player_answered",
+                RoomID: roomID,
+                UserID: "SYSTEM",
+                Data:   map[string]interface{}{"userId": client.UserID},
+        })
+
+        h.sendToClient(roomID, state.HostID, Message{
+                Action: "player_answered",
+                RoomID: roomID,
+                UserID: "SYSTEM",
+                Data:   map[string]interface{}{"userId": client.UserID},
+        })
+
+        fmt.Printf("[ROOM %s] %s answered Q%v. Correct: %v\n", roomID, client.UserID, int(questionIdx), isCorrect)
 }
 
 // handleEndGame: Host kết thúc game

@@ -30,7 +30,7 @@ export class Review implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private quizService = inject(QuizService);
   private cdr = inject(ChangeDetectorRef);
-  private apiUrl = 'http://' + window.location.hostname + ':8080/api';
+  private apiUrl = 'http://' + '127.0.0.1' + ':8080/api';
 
   ngOnInit(): void {
     // 1. Lấy ID từ snapshot cho lần đầu load hoặc F5

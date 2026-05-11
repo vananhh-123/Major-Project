@@ -23,9 +23,9 @@ export class QuizDetail implements OnInit {
   selectedVisibility: string = 'private';
   quizId: string = '';
   currentUser: any = null;
-  apiUrl = 'http://' + window.location.hostname + ':8080/api';
+  apiUrl = 'http://' + '127.0.0.1' + ':8080/api';
 
-  // D? li?u cho danh sách Review (Dành cho Guest)
+  // D? li?u cho danh sï¿½ch Review (Dï¿½nh cho Guest)
   reviews: any[] = [];
   sortBy = 'latest';
 

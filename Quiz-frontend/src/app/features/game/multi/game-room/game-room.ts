@@ -32,6 +32,7 @@ export class GameRoom implements OnInit, OnDestroy {
   gamePin: string = '';
   quizId: string = '';
   currentUserId: string = '';
+  playerWaiting: boolean = false;
 
   questions: Question[] = [];
   currentQuestionIdx: number = 0;
@@ -69,7 +70,7 @@ export class GameRoom implements OnInit, OnDestroy {
     return 283 - (283 * ratio);
   }
   
-  private apiUrl = `http://${window.location.hostname}:8080/api`;
+  private apiUrl = `http://${'127.0.0.1'}:8080/api`;
 
   constructor(
     private router: Router,
@@ -133,8 +134,9 @@ export class GameRoom implements OnInit, OnDestroy {
   private listenToWsEvents(): void {
     this.subs.add(
       this.ws.on('question').subscribe((msg: any) => {
-        const q = msg.data;
-        if (!this.isHost) {
+          const q = msg.data;
+          this.playerWaiting = false;
+          if (!this.isHost) {
           this.questions = [];
           this.currentQuestionIdx = q.index;
           this.questions[q.index] = {
@@ -162,8 +164,8 @@ export class GameRoom implements OnInit, OnDestroy {
     this.subs.add(
       this.ws.on('answer_result').subscribe((msg: any) => {
           if (!this.isHost) {
-              this.lastAnswerResult = msg.data.result;
-              if (this.lastAnswerResult && this.lastAnswerResult.totalScore) {
+              this.lastAnswerResult = msg.data;
+              if (this.lastAnswerResult && this.lastAnswerResult.totalScore !== undefined) {
                   this.playerScore = this.lastAnswerResult.totalScore;
               }
               const correctAnswers = msg.data.correctAnswers || [];
@@ -208,7 +210,7 @@ export class GameRoom implements OnInit, OnDestroy {
         sessionStorage.setItem('finalScores', JSON.stringify(msg.data.finalScores));
         setTimeout(() => {
           this.router.navigate(['/play/result'], {
-            queryParams: { pin: this.gamePin, mode: this.gameMode }
+            queryParams: { pin: this.gamePin, mode: this.gameMode, role: this.isHost ? 'host' : 'player' }
           });
         }, 2000);
       })
@@ -288,6 +290,10 @@ export class GameRoom implements OnInit, OnDestroy {
       this.selectedAnswers = [idx];
       this.submitAnswer();
     }
+  }
+
+  playerWaitNext(): void {
+    this.playerWaiting = true;
   }
 
   submitAnswer(): void {

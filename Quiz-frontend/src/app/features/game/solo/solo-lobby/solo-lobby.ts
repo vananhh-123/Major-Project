@@ -44,7 +44,7 @@ export class SoloLobby implements OnInit {
         // Fetch from API when routing natively without state caching
         try {
           const res: any = await firstValueFrom(
-            this.http.get(`http://localhost:8080/api/quizzes/${this.quizId}`)
+            this.http.get(`http://127.0.0.1:8080/api/quizzes/${this.quizId}`)
           );
           if (res) {
             this.quizTitle = res.title || 'Untitled Quiz';

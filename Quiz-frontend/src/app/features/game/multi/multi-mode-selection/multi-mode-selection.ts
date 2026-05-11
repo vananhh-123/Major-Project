@@ -48,4 +48,3 @@ export class MultiModeSelection implements OnInit {
     });
   }
 }
-
