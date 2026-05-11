@@ -1,4 +1,4 @@
-﻿import { Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 
 // Layouts
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
@@ -39,7 +39,7 @@ import { GameRoomComponent as SoloGameRoom } from './features/game/solo/game-roo
 import { MultiModeSelection } from './features/game/multi/multi-mode-selection/multi-mode-selection';
 import { GameRoom as MultiGameRoom } from './features/game/multi/game-room/game-room';
 export const routes: Routes = [
-  // Nhóm 1: Các trang không có Header phức tạp (Sử dụng AuthLayout)
+  // Nh�m 1: C�c trang kh�ng c� Header ph?c t?p (S? d?ng AuthLayout)
   {
     path: '',
     component: AuthLayout,
@@ -50,7 +50,7 @@ export const routes: Routes = [
     ]
   },
 
-  // Nhóm 2: Các trang chính của ứng dụng (Sử dụng MainLayout - Có Header/Footer)
+  // Nh�m 2: C�c trang ch�nh c?a ?ng d?ng (S? d?ng MainLayout - C� Header/Footer)
   {
     path: 'app',
     component: MainLayout,
@@ -67,7 +67,7 @@ export const routes: Routes = [
     ]
   },
 
-  // Nhóm 3: Các trang khi đang tham gia trò chơi (Sử dụng GameLayout)
+  // Nh�m 3: C�c trang khi dang tham gia tr� choi (S? d?ng GameLayout)
   {
     path: 'play',
     component: GameLayout,
@@ -75,17 +75,17 @@ export const routes: Routes = [
       { path: 'mode', component: ModeSelection },
       { path: 'result', component: Result },
       
-      // Khai báo route cho Solo Mode
+      // Khai b�o route cho Solo Mode
       { path: 'solo/lobby', component: SoloLobby },
       { path: 'solo/room', component: SoloGameRoom },
 
-      // Khai báo route cho Multi Mode
+      // Khai b�o route cho Multi Mode
       { path: 'multi/mode', component: MultiModeSelection },
       { path: 'multi/lobby', component: MultiLobby },
       { path: 'multi/room', component: MultiGameRoom },
     ]
   },
 
-  // Đường dẫn mặc định khi nhập sai URL
+  // �u?ng d?n m?c d?nh khi nh?p sai URL
   { path: '**', redirectTo: '' }
 ];

@@ -39,7 +39,7 @@ export class Register implements OnInit {
   handleGoogleLogin(response: any) {
     if (response.credential) {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-      this.http.post('http://127.0.0.1:8080/auth/google', { token: response.credential }, { headers }).subscribe({
+      this.http.post('http://10.106.34.149:8080/auth/google', { token: response.credential }, { headers }).subscribe({
         next: (res: any) => {
           this.ngZone.run(() => {
             if (res?.user) {
@@ -68,7 +68,7 @@ export class Register implements OnInit {
       return;
     }
     
-    this.http.post('http://127.0.0.1:8080/auth/register', {
+    this.http.post('http://10.106.34.149:8080/auth/register', {
       username: this.username,
       email: this.email,
       password: this.password

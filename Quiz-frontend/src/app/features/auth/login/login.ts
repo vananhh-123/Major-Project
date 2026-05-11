@@ -38,7 +38,7 @@ export class Login implements OnInit {
   handleGoogleLogin(response: any) {
     if (response.credential) {
       // Gọi API Backend của chúng ta với token từ Google
-      this.http.post('http://127.0.0.1:8080/auth/google', { token: response.credential }).subscribe({
+      this.http.post('http://10.106.34.149:8080/auth/google', { token: response.credential }).subscribe({
         next: (res: any) => {
           this.ngZone.run(() => {
             console.log('Google Login success:', res);
@@ -72,7 +72,7 @@ export class Login implements OnInit {
       return;
     }
     
-    this.http.post('http://127.0.0.1:8080/auth/login', {
+    this.http.post('http://10.106.34.149:8080/auth/login', {
       email: this.email,
       password: this.password
     }).subscribe({

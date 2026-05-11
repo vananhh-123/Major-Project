@@ -5,12 +5,12 @@
     <div class="header-controls">
       <div class="search-bar">
         <span class="material-icons">search</span>
-        <input type="text" placeholder="Search champion...">
+        <input type="text" placeholder="Search champion..." [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" />
       </div>
       <div class="tab-filters">
-        <button class="active">Weekly</button>
-        <button>Monthly</button>
-        <button>All Time</button>
+        <button [class.active]="activeTab === 'weekly'" (click)="setTab('weekly')">Weekly</button>
+        <button [class.active]="activeTab === 'monthly'" (click)="setTab('monthly')">Monthly</button>
+        <button [class.active]="activeTab === 'all'" (click)="setTab('all')">All Time</button>
       </div>
     </div>
   </header>

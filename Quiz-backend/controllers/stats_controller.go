@@ -20,6 +20,13 @@ type StatsResponse struct {
 	Multi ModeStats `json:"multi"`
 }
 
+type LeaderboardEntry struct {
+	Rank   int    `json:"rank"`
+	Name   string `json:"name"`
+	Points int    `json:"points"`
+	Avatar string `json:"avatar"`
+}
+
 func GetUserStats(c *gin.Context) {
 	userId := c.Param("id")
 
@@ -167,4 +174,41 @@ func GetUserHistory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, history)
+}
+
+func GetLeaderboard(c *gin.Context) {
+	period := c.DefaultQuery("period", "all")
+	search := c.DefaultQuery("q", "")
+
+	var results []LeaderboardEntry
+
+	// Kết hợp bảng results và bảng users để lấy username, avatar và tổng điểm (points)
+	query := config.DB.Table("results").
+		Select("users.username as name, sum(results.score) as points, users.avatar as avatar").
+		Joins("left join users on users.id = results.user_id")
+
+	// Bộ lọc thời gian thực tế
+	if period == "weekly" {
+		query = query.Where("results.created_at >= CURRENT_DATE - INTERVAL '7 days'")
+	} else if period == "monthly" {
+		query = query.Where("results.created_at >= CURRENT_DATE - INTERVAL '1 month'")
+	}
+
+	// Bộ lọc nhập tên (LIKE)
+	if search != "" {
+		query = query.Where("users.username ILIKE ?", "%"+search+"%")
+	}
+
+	// Gom nhóm và sắp xếp từ trên xuống dưới theo điểm
+	query.Group("users.username, users.avatar").
+		Order("points DESC").
+		Limit(100).
+		Scan(&results)
+
+	// Ấn định thứ hạng
+	for i := range results {
+		results[i].Rank = i + 1
+	}
+
+	c.JSON(http.StatusOK, results)
 }

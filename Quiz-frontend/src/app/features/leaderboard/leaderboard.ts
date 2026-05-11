@@ -1,28 +1,110 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+
+export interface LeaderboardUser {
+  rank: number;
+  name: string;
+  points: number;
+  avatar: string;
+}
+
+export interface Champion {
+  rank: number;
+  name: string;
+  img: string;
+  title?: string;
+  points: number;
+}
+
+export interface RankingItem {
+  rank: number;
+  img: string;
+  name: string;
+  badge?: string;
+  subtitle?: string;
+  points: number;
+  trendDown?: boolean;
+  trend?: string;
+  isUser?: boolean;
+}
 
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './leaderboard.html',
-  styleUrl: './leaderboard.css',
+  styleUrls: ['./leaderboard.css']
 })
-export class Leaderboard {
-  topChampions = [
-    { rank: 2, name: 'Marcus Chen', points: '14,250', img: '/User.png', color: 'silver' },
-    { rank: 1, name: 'Sophia Vancity', points: '18,920', img: '/User.png', color: 'gold', title: 'Master Quizzer' },
-    { rank: 3, name: 'Elena Rodriguez', points: '12,800', img: '/User.png', color: 'bronze' }
-  ];
+export class Leaderboard implements OnInit {
+  private http = inject(HttpClient);
+  
+  searchQuery: string = '';
+  activeTab: 'weekly' | 'monthly' | 'all' = 'all';
 
-  rankings = [
-    { rank: '04', name: 'Liam Wilson', subtitle: '82 Quizzes Completed', badge: 'TOP PERFORMER', points: '11,400', trend: '+2 ranks', img: '/User.png' },
-    { rank: '05', name: 'Aria Thorne', subtitle: '12 Day Streak', badge: 'CONSISTENT', points: '10,950', trend: 'STABLE', img: '/User.png' },
-    { rank: '06', name: 'Jordan Smith', subtitle: 'History Buff', points: '9,820', trend: '-1 rank', trendDown: true, img: '/User.png' },
-    { rank: '07', name: 'Alex Rivera (You)', subtitle: 'Current Rank', badge: 'RISING STAR', points: '8,440', trend: '+5 ranks', isUser: true, img: '/User.png' },
-    { rank: '08', name: 'Leo Kim', subtitle: 'Science Expert', points: '7,100', trend: 'STABLE', img: '/User.png' },
-    { rank: '09', name: 'Mia Tran', subtitle: 'Math Genius', points: '6,850', trend: 'UP', img: '/User.png' },
-    { rank: '10', name: 'David Nguyen', subtitle: 'History Buff', points: '6,500', trend: 'DOWN', img: '/User.png' },
-    { rank: '11', name: 'Anna Pham', subtitle: 'Tech Enthusiast', points: '6,200', trend: 'STABLE', img: '/User.png' }
-  ];
+  topChampions: Champion[] = [];
+  rankings: RankingItem[] = [];
+
+  ngOnInit() {
+    // Tải dữ liệu lần đầu tiên truy cập
+    this.fetchLeaderboard();
+  }
+
+  setTab(tab: 'weekly' | 'monthly' | 'all') {
+    this.activeTab = tab;
+    this.fetchLeaderboard();
+  }
+
+  onSearch() {
+    this.fetchLeaderboard();
+  }
+
+  fetchLeaderboard() {
+    // Chèn params để gửi lên Backend
+    const url = `http://localhost:8080/api/leaderboard?period=${this.activeTab}&q=${this.searchQuery}`;
+    
+    this.http.get<LeaderboardUser[]>(url).subscribe({
+      next: (res) => {
+        const data = res || [];
+
+        // 1. Tổ chức dữ liệu cho Top 3 (Champions)
+        const top3 = data.slice(0, 3);
+        const arrangedTop: Champion[] = [];
+
+        const mapToChampion = (u: LeaderboardUser): Champion => ({
+          rank: u.rank,
+          name: u.name,
+          img: u.avatar || 'assets/default-avatar.png',
+          title: u.rank === 1 ? 'Quiz Master' : 'Pro Player',
+          points: u.points
+        });
+
+        if (top3.length > 0) {
+            // Sắp xếp dạng bục: Hạng 2 -> Hạng 1 -> Hạng 3
+            if (top3[1]) arrangedTop.push(mapToChampion(top3[1]));
+            if (top3[0]) arrangedTop.push(mapToChampion(top3[0]));
+            if (top3[2]) arrangedTop.push(mapToChampion(top3[2]));
+        }
+        this.topChampions = arrangedTop;
+
+        // 2. Tổ chức dữ liệu cho List Ranking (Từ hạng 4 trở đi)
+        this.rankings = data.slice(3).map(u => ({
+          rank: u.rank,
+          img: u.avatar || 'assets/default-avatar.png',
+          name: u.name,
+          badge: u.points > 1000 ? 'TOP PERFORMER' : '', // Giả lập dữ liệu badge
+          subtitle: 'Active Player',
+          points: u.points,
+          trend: 'STABLE', 
+          trendDown: false,
+          isUser: false // Hiện tại giả lập false, có thể so user hiện tại từ localstorage sau
+        }));
+      },
+      error: (err) => {
+        console.error("Lỗi lấy dữ liệu bảng xếp hạng từ backend:", err);
+      }
+    });
+  }
 }

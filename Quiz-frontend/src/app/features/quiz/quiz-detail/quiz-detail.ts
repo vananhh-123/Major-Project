@@ -23,7 +23,7 @@ export class QuizDetail implements OnInit {
   selectedVisibility: string = 'private';
   quizId: string = '';
   currentUser: any = null;
-  apiUrl = 'http://' + '127.0.0.1' + ':8080/api';
+  apiUrl = 'http://' + '10.106.34.149' + ':8080/api';
 
   // D? li?u cho danh s�ch Review (D�nh cho Guest)
   reviews: any[] = [];

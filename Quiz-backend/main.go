@@ -26,6 +26,8 @@ func main() {
 
 	r := gin.Default()
 
+	r.GET("/api/leaderboard", controllers.GetLeaderboard)
+
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
 		AllowMethods:    []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},

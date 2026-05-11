@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -119,7 +119,7 @@ export class Result implements OnInit {
 
     console.log("Saving result payload:", resultPayload);
 
-    this.http.post('http://localhost:8080/api/results', resultPayload).subscribe({
+    this.http.post('http://10.106.34.149:8080/api/results', resultPayload).subscribe({
       next: (response) => {
         console.log('Result saved successfully', response);
       },

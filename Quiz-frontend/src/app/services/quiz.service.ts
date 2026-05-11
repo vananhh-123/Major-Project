@@ -26,7 +26,7 @@ export interface CreateQuizPayload {
 })
 export class QuizService {
   private http = inject(HttpClient);
-  private apiUrl = `http://${'127.0.0.1'}:8080/api`; // Go Backend API
+  private apiUrl = `http://${'10.106.34.149'}:8080/api`; // Go Backend API
 
   createQuiz(payload: CreateQuizPayload): Observable<any> {
     return this.http.post(`${this.apiUrl}/quizzes`, payload);

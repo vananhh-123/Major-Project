@@ -70,7 +70,7 @@ export class GameRoom implements OnInit, OnDestroy {
     return 283 - (283 * ratio);
   }
   
-  private apiUrl = `http://${'127.0.0.1'}:8080/api`;
+  private apiUrl = `http://${'10.106.34.149'}:8080/api`;
 
   constructor(
     private router: Router,
