@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { API_CONFIG } from '../../../config/api.config';
 
 @Component({
   selector: 'app-result',
@@ -119,7 +120,7 @@ export class Result implements OnInit {
 
     console.log("Saving result payload:", resultPayload);
 
-    this.http.post('http://10.106.34.149:8080/api/results', resultPayload).subscribe({
+    this.http.post(API_CONFIG.ENDPOINTS.RESULTS, resultPayload).subscribe({
       next: (response) => {
         console.log('Result saved successfully', response);
       },
@@ -129,3 +130,4 @@ export class Result implements OnInit {
     });
   }
 }
+

@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { API_CONFIG } from '../../config/api.config';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,15 +24,15 @@ export class Dashboard implements OnInit {
     try {
       // Get all quizzes
       const res: any = await firstValueFrom(
-        this.http.get('http://10.106.34.149:8080/api/quizzes')
+        this.http.get(API_CONFIG.ENDPOINTS.QUIZZES)
       );
       
       if (res && Array.isArray(res)) {
-        // Chỉ hiện thị các quiz của Admin d?a vo email (?n d?nh hon username v username c th? thay dổii)
-        const adminQuizzes = res.filter(q => q.creator && q.creator.email === 'just4quiz@gmail.com');
+        // Lấy tất cả quiz public, không lọc theo creator email
+        const publicQuizzes = res.filter(q => q.visibility === 'public' || !q.visibility);
 
-        // L?y t?i da 4 quiz
-        this.quizzes = adminQuizzes.slice(0, 4).map(q => {
+        // Lấy tối đa 4 quiz
+        this.quizzes = publicQuizzes.slice(0, 4).map(q => {
           const plays = q.plays || 0;
           let comments = 0;
           let rating = 0;

@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
 import { Subscription } from 'rxjs';
+import { API_CONFIG } from '../../config/api.config';
 
 @Component({
   selector: 'app-review',
@@ -30,7 +31,7 @@ export class Review implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private quizService = inject(QuizService);
   private cdr = inject(ChangeDetectorRef);
-  private apiUrl = 'http://' + '10.106.34.149' + ':8080/api';
+  private apiUrl = API_CONFIG.API_BASE;
 
   ngOnInit(): void {
     // 1. Lấy ID từ snapshot cho lần đầu load hoặc F5

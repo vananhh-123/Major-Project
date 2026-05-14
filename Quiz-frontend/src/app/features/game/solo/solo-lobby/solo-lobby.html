@@ -1,77 +1,89 @@
-﻿<div class="solo-lobby-wrapper">
-  <main class="solo-lobby-container">
-    <h1 class="page-title">Ready to Start your Solo Quest?</h1>
+<div class="multi-mode-wrapper">
+  <div class="selection-card">
 
-    <div class="cards-container">
-     
+    <!-- Header -->
+    <div class="card-header">
+      <h2 class="main-title">Ready to Start your Solo Quest?</h2>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="solo-content-grid">
       <!-- Quiz Info Card -->
-      <div class="card quiz-card">
-        <div class="badge">
-          <i class="icon-location"></i> ACTIVE QUIZ
+      <div class="quiz-info-card">
+        <div class="badge-solo">
+          <span class="material-icons badge-icon">person</span>
+          <span class="badge-text">ACTIVE QUIZ</span>
         </div>
-       
-        <h2>{{ quizTitle }}</h2>
-        <p class="desc">{{ quizDesc }}</p>
-       
-        <div class="stats-row">
-          <div class="stat-box">
-            <span class="stat-label">LEVEL</span>
-            <span class="stat-val" [ngClass]="{'danger': quizLevel === 'Pro', 'primary': quizLevel !== 'Pro'}">
-              {{ quizLevel }} 
-              <span class="dots">
+        <h3 class="quiz-title">{{ quizTitle }}</h3>
+        <p class="quiz-desc">{{ quizDesc }}</p>
+
+        <div class="quiz-meta-row">
+          <div class="meta-box">
+            <span class="meta-label">LEVEL</span>
+            <div class="meta-value level-value">
+              <span class="level-text" [style.color]="quizLevel === 'Pro' ? '#d92b5a' : '#7029FF'">{{ quizLevel }}</span>
+              <span class="level-dots">
                 @if (quizLevel === 'Easy') {
-                  ●○○
+                  <span class="dot active"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
                 } @else if (quizLevel === 'Mid') {
-                  ●●○
+                  <span class="dot active"></span>
+                  <span class="dot active"></span>
+                  <span class="dot"></span>
                 } @else {
-                  ●●●
+                  <span class="dot active"></span>
+                  <span class="dot active"></span>
+                  <span class="dot active"></span>
                 }
               </span>
-            </span>
+            </div>
           </div>
-          <div class="stat-box">
-            <span class="stat-label">LENGTH</span>
-            <span class="stat-val primary">{{ quizLength }} Questions</span>
+          <div class="meta-box">
+            <span class="meta-label">LENGTH</span>
+            <div class="meta-value">{{ quizLength }} Questions</div>
           </div>
         </div>
       </div>
 
       <!-- Settings Card -->
-      <div class="card settings-card">
-        <h3 class="settings-title"><i class="icon-settings"></i> Game Settings</h3>
-       
-        <div class="setting-row">
-          <div class="setting-info">
-            <h4>Practice Mode</h4>
-            <p>Review answers after each question</p>
+      <div class="settings-card-solo">
+        <h3 class="settings-title">Game Settings</h3>
+        <div class="settings-container">
+          <div class="setting-row">
+            <div class="setting-info">
+              <h5>Practice Mode</h5>
+              <p>Review answers after each question</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="practiceMode">
+              <span class="slider round"></span>
+            </label>
           </div>
-          <label class="switch">
-            <input type="checkbox" [(ngModel)]="practiceMode">
-            <span class="slider round"></span>
-          </label>
-        </div>
 
-        <div class="setting-row">
-          <div class="setting-info">
-            <h4>Enable Timer</h4>
-            <p>Set time pressure for every response</p>
+          <div class="setting-row">
+            <div class="setting-info">
+              <h5>Enable Timer</h5>
+              <p>Set time pressure for every response</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="enableTimer">
+              <span class="slider round"></span>
+            </label>
           </div>
-          <label class="switch">
-            <input type="checkbox" [(ngModel)]="enableTimer">
-            <span class="slider round"></span>
-          </label>
-        </div>
 
-        <div class="rank-notice">
-          Solo quest scores are added to your global rank.
+          <div class="rank-notice">
+            Solo quest scores are added to your global rank.
+          </div>
         </div>
       </div>
-
     </div>
 
-    <!-- Nút Start bọc trong routerLink nếu cần chuyển trang -->
-    <button class="start-btn" (click)="startGame()">
-      START SOLO GAME <i class="icon-arrow-right">></i>
+    <!-- Start Button -->
+    <button class="btn-host-game" (click)="startGame()">
+      START SOLO GAME
+      <span class="material-icons btn-icon">arrow_forward</span>
     </button>
-  </main>
+
+  </div>
 </div>

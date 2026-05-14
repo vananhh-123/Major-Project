@@ -4,6 +4,7 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { WebsocketService, PlayerInfo } from '../../../../core/services/websocket.service';
+import { API_CONFIG } from '../../../../config/api.config';
 
 interface Answer {
   text: string;
@@ -70,7 +71,7 @@ export class GameRoom implements OnInit, OnDestroy {
     return 283 - (283 * ratio);
   }
   
-  private apiUrl = `http://${'10.106.34.149'}:8080/api`;
+  private apiUrl = `http://${'localhost'}:8080/api`;
 
   constructor(
     private router: Router,
@@ -403,3 +404,4 @@ export class GameRoom implements OnInit, OnDestroy {
     }
   }
 }
+

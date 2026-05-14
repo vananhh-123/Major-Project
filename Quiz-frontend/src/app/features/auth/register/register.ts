@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { API_CONFIG } from '../../../config/api.config';
 
 declare var google: any;
 
@@ -39,7 +40,7 @@ export class Register implements OnInit {
   handleGoogleLogin(response: any) {
     if (response.credential) {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-      this.http.post('http://10.106.34.149:8080/auth/google', { token: response.credential }, { headers }).subscribe({
+      this.http.post(`${API_CONFIG.AUTH_API}/google`, { token: response.credential }, { headers }).subscribe({
         next: (res: any) => {
           this.ngZone.run(() => {
             if (res?.user) {
@@ -68,7 +69,7 @@ export class Register implements OnInit {
       return;
     }
     
-    this.http.post('http://10.106.34.149:8080/auth/register', {
+    this.http.post(`${API_CONFIG.AUTH_API}/register`, {
       username: this.username,
       email: this.email,
       password: this.password
@@ -99,3 +100,4 @@ export class Register implements OnInit {
     alert('Tính năng này hiện tại chưa được cập nhật!');
   }
 }
+

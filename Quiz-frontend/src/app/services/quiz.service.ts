@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 
 export interface CreateQuizPayload {
   title: string;
@@ -26,7 +27,7 @@ export interface CreateQuizPayload {
 })
 export class QuizService {
   private http = inject(HttpClient);
-  private apiUrl = `http://${'10.106.34.149'}:8080/api`; // Go Backend API
+  private apiUrl = API_CONFIG.API_BASE; // Go Backend API
 
   createQuiz(payload: CreateQuizPayload): Observable<any> {
     return this.http.post(`${this.apiUrl}/quizzes`, payload);

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { QuizService } from '../../../services/quiz.service';
 import { HttpClient } from '@angular/common/http';
+import { API_CONFIG } from '../../../config/api.config';
 
 @Component({
   selector: 'app-quiz-detail',
@@ -23,7 +24,7 @@ export class QuizDetail implements OnInit {
   selectedVisibility: string = 'private';
   quizId: string = '';
   currentUser: any = null;
-  apiUrl = 'http://' + '10.106.34.149' + ':8080/api';
+  apiUrl = API_CONFIG.API_BASE;
 
   // D? li?u cho danh s�ch Review (D�nh cho Guest)
   reviews: any[] = [];
@@ -201,3 +202,4 @@ export class QuizDetail implements OnInit {
     }
   }
 }
+

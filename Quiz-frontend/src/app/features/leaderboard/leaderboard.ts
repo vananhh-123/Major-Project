@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { API_CONFIG } from '../../config/api.config';
 
 export interface LeaderboardUser {
   rank: number;
@@ -63,7 +64,7 @@ export class Leaderboard implements OnInit {
 
   fetchLeaderboard() {
     // Chèn params để gửi lên Backend
-    const url = `http://localhost:8080/api/leaderboard?period=${this.activeTab}&q=${this.searchQuery}`;
+    const url = `${API_CONFIG.API_BASE}/leaderboard?period=${this.activeTab}&q=${this.searchQuery}`;
     
     this.http.get<LeaderboardUser[]>(url).subscribe({
       next: (res) => {

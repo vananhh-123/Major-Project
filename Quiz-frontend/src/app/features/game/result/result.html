@@ -141,7 +141,7 @@
           <button class="btn-action-primary" [routerLink]="['/play/solo/lobby']" [queryParams]="{ id: quizId }">
              <i class="pi pi-refresh"></i> Play Again
           </button>
-          <button class="btn-action-primary">
+          <button class="btn-action-primary" [routerLink]="['/app/review', quizId]" [disabled]="!quizId">
              <i class="pi pi-star"></i> Rate Quiz
           </button>
         </div>

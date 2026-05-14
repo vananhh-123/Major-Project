@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { API_CONFIG } from '../../../config/api.config';
 
 declare var google: any;
 
@@ -38,7 +39,7 @@ export class Login implements OnInit {
   handleGoogleLogin(response: any) {
     if (response.credential) {
       // Gọi API Backend của chúng ta với token từ Google
-      this.http.post('http://10.106.34.149:8080/auth/google', { token: response.credential }).subscribe({
+      this.http.post(`${API_CONFIG.AUTH_API}/google`, { token: response.credential }).subscribe({
         next: (res: any) => {
           this.ngZone.run(() => {
             console.log('Google Login success:', res);
@@ -72,7 +73,7 @@ export class Login implements OnInit {
       return;
     }
     
-    this.http.post('http://10.106.34.149:8080/auth/login', {
+    this.http.post(`${API_CONFIG.AUTH_API}/login`, {
       email: this.email,
       password: this.password
     }).subscribe({
@@ -94,3 +95,4 @@ export class Login implements OnInit {
     });
   }
 }
+

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject, Observable, filter } from 'rxjs';
+import { API_CONFIG } from '../../config/api.config';
 
 // ─────────────────────────────────────────
 // TYPES
@@ -62,8 +63,7 @@ export class WebsocketService {
     this.currentRoomId = roomId;
     this.currentUserId = userId;
 
-    const host = '10.106.34.149';
-    const url = `ws://${host}:8080/api/ws?roomId=${roomId}&userId=${userId}`;
+    const url = `ws://${API_CONFIG.WS_HOST}:${API_CONFIG.WS_PORT}/api/ws?roomId=${roomId}&userId=${userId}`;
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {

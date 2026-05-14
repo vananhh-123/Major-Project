@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { API_CONFIG } from '../../../../config/api.config';
 
 @Component({
   selector: 'app-game-room',
@@ -59,7 +60,7 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   }
 
   loadQuizFromAPI() {
-    this.http.get('http://10.106.34.149:8080/api/quizzes/' + this.quizId).subscribe({
+    this.http.get(`${API_CONFIG.API_BASE}/quizzes/${this.quizId}`).subscribe({
       next: (res: any) => {
         console.log('Quiz Data Loaded from API:', res);
         if (res && res.questions && res.questions.length > 0) {
@@ -355,3 +356,4 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     return baseClass + ' faded-answer';
   }
 }
+

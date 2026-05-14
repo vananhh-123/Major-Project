@@ -2,6 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { API_CONFIG } from '../../config/api.config';
 
 @Component({
   selector: 'app-profile',
@@ -75,7 +76,7 @@ export class Profile implements OnInit {
   }
 
   fetchUserStats() {
-    this.http.get<any>(`http://10.106.34.149:8080/api/stats/${this.user.id}`).subscribe({
+    this.http.get<any>(API_CONFIG.ENDPOINTS.USER_STATS(this.user.id)).subscribe({
       next: (res) => {
         this.stats = res;
         this.updateDisplayedStats();
@@ -85,7 +86,7 @@ export class Profile implements OnInit {
   }
 
   fetchUserHistory() {
-    this.http.get<any[]>(`http://10.106.34.149:8080/api/users/${this.user.id}/history`).subscribe({
+    this.http.get<any[]>(API_CONFIG.ENDPOINTS.USER_HISTORY(this.user.id)).subscribe({
       next: (history) => {
         if (history) {
            this.rawHistory = history;
@@ -168,7 +169,7 @@ export class Profile implements OnInit {
   }
 
   fetchMyQuizzes() {
-    this.http.get<any[]>('http://10.106.34.149:8080/api/quizzes').subscribe({
+    this.http.get<any[]>(API_CONFIG.ENDPOINTS.QUIZZES).subscribe({
       next: (allQuizzes) => {
         // Nếu user.id rỗng (chưa đăng nhập chuẩn), hiện tất cả. Nếu có, hiện những cái khớp ID hoặc không có ID (quá khứ)
         const myQuizzes = allQuizzes.filter(q => (this.user.id && q.created_by === this.user.id) || (q.creator && q.creator.id === this.user.id) || (!q.creator && q.created_by && q.created_by !== null)); 
@@ -197,3 +198,4 @@ export class Profile implements OnInit {
     });
   }
 }
+

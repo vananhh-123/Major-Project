@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { API_CONFIG } from '../../config/api.config';
 
 @Component({
   selector: 'app-profile-edit',
@@ -71,7 +72,7 @@ export class ProfileEdit implements OnInit {
 
         if (this.user.id) {
           await firstValueFrom(
-            this.http.patch('http://10.106.34.149:8080/auth/profile', {
+            this.http.patch(API_CONFIG.ENDPOINTS.PROFILE_UPDATE, {
               user_id: this.user.id,
               username: this.user.username,
               avatar: this.user.avatar,
@@ -94,3 +95,4 @@ export class ProfileEdit implements OnInit {
     this.router.navigate(['/app/profile']);
   }
 }
+

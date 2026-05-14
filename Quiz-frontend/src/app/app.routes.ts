@@ -39,7 +39,8 @@ import { GameRoomComponent as SoloGameRoom } from './features/game/solo/game-roo
 import { MultiModeSelection } from './features/game/multi/multi-mode-selection/multi-mode-selection';
 import { GameRoom as MultiGameRoom } from './features/game/multi/game-room/game-room';
 export const routes: Routes = [
-  // Nh�m 1: C�c trang kh�ng c� Header ph?c t?p (S? d?ng AuthLayout)
+
+  // Nhóm 1: Các trang không có Header phụ trợ (Sử dụng AuthLayout)
   {
     path: '',
     component: AuthLayout,
@@ -50,7 +51,7 @@ export const routes: Routes = [
     ]
   },
 
-  // Nh�m 2: C�c trang ch�nh c?a ?ng d?ng (S? d?ng MainLayout - C� Header/Footer)
+  // Nhóm 2: Các trang chính của ứng dụng (Sử dụng MainLayout - Có Header/Footer)
   {
     path: 'app',
     component: MainLayout,
@@ -67,7 +68,7 @@ export const routes: Routes = [
     ]
   },
 
-  // Nh�m 3: C�c trang khi dang tham gia tr� choi (S? d?ng GameLayout)
+  // Nhóm 3: Các trang khi đang tham gia trò chơi (Sử dụng GameLayout)
   {
     path: 'play',
     component: GameLayout,
@@ -75,17 +76,17 @@ export const routes: Routes = [
       { path: 'mode', component: ModeSelection },
       { path: 'result', component: Result },
       
-      // Khai b�o route cho Solo Mode
+      // Khai báo route cho Solo Mode
       { path: 'solo/lobby', component: SoloLobby },
       { path: 'solo/room', component: SoloGameRoom },
 
-      // Khai b�o route cho Multi Mode
+      // Khai báo route cho Multi Mode
       { path: 'multi/mode', component: MultiModeSelection },
       { path: 'multi/lobby', component: MultiLobby },
       { path: 'multi/room', component: MultiGameRoom },
     ]
   },
 
-  // �u?ng d?n m?c d?nh khi nh?p sai URL
+  // Đường dẫn mặc định khi nhập sai URL
   { path: '**', redirectTo: '' }
 ];
