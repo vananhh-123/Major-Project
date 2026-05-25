@@ -3,10 +3,9 @@
 
 .profile-container { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
 
-/* 1. Header & Profile (Chia Left-Right) */
-.profile-header-card { background: white; border-radius: 24px; padding: 50px; display: flex; align-items: center; /* Can gi?a d?c */ gap: 50px; margin-bottom: 50px; box-shadow: 0 10px 40px rgba(142, 93, 250, 0.06); background: linear-gradient(135deg, #ffffff 0%, #fdfaff 100%); border: 1px solid #f0eaff; }
+/* 1. Header & Profile */
+.profile-header-card { background: white; border-radius: 24px; padding: 50px; display: flex; align-items: center; gap: 50px; margin-bottom: 50px; box-shadow: 0 10px 40px rgba(142, 93, 250, 0.06); background: linear-gradient(135deg, #ffffff 0%, #fdfaff 100%); border: 1px solid #f0eaff; }
 
-/* Avatar */
 .avatar-column { flex-shrink: 0; }
 
 .avatar-wrap { position: relative; width: 150px; height: 150px; border-radius: 50% !important; background: white; padding: 6px; border: 4px solid #8e5dfa; box-shadow: 0 8px 30px rgba(142, 93, 250, 0.25); display: flex; align-items: center; justify-content: center; }
@@ -15,8 +14,7 @@
 
 .verified-badge { position: absolute; bottom: 8px; right: 8px; background: white; color: #8e5dfa; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-/* C?t ph?i: Info + Stats */
-.info-column { flex-grow: 1; display: flex; flex-direction: column; gap: 30px; /* Khoảng cách gi?a Text v Stats */ }
+.info-column { flex-grow: 1; display: flex; flex-direction: column; gap: 30px; }
 
 .user-identity h1 { font-size: 3rem; font-weight: 800; margin: 0; color: #1a1a2e; }
 
@@ -32,7 +30,6 @@
 .stat-info .value { font-size: 1.4rem; font-weight: 800; color: #2d2d3f; }
 .icon-box { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
 
-/* Colors */
 .primary-bg { background: #f3edff; } .primary-color { color: #8e5dfa; }
 .danger-bg { background: #ffeff3; } .danger-color { color: #d92b5a; }
 .info-bg { background: #f0f1ff; } .info-color { color: #3d4aed; }
@@ -44,7 +41,6 @@
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
 .section-header h2 { font-size: 1.6rem; font-weight: 800; }
 
-/* Bảng History: Mỗi hàng là 1 khối trạng thái riêng biệt */
 .history-stack { display: flex; flex-direction: column; gap: 12px; }
 
 .history-table-header, .history-item-row { display: grid; grid-template-columns: 3fr 1.5fr 1fr 1fr 1fr; padding: 15px 20px; align-items: center; }
@@ -100,7 +96,6 @@
   .card-body .card-title-fixed { font-size: 1.2rem; margin: 0 0 15px 0; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: unset; line-height: 1.4; }
   .card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #7b7b8f; font-weight: 600; margin-top: auto; }
 
-/* Logout Button Theme */
 .logout-btn-theme {
   background: #d92b5a  !important;
   color: #ffffff !important;
@@ -120,7 +115,6 @@
 .gold { color: #f1ad1d; }
 .sm { font-size: 18px; margin-right: 4px; }
 
-/* Create Placeholder Card (Kh?p h?t card quiz) */
 .create-placeholder-card { border: 2px dashed #dcd0ff; background: #fdfbff; border-radius: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; cursor: pointer; aspect-ratio: 16/14; transition: all 0.3s; }
 
 .create-placeholder-card:hover { background: #f4f0ff; border-color: #8e5dfa; transform: translateY(-5px); }
@@ -130,7 +124,6 @@
 .nav-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: #f0eaff; color: #8e5dfa; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 
 .nav-btn:hover { background: #8e5dfa; color: white; }
-
 
 .mode-toggles {
   display: flex;
@@ -159,4 +152,34 @@
 .mode-btn:hover:not(.active) {
   background: #F3F4F6;
   color: #374151;
+}
+
+@media (max-width: 1100px) {
+  .quizzes-responsive-grid { grid-template-columns: repeat(2, 1fr); }
+  .main-grid-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .profile-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 32px 24px;
+    gap: 24px;
+  }
+  .stats-row { flex-wrap: wrap; }
+  .stat-box { min-width: calc(50% - 10px); }
+  .user-identity h1 { font-size: 2rem; }
+  .history-table-header { display: none; }
+  .history-item-row { grid-template-columns: 1fr; gap: 8px; }
+}
+
+@media (max-width: 600px) {
+  .profile-page { padding: 20px 0; }
+  .profile-container { padding: 0 14px; }
+  .profile-header-card { padding: 20px 16px; gap: 16px; }
+  .avatar-wrap { width: 100px; height: 100px; }
+  .user-identity h1 { font-size: 1.5rem; }
+  .stat-box { min-width: 100%; padding: 10px 2px; }
+  .quizzes-responsive-grid { grid-template-columns: 1fr; }
+  .mode-toggles { flex-wrap: wrap; }
 }

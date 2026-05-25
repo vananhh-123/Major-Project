@@ -3,7 +3,6 @@
 
 /* ================================================================
    ROOT BACKGROUND
-   Design: t�m nh?t b�n tr�i, h?ng nh?t g�c ph?i du?i
 ================================================================ */
 .gr-root {
   font-family: 'Inter', sans-serif;
@@ -22,7 +21,7 @@
 }
 
 /* ================================================================
-   HOST LAYOUT � tr�i r?ng / ph?i 264px
+   HOST LAYOUT 
 ================================================================ */
 .host-layout {
   display: grid;
@@ -34,9 +33,6 @@
 .host-left  { display: flex; flex-direction: column; }
 .host-right { display: flex; flex-direction: column; gap: 12px; }
 
-/* ================================================================
-   CATEGORY BADGE
-================================================================ */
 .category-badge {
   display: inline-flex;
   align-items: center;
@@ -54,10 +50,6 @@
 }
 .cat-icon { font-size: 13px; }
 
-/* ================================================================
-   QUESTION COUNTER  "Question 04 of 15"
-   Design: ~38px, black, font-weight 900
-================================================================ */
 .question-counter {
   font-size: 38px;
   font-weight: 900;
@@ -87,7 +79,7 @@
 .player-question-card { margin-bottom: 16px; }
 
 /* ================================================================
-   ANSWERS GRID � 2 � 2
+   ANSWERS GRID
 ================================================================ */
 .answers-grid {
   display: grid;
@@ -120,10 +112,10 @@
 }
 
 /* Gradients A / B / C / D */
-.ans-0 { background: linear-gradient(135deg, #7C3AED 0%, #9F5CF7 100%); }
-.ans-1 { background: linear-gradient(135deg, #BE185D 0%, #EC4899 100%); }
-.ans-2 { background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%); }
-.ans-3 { background: linear-gradient(135deg, #7E22CE 0%, #A855F7 100%); }
+.ans-0 { background: linear-gradient(135deg, #7135ee, #9c33b7); }
+.ans-1 { background: linear-gradient(135deg, #bd3a62, #98328c); }
+.ans-2 { background: linear-gradient(135deg, #4e43e0, #2b44ec); }
+.ans-3 { background: linear-gradient(135deg, #d99132, #b57018); }
 
 /* Letter box */
 .ans-letter-box {
@@ -155,30 +147,29 @@
    ANSWER STATES
 ================================================================ */
 
-/* CORRECT ? green */
+/* CORRECT*/
 .ans-card.ans-correct {
   background: linear-gradient(135deg, #15803D 0%, #22C55E 100%) !important;
   opacity: 1 !important;
   filter: none !important;
 }
 
-/* WRONG (host after reveal) ? m? */
+/* WRONG (host after reveal)*/
 .ans-card.ans-wrong-host {
   opacity: 0.38;
   filter: grayscale(0.4);
 }
-
-/* WRONG (player classic, picked wrong) ? d? */
+/* WRONG (player after reveal)*/
 .ans-card.ans-wrong-player {
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%) !important;
 }
 
-/* SELECTED (player focus � chua reveal) */
+/* SELECTED (player focus) */
 .ans-card.ans-selected {
   box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(109,40,217,0.55);
 }
 
-/* DIMMED (player, sau khi ch?n xong) */
+/* DIMMED */
 .ans-card.ans-dimmed {
   opacity: 0.32;
   filter: grayscale(0.4) brightness(0.9);
@@ -186,8 +177,7 @@
 }
 
 /* ================================================================
-   FOCUS PLAYER CARD � ch? hi?n ch? c�i, card cao
-   FIX: pointer-events: none tr�n icon d? kh�ng block click
+   FOCUS PLAYER CARD
 ================================================================ */
 .ans-card.focus-card {
   height: 160px;
@@ -225,8 +215,7 @@
 
 /* ================================================================
    HOST BOTTOM BUTTONS
-   Classic & Focus d?u c�: SHOW ANSWER (h?ng) + NEXT QUESTION (t�m)
-   N?m du?i grid answers, can tr�i theo c?t tr�i
+   Classic & Focus : SHOW ANSWER  + NEXT QUESTION 
 ================================================================ */
 .host-bottom-btns {
   display: flex;
@@ -273,7 +262,7 @@
 .btn-next-question .material-icons { font-size: 16px; }
 
 /* ================================================================
-   RIGHT SIDEBAR � TIMER CARD
+   RIGHT SIDEBAR TIMER CARD
 ================================================================ */
 .timer-card {
   background: white;
@@ -313,17 +302,6 @@
 }
 .timer-label.sm { font-size: 9px; }
 
-/* Ensure host timer is always visible and on top */
-.host-right .timer-card {
-  position: relative;
-  z-index: 30;
-}
-.host-right .timer-number {
-  color: #be185d !important;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-  font-size: 36px !important;
-}
-
 /* ================================================================
    SIDEBAR CARDS (Submissions + Host Controls)
 ================================================================ */
@@ -359,18 +337,10 @@
   padding: 7px 11px;
   font-size: 12px; color: #6B7280;
 }
-.thinking-row.thinking-complete {
-  background: #ECFDF3;
-  color: #15803D;
-}
 .thinking-dot {
   width: 8px; height: 8px; min-width: 8px;
   border-radius: 50%; background: #A855F7;
   animation: pdot 1.4s infinite;
-}
-.thinking-row.thinking-complete .thinking-dot {
-  background: #22C55E;
-  animation: none;
 }
 @keyframes pdot {
   0%,100% { opacity:1; transform:scale(1); }
@@ -418,7 +388,7 @@
   font-size: 30px; font-weight: 900; color: #1A1033; margin: 0;
 }
 
-/* Timer pill: circle + label ngang */
+/* Timer pill: circle + label */
 .player-timer-pill {
   background: white;
   border-radius: 16px;
@@ -481,115 +451,10 @@
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: #7C3AED; flex-shrink: 0;
 }
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
 .avatar-btn .material-icons { font-size: 18px; }
 
 /* ================================================================
-   HOST CLASSIC LEADERBOARD
-================================================================ */
-.host-classic-layout {
-  display: grid;
-  grid-template-columns: 1fr 264px;
-  gap: 24px;
-  max-width: 950px;
-  margin: 0 auto;
-}
-
-.classic-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.classic-leaderboard-panel {
-  background: white;
-  border-radius: 20px;
-  padding: 16px;
-  box-shadow: 0 2px 20px rgba(109,40,217,0.09);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 260px;
-}
-
-.classic-leaderboard-empty {
-  padding: 28px 16px;
-  text-align: center;
-  color: #7C3AED;
-  font-weight: 700;
-  background: #FAF5FF;
-  border-radius: 16px;
-}
-
-.classic-leaderboard-row {
-  display: grid;
-  grid-template-columns: 42px 48px 1fr auto;
-  gap: 12px;
-  align-items: center;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: #FAF5FF;
-}
-
-.classic-rank {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 16px;
-}
-
-.classic-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #EDE9FE;
-}
-
-.classic-player-meta {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.classic-player-name {
-  font-size: 15px;
-  font-weight: 800;
-  color: #1A1033;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.classic-player-role {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #9CA3AF;
-  text-transform: uppercase;
-}
-
-.classic-score {
-  font-size: 18px;
-  font-weight: 900;
-  color: #1A1033;
-}
-
-/* ================================================================
-   CLASSIC � dimmed-correct: card d�ng nhung player kh�ng ch?n
-   Hi?n nh? d? player bi?t d�u l� d�p �n d�ng
+   CLASSIC  dimmed-correct
 ================================================================ */
 .ans-card.ans-dimmed-correct {
   opacity: 0.55;
@@ -597,10 +462,10 @@
 }
 
 /* ================================================================
-   FOCUS � Kahoot style: sau khi player ch?n
+   FOCUS Kahoot style
 ================================================================ */
 
-/* Card du?c ch?n ��NG ? green override */
+/* Card (True) */
 .ans-card.focus-answered-correct {
   background: linear-gradient(135deg, #15803D 0%, #22C55E 100%) !important;
   cursor: default !important;
@@ -609,7 +474,7 @@
   transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s;
 }
 
-/* Card du?c ch?n SAI ? red override */
+/* Card (False) */
 .ans-card.focus-answered-wrong {
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%) !important;
   cursor: default !important;
@@ -618,7 +483,7 @@
   transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s;
 }
 
-/* Result icon (tick/cross) to trong card du?c ch?n */
+/* Result icon (tick/cross)*/
 .focus-result-icon {
   display: flex;
   align-items: center;
@@ -641,7 +506,7 @@
   100% { transform: scale(1);   opacity: 1; }
 }
 
-/* Letter nh? b�n c?nh icon result */
+/* Letter */
 .focus-letter-small {
   width: 44px !important; height: 44px !important;
   font-size: 20px !important;
@@ -651,7 +516,7 @@
 }
 
 /* ================================================================
-   FOCUS FEEDBACK BANNER � xu?t hi?n ph�a tr�n grid sau khi ch?n
+   FOCUS FEEDBACK BANNER 
 ================================================================ */
 .focus-feedback-banner {
   display: flex;
@@ -698,8 +563,7 @@
 }
 
 /* ================================================================
-   CLASSIC � RESULT BAR (Wayground style)
-   Xu?t hi?n sau khi player ch?n d�p �n, n?m gi?a grid v� stats bar
+   CLASSIC  RESULT BAR (Wayground style)
 ================================================================ */
 .classic-result-bar {
   display: flex;

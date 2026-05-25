@@ -21,3 +21,27 @@
 router-outlet + * {
   display: block;
 }
+
+@media (max-width: 1100px) {
+  .content-wrapper {
+    padding: 0 40px;
+  }
+}
+ 
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 0 20px;
+  }
+  .main-container {
+    padding: 24px 0;
+  }
+}
+ 
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 0 14px;
+  }
+  .main-container {
+    padding: 16px 0;
+  }
+}

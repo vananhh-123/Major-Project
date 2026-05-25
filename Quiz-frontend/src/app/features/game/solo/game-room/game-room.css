@@ -1,4 +1,4 @@
-﻿.game-room-wrapper {
+﻿﻿.game-room-wrapper {
   background-color: #faf7ff;
   min-height: calc(100vh - 140px);
   display: flex;
@@ -135,10 +135,12 @@
 .bg-material {
   font-size: 6rem;
 }
-.answer-a { background: linear-gradient(135deg, #a76df1, #7b5ff6); }
-.answer-b { background: linear-gradient(135deg, #d3527a, #cf7493); }
-.answer-c { background: linear-gradient(135deg, #3d4aed, #1e2dd2); }
-.answer-d { background: linear-gradient(135deg, #b937e7, #9b20cc); }
+
+.answer-a { background: linear-gradient(135deg, #7135ee, #9c33b7); }
+.answer-b { background: linear-gradient(135deg, #bd3a62, #98328c); }
+.answer-c { background: linear-gradient(135deg, #4e43e0, #2b44ec); }
+.answer-d { background: linear-gradient(135deg, #d99132, #b57018); }
+
 .action-section {
   display: flex;
   justify-content: flex-end;

@@ -5,46 +5,41 @@
   padding: 40px 20px;
   display: flex;
   flex-direction: column;
-  gap: 30px; /* Spacing giữa các Section */
+  gap: 30px;
 }
 
-/* --- 2. HERO SECTION (CONTAINER) --- */
+/* --- 2. HERO SECTION --- */
 .hero-section {
-  background: #F4EBFF; /* Màu nền Gradient tím nhạt */
+  background: #F4EBFF;
   border-radius: 40px;
   padding: 60px;
-  display: grid; /* Dùng Grid cho Banner */
-  grid-template-columns: 1fr 1fr; /* Chia đôi: Chào mừng trái, PIN phải */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
+  gap: 30px;
 }
 
-/* Tìm đến selector tương tự trong file css của bạn */
 .hero-left h1 span {
-  /* Mã màu gradient bạn yêu cầu */
   background: linear-gradient(90deg, #7029FF 0%, #D8315B 50%, #3C37FF 100%);
- 
-  /* Kỹ thuật để áp dụng gradient cho text */
-  -webkit-background-clip: text;          /* Cắt background theo hình text */
-  background-clip: text;                 /* Thuộc tính chuẩn cho các trình duyệt mới */
-  -webkit-text-fill-color: transparent;  /* Làm màu chữ gốc trở nên trong suốt */
-  text-fill-color: transparent;          /* Thuộc tính chuẩn */
- 
-  /* Đảm bảo gradient hiển thị tốt nhất */
-  display: inline-block;                 /* Giúp gradient hiển thị chính xác trên 1 hàng */
-  -webkit-box-decoration-break: clone;    /* Giúp gradient liền mạch nếu text bị xuống dòng */
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  display: inline-block;
+  -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
 
 .welcome-text {
   font-size: 56px;
   font-weight: 900;
-  color: #2D0B7A; /* Màu xanh tím đậm giống màn Home */
+  color: #2D0B7A;
   line-height: 1.1;
   margin: 0;
 }
 
 .welcome-text span {
-  color: #7029FF; /* Chữ JUST4QUIZ màu tím gradient */
+  color: #7029FF;
 }
 
 .hero-subtext {
@@ -54,7 +49,7 @@
   max-width: 450px;
 }
 
-/* PIN BOX (BOX TRẮNG BO GÓC BÊN PHẢI) */
+/* PIN BOX */
 .pin-card {
   background: #FFFFFF;
   padding: 30px;
@@ -65,6 +60,7 @@
   width: 100%;
   max-width: 450px;
   justify-self: end;
+  box-sizing: border-box;
 }
 
 .pin-badge {
@@ -101,7 +97,7 @@
   opacity: 0;
   cursor: text;
   z-index: 10;
-  letter-spacing: 40px; 
+  letter-spacing: 40px;
 }
 
 .pin-field {
@@ -152,10 +148,10 @@
   font-size: 20px;
 }
 
-/* --- 3. ACTION CARDS (MỘT HÀNG NGANG) --- */
+/* --- 3. ACTION CARDS --- */
 .action-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 cột bằng nhau trên 1 hàng */
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
@@ -165,14 +161,14 @@
 }
 
 .action-card-item {
-  background: white; /* Khung trắng bo góc đổ bóng */
+  background: white;
   padding: 30px;
   border-radius: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Căn giữa Icon và chữ */
+  align-items: center;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -192,15 +188,15 @@
 .pink { background: #EE46BC; }
 .blue { background: #2D9CDB; }
 
-/* --- 1 & 4. RECOMMENDED QUIZZES (BOX TRẮNG 2/3) & INVITE (1/3) --- */
+/* --- MAIN LAYOUT --- */
 .main-layout-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* Chia lại bố cục chính 2/3 và 1/3 */
+  grid-template-columns: 2fr 1fr;
   gap: 30px;
 }
 
 .recommended-column {
-  background: white; /* Cho tất cả item Recommended vào Box trắng */
+  background: white;
   padding: 30px;
   border-radius: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
@@ -215,7 +211,6 @@
 
 .trend-icon { color: #7029FF; }
 
-/* Recommended Quiz Item (Mỗi cái 1 hàng ngang) */
 .quiz-row-card {
   display: flex;
   align-items: center;
@@ -230,7 +225,7 @@
   width: 60px;
   height: 60px;
   border-radius: 12px;
-  margin-right: 20px; /* Sắp xếp Hình ảnh -> Thông tin */
+  margin-right: 20px;
 }
 
 .quiz-card-info { flex: 1; }
@@ -238,7 +233,6 @@
 .quiz-card-info p { margin: 5px 0 0; color: #667085; font-size: 14px; }
 .arrow-icon { color: #D0D5DD; }
 
-/* Khối Invite Friends Gradient tím hồng */
 .invite-gradient-card {
   background: linear-gradient(135deg, #7029FF 0%, #EE46BC 100%);
   padding: 40px 30px;
@@ -258,38 +252,66 @@
   cursor: pointer;
 }
 
-/* Add styles for hidden PIN overlay */
-.hidden-pin-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 55px;
-  opacity: 0;
-  cursor: text;
-  z-index: 10;
-  letter-spacing: 45px; /* helps with text cursor positioning sometimes, though invisible */
-}
-
-.pin-field {
-  width: 45px;
-  height: 55px;
-  border: 1px solid #D0D5DD;
-  border-radius: 12px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: white;
-}
-
-.pin-field.placeholder {
-  color: #D0D5DD;
-}
-
 .dash-meta-row { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; color: #7b7b8f; font-weight: 600; margin-top: 5px; }
 .dash-meta-row span { display: flex; align-items: center; gap: 2px; }
 .gold { color: #f1ad1d; }
 .sm { font-size: 16px; margin-right: 2px; }
+
+@media (max-width: 1100px) {
+  .hero-section {
+    padding: 40px;
+  }
+  .welcome-text {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-section {
+    grid-template-columns: 1fr;
+    padding: 32px 28px;
+  }
+  .pin-card {
+    max-width: 100%;
+    justify-self: stretch;
+  }
+  .welcome-text {
+    font-size: 36px;
+  }
+  .main-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 20px 14px;
+    gap: 20px;
+  }
+  .hero-section {
+    padding: 24px 20px;
+    border-radius: 24px;
+  }
+  .welcome-text {
+    font-size: 28px;
+  }
+  .hero-subtext {
+    font-size: 14px;
+  }
+  .action-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .pin-input-group {
+    gap: 6px;
+    padding: 14px 10px;
+  }
+  .pin-field {
+    width: 32px;
+    height: 42px;
+    font-size: 22px;
+  }
+  .btn-join {
+    font-size: 15px;
+    padding: 13px 20px;
+  }
+}

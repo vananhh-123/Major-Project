@@ -6,10 +6,17 @@ import (
 	"quiz-backend/config"
 	"quiz-backend/models"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+func noStore(c *gin.Context) {
+	c.Header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+	c.Header("Pragma", "no-cache")
+	c.Header("Expires", "0")
+}
 
 type CreateQuizInput struct {
 	Title       string                `json:"title"`
@@ -115,6 +122,35 @@ func GetQuizzes(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch quizzes"})
 		return
 	}
+
+	noStore(c)
+	// Recompute plays from actual results rows so UI never depends on stale denormalized counts.
+	quizIDs := make([]uuid.UUID, 0, len(quizzes))
+	for _, quiz := range quizzes {
+		quizIDs = append(quizIDs, quiz.ID)
+	}
+
+	playsByQuiz := map[uuid.UUID]int{}
+	if len(quizIDs) > 0 {
+		var rows []struct {
+			QuizID uuid.UUID `gorm:"column:quiz_id"`
+			Count  int       `gorm:"column:count"`
+		}
+		if err := config.DB.Table("results").Select("quiz_id, COUNT(*) as count").Where("quiz_id IN ?", quizIDs).Group("quiz_id").Scan(&rows).Error; err == nil {
+			for _, row := range rows {
+				playsByQuiz[row.QuizID] = row.Count
+			}
+		}
+	}
+
+	for i := range quizzes {
+		if count, ok := playsByQuiz[quizzes[i].ID]; ok {
+			quizzes[i].Plays = count
+		} else {
+			quizzes[i].Plays = 0
+		}
+	}
+
 	c.JSON(http.StatusOK, quizzes)
 }
 
@@ -125,12 +161,18 @@ func GetQuiz(c *gin.Context) {
 		return
 	}
 
+	noStore(c)
 	var quiz models.Quiz
 
 	if err := config.DB.Preload("Creator").Preload("Questions", func(db *gorm.DB) *gorm.DB { return db.Order("order_index asc") }).Preload("Reviews").First(&quiz, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
 		return
 	}
+
+	// Recompute plays from actual result rows for this quiz.
+	var playCount int64
+	config.DB.Table("results").Where("quiz_id = ?", quiz.ID).Count(&playCount)
+	quiz.Plays = int(playCount)
 
 	c.JSON(http.StatusOK, quiz)
 }

@@ -63,7 +63,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #101828; /* Màu nền đen như avatar mặc định */
+  background: #101828;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,14 +81,11 @@
   font-size: 20px;
 }
 
-
-/* Style cho phần text điều hướng Sign in / Sign up */
 .switch-text {
   font-size: 15px;
   color: #667085;
   font-weight: 500;
 }
-
 
 .link-purple {
   color: #7029FF;
@@ -98,27 +95,22 @@
   transition: 0.2s;
 }
 
-
 .link-purple:hover {
   text-decoration: underline;
   color: #5514D6;
 }
 
-
-/* Giữ nguyên style cũ cho nút Home nếu cần */
 .auth-buttons {
   display: flex;
   gap: 25px;
   align-items: center;
 }
 
-
 .btn-text {
   text-decoration: none;
   color: #7029FF;
   font-weight: 700;
 }
-
 
 .btn-primary {
   text-decoration: none;
@@ -127,4 +119,60 @@
   padding: 10px 24px;
   border-radius: 12px;
   font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .navbar-container {
+    padding: 16px 24px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-center {
+    order: 3;
+    flex: 0 0 100%;
+    justify-content: flex-start;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .nav-left { flex: 0 0 auto; }
+  .nav-right { flex: 0 0 auto; }
+}
+
+@media (max-width: 600px) {
+  .navbar-container {
+    padding: 14px 16px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .nav-center {
+    gap: 14px;
+  }
+
+  .nav-link {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .profile-name {
+    display: none;
+  }
+
+  .drop-icon {
+    display: none;
+  }
+
+  .switch-text {
+    font-size: 12px;
+  }
+
+  .btn-primary {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
 }

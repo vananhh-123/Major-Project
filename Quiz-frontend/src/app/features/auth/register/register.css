@@ -8,7 +8,7 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: calc(100vh - 80px); /* Tự động khớp với chiều cao màn hình trừ Navbar */
+  min-height: calc(100vh - 80px);
   padding: 20px;
   background-color: #F9F5FF;
   box-sizing: border-box;
@@ -17,7 +17,7 @@
 .login-card {
   display: flex;
   width: 100%;
-  max-width: 1000px; /* Khống chế chiều rộng tối đa của card */
+  max-width: 1000px;
   background: white;
   border-radius: 32px;
   overflow: hidden;
@@ -62,17 +62,14 @@
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; font-size: 11px; font-weight: 800; color: #344054; margin-bottom: 8px; }
 
-
 .input-wrapper { position: relative; display: flex; align-items: center; }
 .input-wrapper input {
   width: 100%; padding: 12px 40px 12px 42px;
   border: none; background: #F4EBFF; border-radius: 10px; outline: none;
 }
 
-
 .field-icon { position: absolute; left: 12px; color: #98A2B3; font-size: 20px; }
 .eye-icon { position: absolute; right: 12px; color: #98A2B3; font-size: 20px; cursor: pointer; }
-
 
 /* NÚT BẤM CÓ MÀU GRADIENT */
 .btn-primary-auth {
@@ -87,24 +84,60 @@
   margin-top: 10px;
 }
 
-
 .btn-register-gradient {
   background: linear-gradient(90deg, #6A1BFF 0%, #C00A82 100%);
   box-shadow: 0 8px 20px rgba(106, 27, 255, 0.2);
 }
 
-
 /* FOOTER & OTHERS */
 .footer-terms { margin-top: 25px; font-size: 11px; color: #98A2B3; text-align: center; }
 .footer-terms a { color: #667085; font-weight: 600; text-decoration: none; }
 
-
 .divider { text-align: center; margin: 20px 0; border-bottom: 1px solid #EAECF0; line-height: 0.1em; }
 .divider span { background: #fff; padding: 0 10px; color: #98A2B3; font-size: 10px; }
-
 
 .btn-google {
   width: 100%; padding: 10px; border: 1px solid #EAECF0; background: #F4EBFF;
   border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
 }
 .btn-google img { width: 18px; }
+
+@media (max-width: 768px) {
+  .login-card {
+    flex-direction: column;
+    border-radius: 24px;
+  }
+
+  .login-left {
+    min-height: 200px;
+    padding: 28px;
+  }
+
+  .login-right {
+    padding: 28px 24px;
+  }
+
+  .form-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 14px;
+    align-items: flex-start;
+  }
+
+  .login-card {
+    border-radius: 20px;
+  }
+
+  .login-left {
+    min-height: 160px;
+    padding: 20px;
+  }
+
+  .login-right {
+    padding: 20px 16px;
+  }
+}

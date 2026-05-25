@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type SubmitResultRequest struct {
@@ -62,9 +61,6 @@ func SubmitResult(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save result"})
 		return
 	}
-
-	// Tăng số lượt chơi của Quiz lên 1 cho lượt chơi mới
-	config.DB.Model(&models.Quiz{}).Where("id = ?", req.QuizID).UpdateColumn("plays", gorm.Expr("plays + ?", 1))
 
 	c.JSON(http.StatusOK, result)
 }
