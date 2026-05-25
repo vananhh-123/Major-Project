@@ -2,6 +2,7 @@ package sockets
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -45,6 +46,8 @@ type RoomState struct {
 	Status      string                `json:"status"`  // "waiting" | "playing" | "ended"
 	Players     map[string]PlayerInfo `json:"players"` // userID → PlayerInfo
 	QuestionIdx int                   `json:"questionIdx"`
+	ReadyNext   map[string]bool       `json:"readyNext"`
+	AdvanceSent bool                  `json:"advanceSent"`
 }
 
 // Hub quản lý toàn bộ các phòng chơi
@@ -147,12 +150,14 @@ func (h *Hub) handleJoinRoom(client *Client, data map[string]interface{}) {
 		}
 		// Tạo RoomState nếu chưa có (Host tạo phòng đầu tiên)
 		h.RoomStates[roomID] = &RoomState{
-			HostID:   userID,
-			GameMode: gameMode,
-			GamePin:  gamePin,
-			QuizID:   quizID,
-			Status:   "waiting",
-			Players:  make(map[string]PlayerInfo),
+			HostID:      userID,
+			GameMode:    gameMode,
+			GamePin:     gamePin,
+			QuizID:      quizID,
+			Status:      "waiting",
+			Players:     make(map[string]PlayerInfo),
+			ReadyNext:   make(map[string]bool),
+			AdvanceSent: false,
 		}
 	} else {
 		// Phòng đã tồn tại
@@ -185,6 +190,7 @@ func (h *Hub) handleJoinRoom(client *Client, data map[string]interface{}) {
 		Data: map[string]interface{}{
 			"players":   h.getPlayerList(roomID),
 			"newPlayer": h.RoomStates[roomID].Players[userID],
+			"gameMode":  h.RoomStates[roomID].GameMode,
 		},
 	})
 
@@ -237,6 +243,15 @@ func (h *Hub) handleStartGame(client *Client, data map[string]interface{}) {
 		})
 		return
 	}
+	// Debug: show received payload from host
+	fmt.Printf("[ROOM %s] start_game received from %s: %+v\n", roomID, client.UserID, data)
+
+	if requestedMode, ok := data["gameMode"].(string); ok && requestedMode != "" {
+		state.GameMode = requestedMode
+	}
+	if providedQuizId, ok := data["quizId"].(string); ok && providedQuizId != "" {
+		state.QuizID = providedQuizId
+	}
 
 	state.Status = "playing"
 	state.QuestionIdx = 0
@@ -269,6 +284,8 @@ func (h *Hub) handleNextQuestion(client *Client, data map[string]interface{}) {
 		UserID: "SYSTEM",
 		Data:   data, // {index, content, answers, timeLimit, points}
 	})
+	state.AdvanceSent = false
+	state.ReadyNext = make(map[string]bool)
 
 	fmt.Printf("[ROOM %s] Question %v sent\n", roomID, data["index"])
 }
@@ -315,20 +332,79 @@ func (h *Hub) handleSubmitAnswer(client *Client, data map[string]interface{}) {
 	})
 
 	h.sendToClient(roomID, state.HostID, Message{
-                Action: "player_answered",
-                RoomID: roomID,
-                UserID: "SYSTEM",
-                Data:   map[string]interface{}{"userId": client.UserID},
-        })
+		Action: "player_answered",
+		RoomID: roomID,
+		UserID: "SYSTEM",
+		Data:   map[string]interface{}{"userId": client.UserID},
+	})
 
-        h.sendToClient(roomID, state.HostID, Message{
-                Action: "player_answered",
-                RoomID: roomID,
-                UserID: "SYSTEM",
-                Data:   map[string]interface{}{"userId": client.UserID},
-        })
+	fmt.Printf("[ROOM %s] %s answered Q%v. Correct: %v\n", roomID, client.UserID, int(questionIdx), isCorrect)
+}
 
-        fmt.Printf("[ROOM %s] %s answered Q%v. Correct: %v\n", roomID, client.UserID, int(questionIdx), isCorrect)
+// handlePlayerReadyNext: player clicked NEXT (ready for next question)
+func (h *Hub) handlePlayerReadyNext(client *Client, data map[string]interface{}) {
+	roomID := client.RoomID
+	state, ok := h.RoomStates[roomID]
+	if !ok {
+		return
+	}
+
+	// mark ready
+	state.ReadyNext[client.UserID] = true
+
+	// Debug: log current game mode and players (helps detect case/whitespace mismatches)
+	fmt.Printf("[ROOM %s] player_ready_next from %s — GameMode='%s' AdvanceSent=%v Players=%d\n",
+		roomID, client.UserID, state.GameMode, state.AdvanceSent, len(state.Players))
+
+	// Classic mode: advance immediately on first Next click (no need to wait for everyone)
+	mode := strings.ToLower(strings.TrimSpace(state.GameMode))
+	if mode == "classic" {
+		// For Classic mode: only record that this player is ready. Do NOT notify host
+		// to advance (host-driven advance would broadcast question to all). The
+		// client will advance locally in Classic mode, so server should not emit
+		// an all_players_ready broadcast here.
+		fmt.Printf("[ROOM %s] classic next recorded for %s (no broadcast)\n", roomID, client.UserID)
+		return
+	}
+
+	// count non-host players
+	totalNonHost := 0
+	for _, p := range state.Players {
+		if !p.IsHost {
+			totalNonHost++
+		}
+	}
+
+	// count ready
+	readyCount := len(state.ReadyNext)
+
+	fmt.Printf("[ROOM %s] player_ready_next from %s (ready %d/%d)\n", roomID, client.UserID, readyCount, totalNonHost)
+
+	// Broadcast debug-ready state so clients can observe server-side readiness
+	readyList := make([]string, 0, len(state.ReadyNext))
+	for uid := range state.ReadyNext {
+		readyList = append(readyList, uid)
+	}
+	h.broadcastToRoom(roomID, Message{
+		Action: "ready_state",
+		RoomID: roomID,
+		UserID: "SYSTEM",
+		Data:   map[string]interface{}{"readyList": readyList, "readyCount": readyCount, "totalNonHost": totalNonHost},
+	})
+
+	// If all non-host players are ready, notify the host to advance
+	if totalNonHost > 0 && readyCount >= totalNonHost {
+		// Notify all clients so players see the ready state and host can act
+		h.broadcastToRoom(roomID, Message{
+			Action: "all_players_ready",
+			RoomID: roomID,
+			UserID: "SYSTEM",
+			Data:   map[string]interface{}{"readyCount": readyCount, "hostId": state.HostID},
+		})
+		fmt.Printf("[ROOM %s] All players ready, notifying host %s\n", roomID, state.HostID)
+		// reset ready map for next round
+		state.ReadyNext = make(map[string]bool)
+	}
 }
 
 // handleEndGame: Host kết thúc game
@@ -428,6 +504,11 @@ func (h *Hub) Run() {
 			case "submit_answer":
 				if senderClient != nil {
 					h.handleSubmitAnswer(senderClient, data)
+				}
+
+			case "player_ready_next":
+				if senderClient != nil {
+					h.handlePlayerReadyNext(senderClient, data)
 				}
 
 			case "end_game":

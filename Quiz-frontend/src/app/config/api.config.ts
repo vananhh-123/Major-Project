@@ -4,7 +4,8 @@
  */
 
 // Thay đổi HOST tại đây - tất cả các file sẽ tự động sử dụng giá trị này
-export const API_HOST = 'localhost'; // Hoặc '10.106.34.149', '127.0.0.1', etc.
+// Sử dụng địa chỉ LAN nếu bạn muốn bạn bè trong cùng mạng có thể kết nối
+export const API_HOST = '127.0.0.1'; // Hoặc 'localhost' cho phát triển cục bộ
 export const API_PORT = 8080;
 
 export const API_CONFIG = {

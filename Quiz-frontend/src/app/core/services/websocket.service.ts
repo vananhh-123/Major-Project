@@ -64,6 +64,7 @@ export class WebsocketService {
     this.currentUserId = userId;
 
     const url = `ws://${API_CONFIG.WS_HOST}:${API_CONFIG.WS_PORT}/api/ws?roomId=${roomId}&userId=${userId}`;
+    console.log('🌐 WebSocket connecting to:', url);
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
@@ -104,6 +105,7 @@ export class WebsocketService {
   // ── Gửi message ──
   public send(msg: WsMessage): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log('📤 WebSocket send:', msg.action, msg.data || {});
       this.socket.send(JSON.stringify(msg));
     } else {
       console.warn('⚠️ Chưa kết nối WebSocket, không thể gửi:', msg.action);
@@ -120,11 +122,17 @@ export class WebsocketService {
       userId,
       data: { name, avatar, isHost, gameMode, gamePin, quizId }
     });
+    // Ask server for authoritative room state immediately after joining
+    setTimeout(() => {
+      this.send({ action: 'request_room_state', roomId, userId, data: {} });
+    }, 200);
   }
 
   /** Host bắt đầu game */
-  public startGame(roomId: string, userId: string): void {
-    this.send({ action: 'start_game', roomId, userId, data: {} });
+  public startGame(roomId: string, userId: string, gameMode?: string, quizId?: string): void {
+    const payload = { gameMode, quizId };
+    console.log('🚀 startGame -> sending', { roomId, userId, payload });
+    this.send({ action: 'start_game', roomId, userId, data: payload });
   }
 
   /** Host gửi câu hỏi */
@@ -141,6 +149,11 @@ export class WebsocketService {
     timeUsed: number;
   }): void {
     this.send({ action: 'submit_answer', roomId, userId, data: payload });
+  }
+
+  /** Player clicked NEXT (ready for next question) */
+  public playerReadyNext(roomId: string, userId: string): void {
+    this.send({ action: 'player_ready_next', roomId, userId, data: {} });
   }
 
   /** Host kết thúc game */

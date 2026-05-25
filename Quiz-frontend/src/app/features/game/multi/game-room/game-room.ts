@@ -33,6 +33,7 @@ export class GameRoom implements OnInit, OnDestroy {
   gamePin: string = '';
   quizId: string = '';
   currentUserId: string = '';
+  currentUserAvatar: string = '/User.png';
   playerWaiting: boolean = false;
 
   questions: Question[] = [];
@@ -45,6 +46,12 @@ export class GameRoom implements OnInit, OnDestroy {
     return this.questions[this.currentQuestionIdx] || null;
   }
 
+  get hostLeaderboardPlayers(): (PlayerInfo & { isCurrentUser?: boolean })[] {
+    return [...this.players]
+      .filter(p => !p.isHost)
+      .sort((a, b) => (b.score || 0) - (a.score || 0));
+  }
+
   gamePhase: 'loading' | 'countdown' | 'question' | 'answer_reveal' | 'scoreboard' | 'ended' = 'loading';
   countdown: number = 3;
   timeLeft: number = 0;
@@ -54,7 +61,9 @@ export class GameRoom implements OnInit, OnDestroy {
   lastAnswerResult: { isCorrect: boolean; points: number; totalScore: number } | null = null;
   
   playerScore: number = 0;
+  correctAnswersCount: number = 0;
   submissionsCount: number = 0;
+  submittedPlayerIds = new Set<string>();
   players: (PlayerInfo & { isCurrentUser?: boolean })[] = [];
 
   private countdownTimer: any;
@@ -85,7 +94,7 @@ export class GameRoom implements OnInit, OnDestroy {
     this.subs.add(
       this.route.queryParams.subscribe(params => {
         this.isHost       = params['role'] === 'host';
-        this.gameMode     = params['mode']   || 'classic';
+        this.gameMode     = params['mode']   || sessionStorage.getItem('roomGameMode') || 'classic';
         this.gamePin      = params['pin']    || '';
         this.quizId       = params['quizId'] || '';
         this.currentUserId = params['userId'] || '';
@@ -105,16 +114,47 @@ export class GameRoom implements OnInit, OnDestroy {
     clearInterval(this.questionTimer);
   }
 
+  get allPlayersAnswered(): boolean {
+    return this.nonHostPlayersCount > 0 && this.submissionsCount >= this.nonHostPlayersCount;
+  }
+
+  get submissionStatusText(): string {
+    return this.allPlayersAnswered ? 'All players have answered.' : 'Players are thinking...';
+  }
+
   private init(): void {
+    this.loadCurrentUserAvatar();
+
     // Đọc lại danh sách Player từ Lobby truyền qua
     const storedPlayers = sessionStorage.getItem('roomPlayers');
     if (storedPlayers) {
-        this.players = JSON.parse(storedPlayers);
+      this.players = JSON.parse(storedPlayers).map((p: any) => ({
+        ...p,
+        avatar: p.avatar || `https://api.dicebear.com/7.x/personas/svg?seed=${p.name || p.userId}`,
+        isCurrentUser: p.userId === this.currentUserId
+      }));
     }
 
     this.listenToWsEvents();
-    if (this.isHost) {
-      this.loadQuiz();
+    // Load quiz for both host and players so players can advance locally in Classic mode
+    this.loadQuiz();
+  }
+
+  private loadCurrentUserAvatar(): void {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        this.currentUserAvatar = user.avatar || `https://api.dicebear.com/7.x/personas/svg?seed=${user.name || user.username || this.currentUserId || 'user'}`;
+      }
+    } catch {
+      this.currentUserAvatar = `https://api.dicebear.com/7.x/personas/svg?seed=${this.currentUserId || 'user'}`;
+    }
+
+    // Prefer the avatar from roomPlayers if present
+    const me = this.players.find(p => p.userId === this.currentUserId);
+    if (me?.avatar) {
+      this.currentUserAvatar = me.avatar;
     }
   }
 
@@ -126,7 +166,29 @@ export class GameRoom implements OnInit, OnDestroy {
           ...q,
           options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
         })) || [];
-        this.prepareQuestion();
+        // Host will prepare and broadcast questions. For Classic mode, players
+        // should run the quiz locally and advance independently — show the
+        // first question locally so they can answer without waiting for host.
+        if (this.isHost) {
+          this.prepareQuestion();
+        } else {
+          if (this.gameMode === 'classic' && this.questions.length > 0) {
+            this.currentQuestionIdx = 0;
+            this.gamePhase = 'question';
+            // Ensure local question object exists
+            const q = this.questions[0];
+            this.questions[0] = {
+              id: String(0),
+              content: q.content,
+              time_limit: q.time_limit,
+              points: q.points,
+              multiple_correct: q.multiple_correct,
+              options: q.options
+            };
+            // Start countdown locally for player
+            this.startCountdown();
+          }
+        }
       },
       error: (err) => console.error('Load quiz error:', err)
     });
@@ -138,17 +200,26 @@ export class GameRoom implements OnInit, OnDestroy {
           const q = msg.data;
           this.playerWaiting = false;
           if (!this.isHost) {
-          this.questions = [];
-          this.currentQuestionIdx = q.index;
-          this.questions[q.index] = {
-            id: String(q.index),
-            content: q.content,
-            time_limit: q.timeLimit,
-            points: q.points,
-            multiple_correct: q.multipleCorrect,
-            options: q.answers
-          };
-          this.startCountdown();
+            // In Classic mode players advance locally; ignore host question broadcasts
+            // to avoid overriding the player's independent flow.
+            if (this.gameMode === 'classic') {
+              console.log('[INFO] Ignoring host question broadcast in classic mode for player');
+              return;
+            }
+            this.questions = [];
+            this.currentQuestionIdx = q.index;
+            this.questions[q.index] = {
+              id: String(q.index),
+              content: q.content,
+              time_limit: q.timeLimit,
+              points: q.points,
+              multiple_correct: q.multipleCorrect,
+              options: q.answers
+            };
+            this.startCountdown();
+          } else {
+            this.gamePhase = 'question';
+            this.cdr.detectChanges();
         }
       })
     );
@@ -156,7 +227,11 @@ export class GameRoom implements OnInit, OnDestroy {
     this.subs.add(
       this.ws.on('player_answered').subscribe((msg: any) => {
         if (this.isHost) {
-           this.submissionsCount++;
+           const userId = msg?.data?.userId;
+           if (userId && userId !== this.currentUserId && !this.submittedPlayerIds.has(userId)) {
+             this.submittedPlayerIds.add(userId);
+             this.submissionsCount = this.submittedPlayerIds.size;
+           }
            this.cdr.detectChanges();
         }
       })
@@ -198,9 +273,19 @@ export class GameRoom implements OnInit, OnDestroy {
 
     this.subs.add(
       this.ws.on('score_update').subscribe((msg: any) => {
+        // Ensure avatars exist and mark current user; sort by score desc
         this.players = msg.data
-          .map((p: any) => ({ ...p, isCurrentUser: p.userId === this.currentUserId }))
-          .sort((a: any, b: any) => b.score - a.score);
+          .map((p: any) => ({
+            ...p,
+            avatar: p.avatar || (`https://api.dicebear.com/7.x/personas/svg?seed=${p.name || p.userId}`),
+            isCurrentUser: p.userId === this.currentUserId
+          }))
+          .sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
+
+        const me = this.players.find(p => p.userId === this.currentUserId);
+        if (me?.avatar) {
+          this.currentUserAvatar = me.avatar;
+        }
       })
     );
 
@@ -209,11 +294,29 @@ export class GameRoom implements OnInit, OnDestroy {
         this.gamePhase = 'ended';
         this.clearTimers();
         sessionStorage.setItem('finalScores', JSON.stringify(msg.data.finalScores));
+        if (this.quizId) {
+          sessionStorage.setItem('lastQuizId', this.quizId);
+        }
         setTimeout(() => {
           this.router.navigate(['/play/result'], {
-            queryParams: { pin: this.gamePin, mode: this.gameMode, role: this.isHost ? 'host' : 'player' }
+            queryParams: {
+              pin: this.gamePin,
+              mode: this.gameMode,
+              role: this.isHost ? 'host' : 'player',
+              quizId: this.quizId
+            }
           });
         }, 2000);
+      })
+    );
+
+    // Host: when server notifies that all players are ready, advance question
+    this.subs.add(
+      this.ws.on('all_players_ready').subscribe((msg: any) => {
+        if (this.isHost) {
+          // Auto-advance the host's question
+          this.nextQuestionOrEnd();
+        }
       })
     );
   }
@@ -222,7 +325,7 @@ export class GameRoom implements OnInit, OnDestroy {
     if (!this.isHost) return;
     const q = this.currentQuestion;
     if (!q) return;
-
+    console.log('[HOST] prepareQuestion idx=', this.currentQuestionIdx, 'questionsLen=', this.questions.length, 'q=', q);
     this.ws.sendQuestion(this.gamePin, this.currentUserId, {
       index:          this.currentQuestionIdx,
       content:        q.content,
@@ -236,16 +339,20 @@ export class GameRoom implements OnInit, OnDestroy {
 
   private startCountdown(): void {
     this.clearTimers(); // Dọn dẹp Interval bị kẹt
+    console.log('[HOST] startCountdown — countdown will begin');
     this.gamePhase = 'countdown';
     this.countdown = 3;
     this.selectedAnswers = [];
     this.hasAnswered = false;
     this.lastAnswerResult = null;
     this.submissionsCount = 0;
+    this.submittedPlayerIds.clear();
     this.cdr.detectChanges();
 
     this.countdownTimer = setInterval(() => {
       this.countdown--;
+      // debug log for host countdown
+      if (this.isHost) console.log('[HOST] countdown', this.countdown);
       this.cdr.detectChanges();
       if (this.countdown <= 0) {
         clearInterval(this.countdownTimer);
@@ -257,6 +364,7 @@ export class GameRoom implements OnInit, OnDestroy {
   private showQuestion(): void {
     const q = this.currentQuestion;
     if (!q) return;
+    if (this.isHost) console.log('[HOST] showQuestion idx=', this.currentQuestionIdx, 'time_limit=', q.time_limit);
 
     this.gamePhase = 'question';
     this.timeLeft = q.time_limit;
@@ -264,6 +372,7 @@ export class GameRoom implements OnInit, OnDestroy {
 
     this.questionTimer = setInterval(() => {
       this.timeLeft--;
+      if (this.isHost) console.log('[HOST] timeLeft', this.timeLeft);
       this.cdr.detectChanges();
       if (this.timeLeft <= 0) {
         clearInterval(this.questionTimer);
@@ -294,6 +403,36 @@ export class GameRoom implements OnInit, OnDestroy {
   }
 
   playerWaitNext(): void {
+    // Notify server we are ready for the next question (recording only)
+    this.ws.playerReadyNext(this.gamePin, this.currentUserId);
+
+    // In Classic mode, advance locally for the player immediately (don't wait for others)
+    if (this.gameMode === 'classic') {
+      // If we don't have the quiz loaded, fall back to waiting
+      if (!this.questions || this.questions.length === 0) {
+        this.playerWaiting = true;
+        return;
+      }
+
+      if (this.currentQuestionIdx + 1 < this.questions.length) {
+        // advance this player to next question locally
+        this.currentQuestionIdx++;
+        this.hasAnswered = false;
+        this.selectedAnswers = [];
+        this.lastAnswerResult = null;
+        this.submissionsCount = 0;
+        this.submittedPlayerIds.clear();
+        this.playerWaiting = false;
+        // start countdown for the newly advanced question
+        this.startCountdown();
+      } else {
+        // reached end locally — submit result and navigate to Result page for this player
+        this.finishLocalGame();
+      }
+      return;
+    }
+
+    // For non-classic modes, keep previous behavior (show waiting screen until host advances)
     this.playerWaiting = true;
   }
 
@@ -321,17 +460,27 @@ export class GameRoom implements OnInit, OnDestroy {
           }
         }
 
-        let timeBonus = 0;
-        if (isCorrectLocal && this.timeLeft > 0) {
-            timeBonus = q.points; 
+        // Calculate points proportional to remaining time so faster answers score higher
+        let awardedPoints = 0;
+        if (isCorrectLocal && q.time_limit > 0) {
+          // proportion of remaining time (0..1) times question max points
+          const ratio = Math.max(0, this.timeLeft) / q.time_limit;
+          awardedPoints = Math.round((q.points || 0) * ratio);
+        } else if (isCorrectLocal) {
+          // fallback: award full points if no time limit defined
+          awardedPoints = q.points || 0;
         }
-        this.ws.submitAnswer(this.gamePin, this.currentUserId, { 
-            questionIdx: this.currentQuestionIdx,
-            answerIdx: this.selectedAnswers, 
-            isCorrect: isCorrectLocal,
-            points: timeBonus,
-            timeUsed: q.time_limit - this.timeLeft
+
+        this.ws.submitAnswer(this.gamePin, this.currentUserId, {
+          questionIdx: this.currentQuestionIdx,
+          answerIdx: this.selectedAnswers,
+          isCorrect: isCorrectLocal,
+          points: awardedPoints,
+          timeUsed: Math.max(0, q.time_limit - this.timeLeft)
         });
+        if (isCorrectLocal) {
+          this.correctAnswersCount = (this.correctAnswersCount || 0) + 1;
+        }
     }
   }
 
@@ -361,6 +510,58 @@ export class GameRoom implements OnInit, OnDestroy {
     if (this.isHost) {
       this.ws.endGame(this.gamePin, this.currentUserId);
     }
+  }
+
+  private finishLocalGame(): void {
+    // Save a minimal finalScores for the local player so Result page can render
+    const finalScores = [{
+      userId: this.currentUserId,
+      name: '',
+      score: this.playerScore || 0,
+      avatar: this.currentUserAvatar,
+      isHost: this.isHost
+    }];
+    sessionStorage.setItem('finalScores', JSON.stringify(finalScores));
+    if (this.quizId) sessionStorage.setItem('lastQuizId', this.quizId);
+
+    // Persist result to server (best-effort)
+    let userId: string | null = null;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        userId = user.id || null;
+      }
+    } catch {}
+
+    const payload: any = {
+      user_id: userId,
+      quiz_id: this.quizId || null,
+      is_solo: false,
+      score: this.playerScore || 0,
+      correct_answers: this.correctAnswersCount || 0
+    };
+    this.http.post(API_CONFIG.ENDPOINTS.RESULTS, payload).subscribe({
+      next: () => {
+        // ignore
+      },
+      error: () => {
+        // ignore
+      }
+    });
+
+    // Navigate to Result screen with summary params
+    this.router.navigate(['/play/result'], {
+      queryParams: {
+        pin: this.gamePin,
+        mode: this.gameMode,
+        role: 'player',
+        quizId: this.quizId,
+        score: this.playerScore || 0,
+        totalQuestions: this.questions.length || 0,
+        totalCorrect: this.correctAnswersCount || 0
+      }
+    });
   }
 
   getLetter(idx: number): string {
@@ -402,6 +603,10 @@ export class GameRoom implements OnInit, OnDestroy {
       }
       return '';
     }
+  }
+
+  trackByUserId(_: number, player: PlayerInfo & { isCurrentUser?: boolean }): string {
+    return player.userId;
   }
 }
 

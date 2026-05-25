@@ -313,6 +313,17 @@
 }
 .timer-label.sm { font-size: 9px; }
 
+/* Ensure host timer is always visible and on top */
+.host-right .timer-card {
+  position: relative;
+  z-index: 30;
+}
+.host-right .timer-number {
+  color: #be185d !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+  font-size: 36px !important;
+}
+
 /* ================================================================
    SIDEBAR CARDS (Submissions + Host Controls)
 ================================================================ */
@@ -348,10 +359,18 @@
   padding: 7px 11px;
   font-size: 12px; color: #6B7280;
 }
+.thinking-row.thinking-complete {
+  background: #ECFDF3;
+  color: #15803D;
+}
 .thinking-dot {
   width: 8px; height: 8px; min-width: 8px;
   border-radius: 50%; background: #A855F7;
   animation: pdot 1.4s infinite;
+}
+.thinking-row.thinking-complete .thinking-dot {
+  background: #22C55E;
+  animation: none;
 }
 @keyframes pdot {
   0%,100% { opacity:1; transform:scale(1); }
@@ -462,7 +481,111 @@
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: #7C3AED; flex-shrink: 0;
 }
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
 .avatar-btn .material-icons { font-size: 18px; }
+
+/* ================================================================
+   HOST CLASSIC LEADERBOARD
+================================================================ */
+.host-classic-layout {
+  display: grid;
+  grid-template-columns: 1fr 264px;
+  gap: 24px;
+  max-width: 950px;
+  margin: 0 auto;
+}
+
+.classic-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.classic-leaderboard-panel {
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 2px 20px rgba(109,40,217,0.09);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 260px;
+}
+
+.classic-leaderboard-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: #7C3AED;
+  font-weight: 700;
+  background: #FAF5FF;
+  border-radius: 16px;
+}
+
+.classic-leaderboard-row {
+  display: grid;
+  grid-template-columns: 42px 48px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #FAF5FF;
+}
+
+.classic-rank {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.classic-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #EDE9FE;
+}
+
+.classic-player-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.classic-player-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1A1033;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.classic-player-role {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #9CA3AF;
+  text-transform: uppercase;
+}
+
+.classic-score {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1A1033;
+}
 
 /* ================================================================
    CLASSIC � dimmed-correct: card d�ng nhung player kh�ng ch?n

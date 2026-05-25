@@ -10,55 +10,97 @@
 
 
         <div class="podium-area">
-          <!-- Rank 2 -->
-          <div class="podium-card rank-2">
-            <div class="avatar-box">
-              <img [src]="leaderboard[1].avatar" alt="Avatar">
-              <span class="rank-badge">2</span>
-            </div>
-            <h3 class="name">{{ leaderboard[1].name }}</h3>
-            <p class="points">{{ leaderboard[1].points | number }} pts</p>
-            <div class="podium-step-box">
-              <span class="step-num">2</span>
-            </div>
-          </div>
-
-
-          <!-- Rank 1 -->
-          <div class="podium-card rank-1">
-            <div class="avatar-box main">
-              <img [src]="leaderboard[0].avatar" alt="Avatar">
-              <div class="crown-box">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z" /></svg>
+          <!-- Dynamic podium: if host exists, show host center and top other players left/right -->
+          <ng-container *ngIf="hostEntry; else noHostPodium">
+            <!-- Left: second place if exists -->
+            <div class="podium-card rank-2" *ngIf="podiumPlayers[1]">
+              <div class="avatar-box">
+                <img [src]="podiumPlayers[1].avatar" alt="Avatar">
+                <span class="rank-badge">2</span>
+              </div>
+              <h3 class="name">{{ podiumPlayers[1].name }}</h3>
+              <p class="points">{{ podiumPlayers[1].points | number }} pts</p>
+              <div class="podium-step-box">
+                <span class="step-num">2</span>
               </div>
             </div>
-            <h2 class="name main">{{ leaderboard[0].name }}</h2>
-            <p class="points main">{{ leaderboard[0].points | number }} pts</p>
-            <div class="podium-step-box main">
-              <span class="step-num">1</span>
-            </div>
-          </div>
 
+            <!-- Center: host always shown here -->
+            <div class="podium-card rank-1">
+              <div class="avatar-box main">
+                <img [src]="hostEntry.avatar" alt="Avatar">
+                <div class="crown-box">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z" /></svg>
+                </div>
+              </div>
+              <h2 class="name main">{{ hostEntry.name }}</h2>
+              <p class="points main">{{ hostEntry.points | number }} pts</p>
+              <div class="podium-step-box main">
+                <span class="step-num">1</span>
+              </div>
+            </div>
 
-          <!-- Rank 3 -->
-          <div class="podium-card rank-3">
-            <div class="avatar-box">
-              <img [src]="leaderboard[2].avatar" alt="Avatar">
-              <span class="rank-badge">3</span>
+            <!-- Right: third place if exists -->
+            <div class="podium-card rank-3" *ngIf="podiumPlayers[2]">
+              <div class="avatar-box">
+                <img [src]="podiumPlayers[2].avatar" alt="Avatar">
+                <span class="rank-badge">3</span>
+              </div>
+              <h3 class="name">{{ podiumPlayers[2].name }}</h3>
+              <p class="points">{{ podiumPlayers[2].points | number }} pts</p>
+              <div class="podium-step-box">
+                <span class="step-num">3</span>
+              </div>
             </div>
-            <h3 class="name">{{ leaderboard[2].name }}</h3>
-            <p class="points">{{ leaderboard[2].points | number }} pts</p>
-            <div class="podium-step-box">
-              <span class="step-num">3</span>
-            </div>
-          </div>
+          </ng-container>
+
+          <!-- If no host, show podium from top players only -->
+          <ng-template #noHostPodium>
+            <ng-container *ngIf="podiumPlayers.length > 0">
+              <div class="podium-card rank-2" *ngIf="podiumPlayers.length >= 2">
+                <div class="avatar-box">
+                  <img [src]="podiumPlayers[1].avatar" alt="Avatar">
+                  <span class="rank-badge">2</span>
+                </div>
+                <h3 class="name">{{ podiumPlayers[1].name }}</h3>
+                <p class="points">{{ podiumPlayers[1].points | number }} pts</p>
+                <div class="podium-step-box">
+                  <span class="step-num">2</span>
+                </div>
+              </div>
+
+              <div class="podium-card rank-1">
+                <div class="avatar-box main">
+                  <img [src]="podiumPlayers[0].avatar" alt="Avatar">
+                </div>
+                <h2 class="name main">{{ podiumPlayers[0].name }}</h2>
+                <p class="points main">{{ podiumPlayers[0].points | number }} pts</p>
+                <div class="podium-step-box main">
+                  <span class="step-num">1</span>
+                </div>
+              </div>
+
+              <div class="podium-card rank-3" *ngIf="podiumPlayers.length >= 3">
+                <div class="avatar-box">
+                  <img [src]="podiumPlayers[2].avatar" alt="Avatar">
+                  <span class="rank-badge">3</span>
+                </div>
+                <h3 class="name">{{ podiumPlayers[2].name }}</h3>
+                <p class="points">{{ podiumPlayers[2].points | number }} pts</p>
+                <div class="podium-step-box">
+                  <span class="step-num">3</span>
+                </div>
+              </div>
+            </ng-container>
+          </ng-template>
         </div>
 
 
         <div class="leaderboard-list">
-          @for (player of leaderboard.slice(3); track player.rank) {
-            <div class="list-item">
-              <span class="rank-num">{{ player.rank }}</span>
+          <!-- Show other players only when more than 3 players (excluding host) -->
+          <ng-container *ngIf="otherPlayers && otherPlayers.length > 0">
+            <div *ngFor="let player of otherPlayers" class="list-item">
+              <span class="rank-num">{{ player.rank || '-' }}</span>
               <img [src]="player.avatar" class="sm-avatar">
               <div class="player-info">
                 <span class="p-name">{{ player.name }}</span>
@@ -66,13 +108,19 @@
               </div>
               <span class="p-points">{{ player.points | number }}</span>
             </div>
-          }
+          </ng-container>
         </div>
 
 
-        <div class="action-footer">
-          <button class="btn-dashboard" routerLink="/app/dashboard">
+        <div class="cta-row-center">
+          <button class="btn-action-primary" routerLink="/app/dashboard">
             <i class="pi pi-th-large"></i> Return to Dashboard
+          </button>
+          <button class="btn-action-primary" (click)="onPlayAgain()">
+            <i class="pi pi-refresh"></i> Play Again
+          </button>
+          <button class="btn-action-primary" *ngIf="isOwner" (click)="onRateQuiz()">
+            <i class="pi pi-star"></i> Rate Quiz
           </button>
         </div>
       </div>
@@ -138,10 +186,10 @@
           <button class="btn-action-primary" routerLink="/app/dashboard">
             <i class="pi pi-th-large"></i> Return to Dashboard
           </button>
-          <button class="btn-action-primary" [routerLink]="['/play/solo/lobby']" [queryParams]="{ id: quizId }">
+           <button class="btn-action-primary" (click)="onPlayAgain()">
              <i class="pi pi-refresh"></i> Play Again
-          </button>
-          <button class="btn-action-primary" [routerLink]="['/app/review', quizId]" [disabled]="!quizId">
+           </button>
+           <button class="btn-action-primary" *ngIf="!isOwner" (click)="onRateQuiz()" [disabled]="!canRateQuiz" [attr.aria-disabled]="!canRateQuiz">
              <i class="pi pi-star"></i> Rate Quiz
           </button>
         </div>

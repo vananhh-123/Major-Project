@@ -166,7 +166,10 @@ export class MultiLobby implements OnInit, OnDestroy {
     // Có player mới vào phòng → cập nhật danh sách
     this.subs.add(
       this.ws.on('player_joined').subscribe((msg: any) => {
-        const data = msg.data as { players: PlayerInfo[]; newPlayer: PlayerInfo };
+        const data = msg.data as { players: PlayerInfo[]; newPlayer: PlayerInfo; gameMode?: string };
+        // Update gameMode from server state if present (so players see correct mode)
+        this.gameMode = data.gameMode || this.gameMode;
+
         this.players = data.players.map(p => ({
           ...p,
           // Đánh dấu player hiện tại
@@ -195,16 +198,31 @@ export class MultiLobby implements OnInit, OnDestroy {
         console.log('🎮 Game started! Navigating to game room...');
         
         sessionStorage.setItem('roomPlayers', JSON.stringify(this.players));
+        sessionStorage.setItem('roomGameMode', msg.data?.gameMode || this.gameMode);
 
         this.router.navigate(['/play/multi/room'], {
           queryParams: {
-            mode:    this.gameMode,
+            mode:    msg.data?.gameMode || this.gameMode,
             pin:     this.gamePin,
             quizId:  msg.data.quizId,
             role:    this.isHost ? 'host' : 'player',
             userId:  this.currentUserId
           }
         });
+      })
+    );
+
+    // Room state response (authoritative) — update gameMode if server says so
+    this.subs.add(
+      this.ws.on('room_state').subscribe((msg: any) => {
+        const data = msg.data as { gameMode?: string; players?: PlayerInfo[] };
+        if (data.gameMode) {
+          this.gameMode = data.gameMode;
+        }
+        if (data.players) {
+          this.players = data.players.map(p => ({ ...p, isCurrentUser: p.userId === this.currentUserId }));
+        }
+        this.cdr.detectChanges();
       })
     );
   }
@@ -216,7 +234,7 @@ export class MultiLobby implements OnInit, OnDestroy {
   startGame(): void {
     if (!this.isHost) return;
     console.log('🚀 Host starting game...');
-    this.ws.startGame(this.gamePin, this.currentUserId);
+    this.ws.startGame(this.gamePin, this.currentUserId, this.gameMode, this.quizId);
     // Navigation xảy ra khi nhận được event 'game_started' từ server
   }
 

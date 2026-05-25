@@ -159,6 +159,18 @@
 }
 .btn-action-outline { background: #fff; border: 2px solid #eaecf0; color: #1a0a3a; }
 .btn-action-primary { background: #7f56d9; color: #fff; border: none; box-shadow: 0 10px 25px rgba(127, 86, 217, 0.4); }
+.btn-action-primary:disabled {
+  opacity: 0.68;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.btn-action-primary[aria-disabled="true"] {
+  opacity: 0.68;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 
 .btn-action-outline:hover, .btn-action-primary:hover {
   transform: translateY(-5px);
@@ -175,8 +187,8 @@
 
 .label-tiny { font-size: 13px; font-weight: 850; color: #98a2b3; text-transform: uppercase; display: block; margin-bottom: 5px; }
 /* ================================================================
-   HOST FINAL RESULTS — podium leaderboard
-   Theo dúng design: Host Final Results - JUST4QUIZ.png
+   HOST FINAL RESULTS ï¿½ podium leaderboard
+   Theo dï¿½ng design: Host Final Results - JUST4QUIZ.png
 ================================================================ */
 .result-root {
   font-family: 'Inter', sans-serif;
@@ -207,7 +219,7 @@
   display: block;
 }
 
-/* Game Over – Final Results */
+/* Game Over ï¿½ Final Results */
 .results-title {
   font-size: 52px;
   font-weight: 900;
