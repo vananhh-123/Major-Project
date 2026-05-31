@@ -110,12 +110,12 @@ export class Profile implements OnInit {
 
   // CẬP NHẬT: THÊM SLICE ĐỂ PHÂN TRANG
   updateDisplayedHistory() {
-    let filtered = [];
-    if (this.historyMode === 'solo') {
-      filtered = this.rawHistory.filter(h => h.is_solo);
-    } else {
-      filtered = this.rawHistory.filter(h => !h.is_solo);
-    }
+    const filtered = this.rawHistory.filter(h => {
+      const mode = (h.mode || '').toString().toLowerCase();
+      if (mode === 'solo') return this.historyMode === 'solo';
+      if (mode === 'multi') return this.historyMode === 'multi';
+      return this.historyMode === (h.is_solo ? 'solo' : 'multi');
+    });
 
     this.totalPages = Math.ceil(filtered.length / this.pageSize) || 1;
     

@@ -12,9 +12,29 @@ import (
 type SubmitResultRequest struct {
 	UserID         *uuid.UUID `json:"user_id"`
 	QuizID         *uuid.UUID `json:"quiz_id"`
-	IsSolo         bool       `json:"is_solo"`
+	RoomID         *string    `json:"room_id"`
+	Mode           *string    `json:"mode"`
 	Score          int        `json:"score"`
 	CorrectAnswers int        `json:"correct_answers"`
+}
+
+func resolveRoomUUID(roomRef *string) (*uuid.UUID, error) {
+	if roomRef == nil || *roomRef == "" {
+		return nil, nil
+	}
+
+	if parsed, err := uuid.Parse(*roomRef); err == nil {
+		return &parsed, nil
+	}
+
+	var room struct {
+		ID uuid.UUID `gorm:"column:id"`
+	}
+	if err := config.DB.Table("rooms").Select("id").Where("room_code = ?", *roomRef).Take(&room).Error; err != nil {
+		return nil, err
+	}
+
+	return &room.ID, nil
 }
 
 func SubmitResult(c *gin.Context) {
@@ -24,22 +44,37 @@ func SubmitResult(c *gin.Context) {
 		return
 	}
 
-	// Logic for Solo Play: Override max score and increment play count
-	if req.IsSolo && req.UserID != nil && req.QuizID != nil {
+	roomUUID, err := resolveRoomUUID(req.RoomID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room_id"})
+		return
+	}
+
+	// Determine mode: prefer explicit field, else infer from room presence
+	var modePtr *string
+	if req.Mode != nil {
+		modePtr = req.Mode
+	} else {
+		m := "solo"
+		if roomUUID != nil {
+			m = "multi"
+		}
+		modePtr = &m
+	}
+
+	// If this is a solo play, try updating existing solo result (user+quiz with no room)
+	if modePtr != nil && *modePtr == "solo" && req.UserID != nil && req.QuizID != nil {
 		var existingResult models.Result
-		// Check if a solo result already exists for this user and quiz
 		err := config.DB.Where("user_id = ? AND quiz_id = ? AND room_id IS NULL", req.UserID, req.QuizID).First(&existingResult).Error
-
 		if err == nil {
-			// Found existing record. Increment play count.
+			// Found existing record. Increment play count and update score if higher
 			existingResult.PlayCount += 1
-
-			// Calculate fair points (Override if new score is higher)
 			if req.Score > existingResult.Score {
 				existingResult.Score = req.Score
 				existingResult.CorrectAnswers = req.CorrectAnswers
 			}
-
+			solo := "solo"
+			existingResult.Mode = &solo
 			if err := config.DB.Save(&existingResult).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update result"})
 				return
@@ -49,11 +84,14 @@ func SubmitResult(c *gin.Context) {
 		}
 	}
 
+	// Otherwise create a new result row
 	result := models.Result{
 		UserID:         req.UserID,
 		QuizID:         req.QuizID,
+		RoomID:         roomUUID,
 		Score:          req.Score,
 		CorrectAnswers: req.CorrectAnswers,
+		Mode:           modePtr,
 		PlayCount:      1,
 	}
 

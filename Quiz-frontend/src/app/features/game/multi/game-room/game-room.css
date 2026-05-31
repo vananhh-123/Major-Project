@@ -12,6 +12,7 @@
     #F9F5FF;
   padding: 28px 48px 44px;
   box-sizing: border-box;
+  min-height: 100vh;
 }
 .gr-root.focus-bg {
   background:
@@ -21,7 +22,7 @@
 }
 
 /* ================================================================
-   HOST LAYOUT 
+   HOST LAYOUT — FOCUS MODE (câu hỏi + sidebar)
 ================================================================ */
 .host-layout {
   display: grid;
@@ -33,6 +34,123 @@
 .host-left  { display: flex; flex-direction: column; }
 .host-right { display: flex; flex-direction: column; gap: 12px; }
 
+/* ================================================================
+   HOST LAYOUT — CLASSIC MODE (leaderboard + sidebar)
+================================================================ */
+.host-classic-layout {
+  display: grid;
+  grid-template-columns: 1fr 264px;
+  gap: 24px;
+  max-width: 950px;
+  margin: 0 auto;
+}
+.classic-left {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== CLASSIC LEADERBOARD PANEL ===== */
+.classic-leaderboard-panel {
+  background: white;
+  border-radius: 20px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 16px rgba(109,40,217,0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.classic-leaderboard-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Mỗi hàng trong leaderboard */
+.classic-leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #FAF5FF;
+  border: 1px solid #EDE9FE;
+  transition: background 0.15s;
+}
+.classic-leaderboard-row:hover {
+  background: #F3E8FF;
+}
+
+/* Số thứ tự */
+.classic-rank {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: #EDE9FE;
+  color: #7C3AED;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+/* Top 3 màu khác */
+.classic-leaderboard-row:nth-child(1) .classic-rank { background: #FEF9C3; color: #B45309; }
+.classic-leaderboard-row:nth-child(2) .classic-rank { background: #F1F5F9; color: #64748B; }
+.classic-leaderboard-row:nth-child(3) .classic-rank { background: #FEF3C7; color: #D97706; }
+
+/* Avatar */
+.classic-avatar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #EDE9FE;
+  flex-shrink: 0;
+}
+
+/* Tên + role */
+.classic-player-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.classic-player-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1A1033;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.classic-player-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Điểm */
+.classic-score {
+  font-size: 16px;
+  font-weight: 900;
+  color: #7C3AED;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   CATEGORY BADGE
+================================================================ */
 .category-badge {
   display: inline-flex;
   align-items: center;
@@ -104,12 +222,8 @@
   user-select: none;
   cursor: default;
 }
-.ans-card.clickable {
-  cursor: pointer;
-}
-.ans-card.clickable:hover {
-  transform: scale(1.018);
-}
+.ans-card.clickable { cursor: pointer; }
+.ans-card.clickable:hover { transform: scale(1.018); }
 
 /* Gradients A / B / C / D */
 .ans-0 { background: linear-gradient(135deg, #7135ee, #9c33b7); }
@@ -146,34 +260,29 @@
 /* ================================================================
    ANSWER STATES
 ================================================================ */
-
-/* CORRECT*/
 .ans-card.ans-correct {
   background: linear-gradient(135deg, #15803D 0%, #22C55E 100%) !important;
   opacity: 1 !important;
   filter: none !important;
 }
-
-/* WRONG (host after reveal)*/
 .ans-card.ans-wrong-host {
   opacity: 0.38;
   filter: grayscale(0.4);
 }
-/* WRONG (player after reveal)*/
 .ans-card.ans-wrong-player {
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%) !important;
 }
-
-/* SELECTED (player focus) */
 .ans-card.ans-selected {
   box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(109,40,217,0.55);
 }
-
-/* DIMMED */
 .ans-card.ans-dimmed {
   opacity: 0.32;
   filter: grayscale(0.4) brightness(0.9);
   cursor: default;
+}
+.ans-card.ans-dimmed-correct {
+  opacity: 0.55;
+  filter: none;
 }
 
 /* ================================================================
@@ -190,9 +299,7 @@
   pointer-events: auto !important;
   overflow: hidden;
 }
-.ans-card.focus-card:hover {
-  transform: scale(1.015);
-}
+.ans-card.focus-card:hover { transform: scale(1.015); }
 .focus-letter-box {
   width: 80px; height: 80px;
   background: rgba(255,255,255,0.22);
@@ -215,7 +322,6 @@
 
 /* ================================================================
    HOST BOTTOM BUTTONS
-   Classic & Focus : SHOW ANSWER  + NEXT QUESTION 
 ================================================================ */
 .host-bottom-btns {
   display: flex;
@@ -238,11 +344,7 @@
   transform: translateY(-2px);
   box-shadow: 0 7px 24px rgba(157,23,77,0.38);
 }
-.btn-show-answer:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-}
+.btn-show-answer:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 .btn-show-answer .material-icons { font-size: 16px; }
 
 .btn-next-question {
@@ -276,10 +378,7 @@
   width: 100px; height: 100px;
   display: flex; align-items: center; justify-content: center;
 }
-.timer-svg {
-  width: 100px; height: 100px;
-  position: absolute; top: 0; left: 0;
-}
+.timer-svg { width: 100px; height: 100px; position: absolute; top: 0; left: 0; }
 .timer-svg.sm { width: 68px; height: 68px; }
 
 .timer-track    { fill: none; stroke: #F3E8FF; stroke-width: 6; }
@@ -296,14 +395,11 @@
 }
 .timer-number.sm { font-size: 22px; }
 
-.timer-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.12em; color: #9CA3AF;
-}
+.timer-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: #9CA3AF; }
 .timer-label.sm { font-size: 9px; }
 
 /* ================================================================
-   SIDEBAR CARDS (Submissions + Host Controls)
+   SIDEBAR CARDS
 ================================================================ */
 .sidebar-card {
   background: white;
@@ -312,16 +408,12 @@
   box-shadow: 0 2px 16px rgba(109,40,217,0.07);
 }
 
-/* Submissions */
 .sub-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .sub-title  { font-size: 14px; font-weight: 700; color: #1A1033; }
 .sub-icon   { font-size: 20px; color: #7C3AED; }
 
 .sub-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.sub-bar {
-  flex: 1; height: 7px; background: #F3E8FF;
-  border-radius: 999px; overflow: hidden;
-}
+.sub-bar { flex: 1; height: 7px; background: #F3E8FF; border-radius: 999px; overflow: hidden; }
 .sub-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, #7C3AED, #A855F7);
@@ -347,7 +439,6 @@
   50%      { opacity:0.4; transform:scale(0.65); }
 }
 
-/* Host Controls */
 .controls-label {
   display: block; font-size: 10px; font-weight: 800;
   letter-spacing: 0.12em; color: #9CA3AF; margin-bottom: 11px;
@@ -381,14 +472,9 @@
   align-items: flex-start; gap: 20px;
 }
 .player-meta { display: flex; flex-direction: column; gap: 3px; }
-.player-quiz-title {
-  font-size: 12px; font-weight: 700; color: #7C3AED; margin: 6px 0 2px;
-}
-.player-question-counter {
-  font-size: 30px; font-weight: 900; color: #1A1033; margin: 0;
-}
+.player-quiz-title { font-size: 12px; font-weight: 700; color: #7C3AED; margin: 6px 0 2px; }
+.player-question-counter { font-size: 30px; font-weight: 900; color: #1A1033; margin: 0; }
 
-/* Timer pill: circle + label */
 .player-timer-pill {
   background: white;
   border-radius: 16px;
@@ -428,7 +514,6 @@
 .stat-ico { font-size: 15px; color: #7C3AED; }
 .stat-divider { width: 1px; height: 36px; background: #EDE9FE; flex-shrink: 0; }
 
-/* Mode pill */
 .mode-pill {
   display: flex; align-items: center; gap: 8px;
   background: #F3F4F6; border-radius: 999px;
@@ -443,29 +528,37 @@
 .mode-name { font-size: 13px; font-weight: 800; color: #1A1033; }
 .mode-name.focus-name { color: #7C3AED; }
 
-/* Avatar button */
+/* ===== FIX AVATAR — giới hạn kích thước, không tràn màn hình ===== */
 .avatar-btn {
   margin-left: auto;
-  width: 38px; height: 38px; border-radius: 50%;
-  border: 1.5px solid #EDE9FE; background: #FAF5FF;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: #7C3AED; flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #EDE9FE;
+  background: #FAF5FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #7C3AED;
+  flex-shrink: 0;
+  overflow: hidden;      /* cắt ảnh nằm trong vòng tròn */
+  padding: 0;
 }
-.avatar-btn .material-icons { font-size: 18px; }
+/* ⭐ ĐÂY LÀ FIX CHÍNH: giới hạn ảnh avatar không vượt quá nút */
+.avatar-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+}
 
 /* ================================================================
-   CLASSIC  dimmed-correct
+   FOCUS ANSWER STATES
 ================================================================ */
-.ans-card.ans-dimmed-correct {
-  opacity: 0.55;
-  filter: none;
-}
-
-/* ================================================================
-   FOCUS Kahoot style
-================================================================ */
-
-/* Card (True) */
 .ans-card.focus-answered-correct {
   background: linear-gradient(135deg, #15803D 0%, #22C55E 100%) !important;
   cursor: default !important;
@@ -473,8 +566,6 @@
   box-shadow: 0 0 0 4px rgba(34,197,94,0.40), 0 8px 32px rgba(21,128,61,0.30);
   transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s;
 }
-
-/* Card (False) */
 .ans-card.focus-answered-wrong {
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%) !important;
   cursor: default !important;
@@ -483,7 +574,6 @@
   transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s;
 }
 
-/* Result icon (tick/cross)*/
 .focus-result-icon {
   display: flex;
   align-items: center;
@@ -495,18 +585,13 @@
   animation: pop-in 0.3s cubic-bezier(.34,1.56,.64,1);
   flex-shrink: 0;
 }
-.focus-result-mat {
-  font-size: 42px;
-  color: white;
-  font-weight: 900;
-}
+.focus-result-mat { font-size: 42px; color: white; font-weight: 900; }
 @keyframes pop-in {
   0%   { transform: scale(0);   opacity: 0; }
   60%  { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(1);   opacity: 1; }
 }
 
-/* Letter */
 .focus-letter-small {
   width: 44px !important; height: 44px !important;
   font-size: 20px !important;
@@ -516,7 +601,7 @@
 }
 
 /* ================================================================
-   FOCUS FEEDBACK BANNER 
+   FOCUS FEEDBACK BANNER
 ================================================================ */
 .focus-feedback-banner {
   display: flex;
@@ -530,7 +615,6 @@
   from { transform: translateY(-16px); opacity: 0; }
   to   { transform: translateY(0);     opacity: 1; }
 }
-
 .banner-correct {
   background: linear-gradient(135deg, #15803D 0%, #22C55E 100%);
   box-shadow: 0 4px 24px rgba(21,128,61,0.30);
@@ -539,31 +623,13 @@
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
   box-shadow: 0 4px 24px rgba(220,38,38,0.28);
 }
-
-.feedback-icon {
-  font-size: 36px;
-  color: white;
-  flex-shrink: 0;
-}
-.feedback-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.feedback-title {
-  font-size: 20px;
-  font-weight: 900;
-  color: white;
-  line-height: 1;
-}
-.feedback-pts {
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.85);
-}
+.feedback-icon { font-size: 36px; color: white; flex-shrink: 0; }
+.feedback-text { display: flex; flex-direction: column; gap: 2px; }
+.feedback-title { font-size: 20px; font-weight: 900; color: white; line-height: 1; }
+.feedback-pts   { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); }
 
 /* ================================================================
-   CLASSIC  RESULT BAR (Wayground style)
+   CLASSIC RESULT BAR
 ================================================================ */
 .classic-result-bar {
   display: flex;
@@ -578,7 +644,6 @@
   from { transform: translateY(16px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
-
 .result-bar-correct {
   background: linear-gradient(135deg, #15803D 0%, #22C55E 100%);
   box-shadow: 0 4px 24px rgba(21,128,61,0.28);
@@ -587,7 +652,6 @@
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
   box-shadow: 0 4px 24px rgba(220,38,38,0.25);
 }
-
 .result-bar-left {
   display: flex;
   align-items: center;
@@ -595,38 +659,16 @@
   flex: 1;
   min-width: 0;
 }
-
 .result-bar-icon-wrap {
   width: 48px; height: 48px; min-width: 48px;
   background: rgba(255,255,255,0.22);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
 }
-.result-bar-icon {
-  font-size: 28px;
-  color: white;
-}
-
-.result-bar-text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.result-bar-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: white;
-  line-height: 1;
-}
-.result-bar-sub {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.88);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.result-bar-icon { font-size: 28px; color: white; }
+.result-bar-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.result-bar-title { font-size: 18px; font-weight: 900; color: white; line-height: 1; }
+.result-bar-sub   { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.88); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .result-bar-next-btn {
   display: flex;
@@ -651,3 +693,49 @@
   transform: translateX(3px);
 }
 .result-bar-next-btn .material-icons { font-size: 18px; }
+
+/* ================================================================
+   RESULT BAR RIGHT (nút NEXT QUESTION inline trong result bar)
+================================================================ */
+.result-bar-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   RESPONSIVE MOBILE
+================================================================ */
+@media (max-width: 800px) {
+  .gr-root { padding: 20px 16px 32px; }
+
+  /* Host layouts → 1 cột */
+  .host-layout,
+  .host-classic-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .host-right { flex-direction: row; flex-wrap: wrap; gap: 12px; }
+  .host-right > * { flex: 1; min-width: 180px; }
+
+  .question-counter { font-size: 26px; }
+
+  /* Player */
+  .player-layout { padding: 0 16px; gap: 14px; }
+  .player-question-counter { font-size: 22px; }
+
+  /* Stats bar cuộn ngang nếu hẹp */
+  .player-stats-bar { overflow-x: auto; gap: 0; }
+  .stat-block { padding: 0 12px; }
+  .mode-pill  { padding: 6px 12px; }
+}
+
+@media (max-width: 500px) {
+  .gr-root { padding: 14px 10px 24px; }
+  .answers-grid { gap: 8px; }
+  .ans-card { height: 60px; }
+  .ans-text { font-size: 13px; }
+  .ans-letter-box { width: 28px; height: 28px; font-size: 12px; }
+  .player-question-counter { font-size: 18px; }
+  .result-bar-sub { display: none; }  /* ẩn subtitle khi quá hẹp */
+}

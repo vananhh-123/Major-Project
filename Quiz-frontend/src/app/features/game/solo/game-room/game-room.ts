@@ -155,7 +155,8 @@ export class GameRoomComponent implements OnInit, OnDestroy {
 
   loadQuestion(index: number) {
     if (index >= this.questions.length) {
-      this.router.navigate(['/play/result'], { queryParams: { isSolo: true, quizId: this.quizId, score: this.score, totalCorrect: this.totalCorrect, totalQuestions: this.questions.length, bestStreak: this.bestStreak, totalTime: this.totalTimeSpent } });
+      // Submit result to server before navigating
+      this.submitSoloResult();
       return;
     }
     this.hasAnswered = false;
@@ -317,6 +318,41 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   goToNext() {
     this.currentIndex++;
     this.loadQuestion(this.currentIndex);
+  }
+
+  submitSoloResult() {
+    // Get user ID from localStorage
+    let userId: string | null = null;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        userId = user.id || null;
+      }
+    } catch {}
+
+    const payload: any = {
+      user_id: userId,
+      quiz_id: this.quizId || null,
+      room_id: null,
+      mode: 'solo',
+      score: this.score,
+      correct_answers: this.totalCorrect
+    };
+
+    // POST result to server
+    this.http.post(API_CONFIG.ENDPOINTS.RESULTS, payload).subscribe({
+      next: () => {
+        console.log('Solo result submitted successfully');
+        // Navigate to result page after submit
+        this.router.navigate(['/play/result'], { queryParams: { isSolo: true, quizId: this.quizId, score: this.score, totalCorrect: this.totalCorrect, totalQuestions: this.questions.length, bestStreak: this.bestStreak, totalTime: this.totalTimeSpent } });
+      },
+      error: (err) => {
+        console.error('Failed to submit solo result:', err);
+        // Still navigate even if submit fails
+        this.router.navigate(['/play/result'], { queryParams: { isSolo: true, quizId: this.quizId, score: this.score, totalCorrect: this.totalCorrect, totalQuestions: this.questions.length, bestStreak: this.bestStreak, totalTime: this.totalTimeSpent } });
+      }
+    });
   }
 
   getLetter(index: number): string {

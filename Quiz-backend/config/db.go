@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -28,7 +30,14 @@ func ConnectDatabase() {
 	})
 
 	if err != nil {
-		panic("Failed to connect to database!")
+		// If Supabase/postgres is unreachable, fall back to a local sqlite DB for development/testing.
+		log.Println("Warning: failed to connect to Postgres, falling back to local sqlite for dev/testing:", err)
+		sqliteDB, sErr := gorm.Open(sqlite.Open("dev.db"), &gorm.Config{})
+		if sErr != nil {
+			panic("Failed to connect to any database: " + sErr.Error())
+		}
+		database = sqliteDB
+		fmt.Println("Using local SQLite database for development")
 	}
 
 	sqlDB, err := database.DB()

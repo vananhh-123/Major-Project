@@ -1,7 +1,6 @@
 <div class="leaderboard-container">
   <header class="leaderboard-header">
     <h1>Global Champions</h1>
-   
     <div class="header-controls">
       <div class="search-bar">
         <span class="material-icons">search</span>
@@ -12,22 +11,25 @@
         <button [class.active]="activeTab === 'monthly'" (click)="setTab('monthly')">Monthly</button>
         <button [class.active]="activeTab === 'all'" (click)="setTab('all')">All Time</button>
       </div>
+      <div class="mode-toggles">
+        <button class="mode-btn" [class.active]="mode === 'solo'" (click)="mode='solo'; fetchLeaderboard()">Solo</button>
+        <button class="mode-btn" [class.active]="mode === 'multi'" (click)="mode='multi'; fetchLeaderboard()">Multi</button>
+      </div>
     </div>
   </header>
 
   <div class="top-champions">
-    <!-- Đảm bảo mảng topChampions trong TS có thứ tự: [Hạng 2, Hạng 1, Hạng 3] -->
     <div *ngFor="let player of topChampions"
          [class]="'champion-card ' + (player.rank === 1 ? 'main' : (player.rank === 2 ? 'silver' : 'bronze'))">
       <div class="rank-badge">{{player.rank}}</div>
       <div class="avatar-container">
-        <img [src]="player.img" [alt]="player.name">
+        <img [src]="player.img" [alt]="player.name" />
         <span class="material-icons crown-icon" *ngIf="player.rank === 1">stars</span>
       </div>
       <h3 class="name">{{player.name}}</h3>
       <p class="title" *ngIf="player.title">{{player.title}}</p>
       <div class="points-box">
-        <span class="value">{{player.points}}</span>
+        <span class="value">{{player.points | number:'1.0-0'}}</span>
         <span class="label">PTS</span>
       </div>
     </div>
@@ -36,33 +38,26 @@
   <div class="ranking-section">
     <div class="section-header">
       <h2>Global Ranking</h2>
-      <span class="count">Showing 4-100 of 12.4k</span>
+      <span class="count">Showing {{ totalCount }} result{{ totalCount === 1 ? '' : 's' }}</span>
     </div>
 
     <div class="ranking-list">
-      <div *ngFor="let item of rankings"
-           [class]="'ranking-item' + (item.isUser ? ' current-user' : '')">
+      <div *ngFor="let item of rankings" [class]="'ranking-item' + (item.isUser ? ' current-user' : '')">
         <span class="rank-num">{{item.rank}}</span>
         <div class="player-info">
-          <img [src]="item.img" alt="Player">
+          <img [src]="item.img" alt="Player" />
           <div class="details">
             <div class="name-badge">
               <span class="name">{{item.name}}</span>
-              <span class="badge" *ngIf="item.badge"
-                    [style.background-color]="item.badge === 'TOP PERFORMER' ? '#E0EAFF' : (item.badge === 'CONSISTENT' ? '#FDF2FA' : '')"
-                    [style.color]="item.badge === 'TOP PERFORMER' ? '#444CE7' : (item.badge === 'CONSISTENT' ? '#C11574' : '')">
-                {{item.badge}}
-              </span>
+              <span class="badge" *ngIf="item.badge">{{item.badge}}</span>
             </div>
             <span class="subtitle">{{item.subtitle}}</span>
           </div>
         </div>
         <div class="player-score">
-          <span class="points">{{item.points}}</span>
+          <span class="points">{{item.points | number:'1.0-0'}}</span>
           <span [class]="'trend ' + (item.trendDown ? 'down' : (item.trend === 'STABLE' ? 'stable' : 'up'))">
-            <span class="material-icons" style="font-size: 12px; vertical-align: middle;">
-              {{item.trendDown ? 'trending_down' : (item.trend === 'STABLE' ? 'remove' : 'trending_up')}}
-            </span>
+            <span class="material-icons">{{item.trendDown ? 'trending_down' : (item.trend === 'STABLE' ? 'remove' : 'trending_up')}}</span>
             {{item.trend}}
           </span>
         </div>

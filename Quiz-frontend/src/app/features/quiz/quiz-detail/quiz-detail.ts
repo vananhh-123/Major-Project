@@ -26,9 +26,12 @@ export class QuizDetail implements OnInit {
   currentUser: any = null;
   apiUrl = API_CONFIG.API_BASE;
 
-  // D? li?u cho danh s�ch Review (D�nh cho Guest)
+  // Dữ liệu cho danh sách Review (Dành cho Guest)
   reviews: any[] = [];
   sortBy = 'latest';
+  currentReviewPage = 1;
+  reviewsPerPage = 4;
+  totalReviewPages = 1;
 
   quizData: any = {
     title: 'Loading...',
@@ -71,11 +74,11 @@ export class QuizDetail implements OnInit {
       next: (res) => {
         if (!res) return;
 
-        // Code g?c: Ki?m tra quy?n ch? s? h?u
+        // Code gốc: Kiểm tra quyền sở hữu
         if (this.currentUser && res.created_by === this.currentUser.id) {
           this.isOwner = true;          this.loadReviews();        } else {
           this.isOwner = false;
-          this.loadReviews(); // Guest m?i t?i reviews
+          this.loadReviews(); // Guest mới tải reviews
         }
 
         this.selectedVisibility = res.visibility || 'private';
@@ -138,13 +141,15 @@ export class QuizDetail implements OnInit {
     });
   }
 
-  // Ch?c nang Review h? tr? ph?n Guest
+  // Chức năng Review dành cho Guest
   loadReviews() {
     this.http.get(`${this.apiUrl}/quizzes/${this.quizId}/reviews`).subscribe({
       next: (res: any) => {
-        this.reviews = res || [];        this.quizData.comments = this.reviews.length;
+        this.reviews = res || [];
+        this.quizData.comments = this.reviews.length;
         const totalRating = this.reviews.reduce((sum: number, r: any) => sum + r.rating, 0);
-        this.quizData.rating = this.reviews.length ? (totalRating / this.reviews.length).toFixed(1) : 0;        this.sortReviews();
+        this.quizData.rating = this.reviews.length ? (totalRating / this.reviews.length).toFixed(1) : 0;
+        this.sortReviews();
         this.cd.detectChanges();
       },
       error: (err) => console.error('Reviews API error:', err)
@@ -159,13 +164,41 @@ export class QuizDetail implements OnInit {
       case 'highest': this.reviews.sort((a, b) => b.rating - a.rating); break;
       case 'lowest': this.reviews.sort((a, b) => a.rating - b.rating); break;
     }
+    this.currentReviewPage = 1;
+    this.updateReviewPagination();
     this.cd.detectChanges();
+  }
+
+  updateReviewPagination() {
+    this.totalReviewPages = Math.ceil(this.reviews.length / this.reviewsPerPage) || 1;
+    if (this.currentReviewPage > this.totalReviewPages) {
+      this.currentReviewPage = this.totalReviewPages;
+    }
+    if (this.currentReviewPage < 1) {
+      this.currentReviewPage = 1;
+    }
+  }
+
+  get pagedReviews(): any[] {
+    const startIndex = (this.currentReviewPage - 1) * this.reviewsPerPage;
+    return this.reviews.slice(startIndex, startIndex + this.reviewsPerPage);
+  }
+
+  goToReviewPage(page: number) {
+    if (page >= 1 && page <= this.totalReviewPages) {
+      this.currentReviewPage = page;
+      this.cd.detectChanges();
+    }
+  }
+
+  getReviewPagesArray(): number[] {
+    return Array.from({ length: this.totalReviewPages }, (_, i) => i + 1);
   }
 
   getStars(rating: any): number[] { return Array(Math.max(0, Math.floor(Number(rating) || 0))).fill(0); }
   getEmptyStars(rating: any): number[] { return Array(Math.max(0, 5 - Math.floor(Number(rating) || 0))).fill(0); }
 
-  // Ch?c nang g?c
+  // Chức năng cập nhật tính hiển thị
   updateVisibility(visibility: string) {
     if (!this.isOwner) return;
     this.quizService.updateVisibility(this.quizId, visibility).subscribe({

@@ -9,7 +9,7 @@
     <!-- Two Column Layout -->
     <div class="solo-content-grid">
       <!-- Quiz Info Card -->
-      <div class="quiz-info-card">
+      <div class="quiz-info-card" *ngIf="!isLoadingData">
         <div class="badge-solo">
           <span class="material-icons badge-icon">person</span>
           <span class="badge-text">ACTIVE QUIZ</span>
@@ -80,8 +80,9 @@
     </div>
 
     <!-- Start Button -->
-    <button class="btn-host-game" (click)="startGame()">
-      START SOLO GAME
+    <button class="btn-host-game" (click)="startGame()" [disabled]="isLoadingData || !quizId">
+      <span *ngIf="isLoadingData">Loading...</span>
+      <span *ngIf="!isLoadingData">START SOLO GAME</span>
       <span class="material-icons btn-icon">arrow_forward</span>
     </button>
 

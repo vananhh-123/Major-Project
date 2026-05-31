@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -21,18 +21,27 @@ export class SoloLobby implements OnInit {
   quizLength: number = 0;
   practiceMode: boolean = false;
   enableTimer: boolean = true;
+  isLoadingData: boolean = true;
 
   constructor(
     private route: ActivatedRoute, 
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     // Attempt to grab queries passed from routing
     this.route.queryParams.subscribe(async params => {
-      if (params['id']) {
-        this.quizId = params['id'];
+      // Lấy quizId từ params hoặc sessionStorage
+      let newQuizId = params['id'] || params['quizId'] || sessionStorage.getItem('currentQuizId');
+      
+      if (newQuizId) {
+        this.quizId = newQuizId;
+        // Lưu vào sessionStorage để dùng lần sau
+        sessionStorage.setItem('currentQuizId', newQuizId);
+        this.isLoadingData = true;
+        this.cd.detectChanges();
       }
       
       // If title is explicitly provided from another view (e.g. Mode Selection)
@@ -41,6 +50,8 @@ export class SoloLobby implements OnInit {
         if (params['desc']) this.quizDesc = params['desc'];
         if (params['level']) this.quizLevel = params['level'];
         if (params['length']) this.quizLength = Number(params['length']) || 25;
+        this.isLoadingData = false;
+        this.cd.detectChanges();
       } else if (this.quizId) {
         // Fetch from API when routing natively without state caching
         try {
@@ -52,10 +63,15 @@ export class SoloLobby implements OnInit {
             this.quizDesc = res.description || 'No description provided';
             this.quizLevel = res.level || 'Mid'; 
             this.quizLength = res.questions ? res.questions.length : 0;
+            this.isLoadingData = false;
+            this.cd.detectChanges();
           }
         } catch (e) {
           console.error('Failed to load quiz info', e);
           this.quizTitle = 'Error Loading Quiz';
+          this.quizDesc = 'Could not fetch quiz details. Please try again.';
+          this.isLoadingData = false;
+          this.cd.detectChanges();
         }
       }
     });

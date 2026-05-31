@@ -24,9 +24,7 @@
           <div class="meta-value level-value">
             <span class="level-text">{{ quizLevel }}</span>
             <span class="level-dots">
-              <span class="dot active"></span>
-              <span class="dot active"></span>
-              <span class="dot active"></span>
+              <span class="dot" [class.active]="dot" *ngFor="let dot of getLevelDots()"></span>
             </span>
           </div>
         </div>

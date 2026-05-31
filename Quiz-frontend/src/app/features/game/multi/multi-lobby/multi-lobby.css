@@ -1,14 +1,19 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-
 /* =============================================
    ROOT
    ============================================= */
 .lobby-root {
   font-family: 'Inter', sans-serif;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
+.lobby-root * {
+  box-sizing: border-box;
+}
 
 /* =============================================
    DOT ANIMATION
@@ -22,25 +27,13 @@
   50%       { opacity: 0.2; }
 }
 
-
 /* =============================================
-   HOST VIEW â€” BACKGROUND
-   
-   Classic:
-   - Base: #F5EEFF (tÃ­m ráº¥t nháº¡t)
-   - Blob trÃ¡i: tÃ­m nháº¡t (~20% opacity)
-   - Blob dÆ°á»›i-pháº£i: há»“ng nháº¡t #FFD6F0 (~30% opacity)
-   
-   Focus:
-   - Base: #F8EEFF
-   - Blob trÃ¡i: tÃ­m nháº¡t
-   - Blob dÆ°á»›i-pháº£i: há»“ng Ä‘áº­m hÆ¡n (~50% opacity)
-   
-   QUAN TRá»ŒNG: KHÃ”NG dÃ¹ng min-height: 100vh
-   â†’ Ä‘á»ƒ footer hiá»ƒn thá»‹ bÃ¬nh thÆ°á»ng tá»« game-layout
+   HOST VIEW — BACKGROUND
    ============================================= */
 .host-view {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
   background:
     radial-gradient(ellipse 40% 60% at 0% 50%,   rgba(183,148,255,0.22) 0%, transparent 70%),
     radial-gradient(ellipse 50% 40% at 100% 100%, rgba(255,180,230,0.28) 0%, transparent 65%),
@@ -51,15 +44,12 @@
   padding: 48px 24px 64px;
 }
 
-
-/* Focus: blob há»“ng dÆ°á»›i Ä‘áº­m hÆ¡n */
 .host-view.focus-bg {
   background:
     radial-gradient(ellipse 40% 60% at 0% 50%,   rgba(183,148,255,0.20) 0%, transparent 70%),
     radial-gradient(ellipse 55% 45% at 100% 100%, rgba(255,150,210,0.50) 0%, transparent 60%),
     #F5EEFF;
 }
-
 
 /* HOST TITLE */
 .host-title {
@@ -72,7 +62,6 @@
   text-align: center;
 }
 
-
 .host-subtitle {
   font-size: 14px;
   color: #9B8FB5;
@@ -81,13 +70,11 @@
   font-weight: 400;
 }
 
-
 .join-link {
   color: #6B21E8;
   font-weight: 600;
   text-decoration: none;
 }
-
 
 /* =============================================
    PIN CARD
@@ -101,8 +88,8 @@
   margin-bottom: 24px;
   box-shadow: 0 4px 40px rgba(100,50,200,0.10), 0 1px 4px rgba(100,50,200,0.05);
   text-align: center;
+  box-sizing: border-box;
 }
-
 
 .pin-card-label {
   display: block;
@@ -113,7 +100,6 @@
   margin-bottom: 10px;
 }
 
-
 .pin-card-number {
   font-size: 92px;
   font-weight: 900;
@@ -121,7 +107,6 @@
   letter-spacing: 0.06em;
   line-height: 1;
 }
-
 
 /* =============================================
    SELECT GAME MODE + PILL
@@ -135,7 +120,6 @@
   text-align: center;
 }
 
-
 .host-mode-pill {
   display: inline-flex;
   align-items: center;
@@ -147,25 +131,19 @@
   justify-content: flex-start;
 }
 
-
-/* Classic: tÃ­m Ä‘áº·c #6B21E8 */
 .classic-pill {
   background: #6B21E8;
   color: white;
   box-shadow: 0 6px 20px rgba(107,33,232,0.28);
 }
 
-
-/* Focus: gradient há»“ngâ†’tÃ­m chÃ­nh xÃ¡c tá»« máº«u */
 .focus-pill {
-  background: linear-gradient(135deg, #d42083 );
+  background: linear-gradient(135deg, #d42083);
   color: white;
   box-shadow: 0 6px 20px rgba(233,30,140,0.28);
 }
 
-
 .host-mode-icon { font-size: 22px; flex-shrink: 0; }
-
 
 .host-mode-text {
   display: flex;
@@ -173,10 +151,8 @@
   text-align: left;
 }
 
-
 .host-mode-name { font-size: 17px; font-weight: 800; line-height: 1.2; }
 .host-mode-desc { font-size: 11px; opacity: 0.75; margin-top: 3px; font-weight: 400; }
-
 
 /* =============================================
    HOST PLAYERS BAR
@@ -188,8 +164,9 @@
   width: 100%;
   max-width: 740px;
   margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-
 
 .count-badge {
   display: inline-flex;
@@ -205,9 +182,7 @@
 .count-badge strong { font-weight: 800; }
 .count-icon { font-size: 20px; }
 
-
 .host-bar-actions { display: flex; gap: 10px; align-items: center; }
-
 
 .btn-lock-game {
   display: inline-flex;
@@ -227,7 +202,6 @@
 .btn-lock-game:hover { background: #F5EEFF; }
 .btn-lock-game .material-icons { font-size: 14px; }
 
-
 .btn-sound-icon {
   width: 38px;
   height: 38px;
@@ -245,7 +219,6 @@
 .btn-sound-icon:hover { background: #F5EEFF; }
 .btn-sound-icon .material-icons { font-size: 17px; }
 
-
 /* =============================================
    HOST PLAYERS GRID
    ============================================= */
@@ -257,7 +230,6 @@
   max-width: 740px;
   margin-bottom: 36px;
 }
-
 
 .host-player-tile {
   background: rgba(255,255,255,0.80);
@@ -271,16 +243,15 @@
   box-shadow: 0 2px 10px rgba(100,50,200,0.05);
 }
 
-
 .host-tile-avatar {
   width: 60px;
   height: 60px;
+  min-width: 60px;
   border-radius: 50%;
   object-fit: cover;
   background: #EDE9FE;
   display: block;
 }
-
 
 .host-tile-name {
   font-size: 12px;
@@ -291,13 +262,11 @@
   line-height: 1.2;
 }
 
-
 /* Waiting slot */
 .host-waiting-tile {
   background: rgba(255,255,255,0.45);
   border: 1.5px dashed #C4B5FD;
 }
-
 
 .host-waiting-icon-wrap {
   width: 60px;
@@ -309,19 +278,16 @@
   justify-content: center;
 }
 
-
 .host-waiting-icon-wrap .material-icons {
   color: #C4B5FD;
   font-size: 26px;
   animation: spin 2.5s linear infinite;
 }
 
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
-
 
 .host-waiting-tile .host-tile-name {
   color: #C4B5FD;
@@ -329,16 +295,28 @@
   font-size: 11px;
 }
 
+/* =============================================
+   HOST BADGE
+   ============================================= */
+.host-badge {
+  background: #7339e1;
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 99px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  margin-top: -6px;
+}
 
 /* =============================================
    START GAME BUTTON
-   
-   Classic: #5B21B6 â€” tÃ­m Ä‘áº­m (khá»›p mÃ u title + PIN)
-   Focus:   #7B1FA2 â†’ dÃ¹ng gradient há»“ngâ†’tÃ­m khá»›p focus-pill
    ============================================= */
 .btn-start-game {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   color: white;
   border: none;
@@ -350,8 +328,8 @@
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
-
 
 .btn-start-classic {
   background: linear-gradient(135deg, #E91E8C 0%, #9C27B0 100%);
@@ -362,8 +340,6 @@
   box-shadow: 0 10px 32px rgba(91,33,182,0.48);
 }
 
-
-/* Focus START GAME: gradient Ä‘á»“ng mÃ u vá»›i focus-pill */
 .btn-start-focus {
   background: linear-gradient(135deg, #E91E8C 0%, #9C27B0 100%);
   box-shadow: 0 6px 24px rgba(233,30,140,0.38);
@@ -373,26 +349,21 @@
   box-shadow: 0 10px 32px rgba(233,30,140,0.48);
 }
 
-
 .btn-start-game .material-icons { font-size: 20px; }
-
 
 /* =============================================
    PLAYER VIEW
-   
-   Background: #F9F0FF flat â€” Ä‘á»“ng nháº¥t Classic & Focus
-   KHÃ”NG dÃ¹ng min-height: 100vh â†’ footer hiá»‡n
    ============================================= */
 .player-view {
   background-color: #F9F0FF;
-  min-height: calc(100vh - 160px); /* navbar ~80px + footer ~80px */
+  min-height: calc(100vh - 160px);
   padding: 32px 80px 56px;
   font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }
 
-
 /* =============================================
-   PLAYER â€” WAITING ROOM BADGE
+   PLAYER — WAITING ROOM BADGE
    ============================================= */
 .wr-badge {
   display: inline-flex;
@@ -408,7 +379,6 @@
   margin-bottom: 14px;
 }
 
-
 .pulse-dot {
   width: 7px;
   height: 7px;
@@ -418,15 +388,13 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-
 @keyframes pulse {
   0%, 100% { transform: scale(1);   opacity: 1; }
   50%       { transform: scale(1.6); opacity: 0.4; }
 }
 
-
 /* =============================================
-   PLAYER â€” HERO ROW
+   PLAYER — HERO ROW
    ============================================= */
 .player-hero-row {
   display: flex;
@@ -436,9 +404,7 @@
   margin-bottom: 32px;
 }
 
-
-.player-hero-left { flex: 1; }
-
+.player-hero-left { flex: 1; min-width: 0; }
 
 .player-title {
   font-size: 42px;
@@ -448,12 +414,10 @@
   line-height: 1.2;
 }
 
-
 .player-title-purple { color: #6B21E8; }
 
-
 /* =============================================
-   PLAYER â€” INFO BOXES
+   PLAYER — INFO BOXES
    ============================================= */
 .player-hero-right {
   display: flex;
@@ -461,7 +425,6 @@
   flex-shrink: 0;
   align-items: stretch;
 }
-
 
 .info-box {
   background: white;
@@ -477,7 +440,6 @@
   gap: 10px;
 }
 
-
 .info-box-label {
   display: block;
   font-size: 10px;
@@ -485,7 +447,6 @@
   color: #B0A8C8;
   letter-spacing: 0.15em;
 }
-
 
 .info-mode-pill {
   font-size: 13px;
@@ -496,16 +457,8 @@
   color: white;
 }
 
-
-/* Classic pill â€” tÃ­m #6B21E8 */
 .info-mode-classic { background: #6B21E8; }
-
-
-/* Focus pill â€” gradient Ä‘á»“ng mÃ u focus-pill host */
-.info-mode-focus {
-  background: linear-gradient(135deg, #E91E8C );
-}
-
+.info-mode-focus   { background: linear-gradient(135deg, #E91E8C 0%, #9C27B0 100%); }
 
 .info-pin {
   font-size: 34px;
@@ -515,17 +468,16 @@
   line-height: 1;
 }
 
-
 /* =============================================
-   PLAYER â€” SECTION BAR
+   PLAYER — SECTION BAR
    ============================================= */
 .player-section-bar {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 18px;
+  flex-wrap: wrap;
 }
-
 
 .joined-label {
   font-size: 20px;
@@ -533,7 +485,6 @@
   color: #1A1A2E;
   margin: 0;
 }
-
 
 .joined-count-pill {
   font-size: 13px;
@@ -544,16 +495,8 @@
   white-space: nowrap;
 }
 
-
-/* Classic â€” tÃ­m */
 .joined-count-classic { background: #9C27B0; }
-
-
-/* Focus â€” gradient há»“ngâ†’tÃ­m */
-.joined-count-focus {
-  background: linear-gradient(135deg,#9C27B0 );
-}
-
+.joined-count-focus   { background: linear-gradient(135deg, #E91E8C 0%, #9C27B0 100%); }
 
 .btn-leave-room {
   display: inline-flex;
@@ -574,9 +517,8 @@
 .btn-leave-room:hover { border-color: #F04438; color: #F04438; }
 .btn-leave-room .material-icons { font-size: 14px; }
 
-
 /* =============================================
-   PLAYER â€” PLAYERS GRID
+   PLAYER — PLAYERS GRID
    ============================================= */
 .player-players-grid {
   display: grid;
@@ -584,7 +526,6 @@
   gap: 12px;
   margin-bottom: 28px;
 }
-
 
 .player-tile {
   background: white;
@@ -598,13 +539,11 @@
   box-shadow: 0 2px 10px rgba(100,50,200,0.04);
 }
 
-
 .player-tile-avatar-wrap {
   position: relative;
   width: 70px;
   height: 70px;
 }
-
 
 .player-tile-avatar {
   width: 70px;
@@ -615,7 +554,6 @@
   display: block;
 }
 
-
 .player-tile-name {
   font-size: 13px;
   font-weight: 600;
@@ -625,13 +563,11 @@
   line-height: 1.2;
 }
 
-
 /* YOU tile */
 .you-tile {
   border: 2px solid #7C3AED !important;
   box-shadow: 0 4px 18px rgba(124,58,237,0.14) !important;
 }
-
 
 .you-chip {
   position: absolute;
@@ -648,9 +584,8 @@
   white-space: nowrap;
 }
 
-
 /* =============================================
-   PLAYER â€” PRO TIP
+   PLAYER — PRO TIP
    ============================================= */
 .pro-tip-box {
   background: white;
@@ -662,10 +597,10 @@
   box-shadow: 0 2px 14px rgba(100,50,200,0.06);
 }
 
-
 .pro-tip-icon-wrap {
   width: 50px;
   height: 50px;
+  min-width: 50px;
   border-radius: 14px;
   background: #6B21E8;
   display: flex;
@@ -673,10 +608,7 @@
   justify-content: center;
   flex-shrink: 0;
 }
-
-
 .pro-tip-icon-wrap .material-icons { color: white; font-size: 24px; }
-
 
 .pro-tip-heading {
   font-size: 15px;
@@ -685,7 +617,6 @@
   margin: 0 0 5px;
 }
 
-
 .pro-tip-body {
   font-size: 14px;
   color: #667085;
@@ -693,30 +624,156 @@
   margin: 0;
 }
 
-
 /* =============================================
    RESPONSIVE
    ============================================= */
+
+/* ---- ≤ 1100px: 4 cột ---- */
 @media (max-width: 1100px) {
   .host-players-grid,
-  .player-players-grid { grid-template-columns: repeat(4, 1fr); }
+  .player-players-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
-
+/* ---- ≤ 900px ---- */
 @media (max-width: 900px) {
-  .host-view { padding: 32px 20px 48px; }
+  .host-view   { padding: 32px 20px 48px; }
   .player-view { padding: 24px 24px 40px; }
-  .player-title { font-size: 30px; }
-  .host-title { font-size: 38px; }
-  .pin-card-number { font-size: 64px; }
+
+  .host-title       { font-size: 38px; }
+  .pin-card-number  { font-size: 64px; }
+  .player-title     { font-size: 30px; }
+
   .host-players-grid,
-  .player-players-grid { grid-template-columns: repeat(3, 1fr); }
+  .player-players-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Host mode pill + start button căn giữa */
+  .host-mode-pill   { min-width: unset; padding: 14px 28px; }
+  .btn-start-game   { padding: 16px 48px; }
 }
 
-
+/* ---- ≤ 768px ---- */
 @media (max-width: 768px) {
-  .player-hero-row { flex-direction: column; }
-  .player-hero-right { width: 100%; }
-  .info-box { flex: 1; min-width: unset; }
-} 
-.host-badge { background: #7339e1; color: white; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 99px; letter-spacing: 0.5px; line-height: 1; margin-top: -6px; }
+  /* Player hero: xếp dọc */
+  .player-hero-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .player-hero-right {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .info-box {
+    flex: 1;
+    min-width: unset;
+    padding: 14px 16px;
+  }
+  .info-pin { font-size: 26px; }
+
+  /* Section bar: nút Leave Room vẫn sang phải */
+  .player-section-bar { gap: 8px; }
+  .joined-label { font-size: 17px; }
+
+  .player-view { padding: 20px 20px 36px; }
+}
+
+/* ---- ≤ 600px ---- */
+@media (max-width: 600px) {
+  .host-view   { padding: 24px 14px 40px; }
+  .player-view { padding: 18px 14px 32px; }
+
+  /* Title */
+  .host-title   { font-size: 28px; letter-spacing: -0.5px; }
+  .player-title { font-size: 24px; }
+
+  /* PIN card */
+  .pin-card         { padding: 18px 20px 22px; }
+  .pin-card-number  { font-size: 52px; letter-spacing: 0.04em; }
+
+  /* Mode pill full width */
+  .host-mode-pill {
+    width: 100%;
+    max-width: 380px;
+    padding: 12px 20px;
+    margin-bottom: 28px;
+    min-width: unset;
+    justify-content: center;
+  }
+
+  /* Players bar wrap */
+  .host-players-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .host-bar-actions { width: 100%; justify-content: flex-start; }
+
+  /* Grid 2 cột */
+  .host-players-grid,
+  .player-players-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Tile nhỏ hơn */
+  .host-player-tile { padding: 16px 6px 12px; gap: 8px; }
+  .host-tile-avatar  { width: 48px; height: 48px; }
+  .host-tile-name    { font-size: 11px; }
+  .host-waiting-icon-wrap { width: 48px; height: 48px; }
+
+  .player-tile       { padding: 16px 8px 12px; gap: 8px; }
+  .player-tile-avatar-wrap { width: 56px; height: 56px; }
+  .player-tile-avatar { width: 56px; height: 56px; }
+  .player-tile-name  { font-size: 12px; }
+
+  /* Start button full width */
+  .btn-start-game {
+    width: 100%;
+    max-width: 360px;
+    padding: 16px 24px;
+    font-size: 13px;
+  }
+
+  /* Info boxes xếp dọc nếu quá hẹp */
+  .player-hero-right { flex-direction: column; gap: 10px; }
+  .info-box { padding: 12px 16px; }
+
+  /* Section bar: Leave Room xuống hàng */
+  .player-section-bar { flex-wrap: wrap; gap: 8px; }
+  .btn-leave-room { margin-left: 0; }
+
+  /* Pro tip */
+  .pro-tip-box { padding: 16px 16px; gap: 14px; }
+  .pro-tip-icon-wrap { width: 40px; height: 40px; min-width: 40px; }
+  .pro-tip-body { font-size: 13px; }
+
+  /* Waiting room badge */
+  .wr-badge { font-size: 10px; padding: 5px 12px; }
+}
+
+/* ---- ≤ 420px ---- */
+@media (max-width: 420px) {
+  .host-title   { font-size: 22px; }
+  .player-title { font-size: 20px; }
+  .pin-card-number { font-size: 44px; }
+
+  /* 1 cột khi quá hẹp */
+  .host-players-grid,
+  .player-players-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .host-tile-avatar   { width: 42px; height: 42px; }
+  .host-waiting-icon-wrap { width: 42px; height: 42px; }
+  .player-tile-avatar-wrap { width: 48px; height: 48px; }
+  .player-tile-avatar { width: 48px; height: 48px; }
+
+  /* Info boxes luôn dọc */
+  .player-hero-right { flex-direction: column; }
+
+  .btn-start-game { padding: 14px 20px; font-size: 12px; }
+}

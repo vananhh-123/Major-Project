@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { ChangeDetectorRef, Component, NgZone, OnInit, inject } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -35,18 +35,22 @@ export interface RankingItem {
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule],
   templateUrl: './leaderboard.html',
   styleUrls: ['./leaderboard.css']
 })
 export class Leaderboard implements OnInit {
-  private http = inject(HttpClient);
-  
+  private zone = inject(NgZone);
+  private cdr = inject(ChangeDetectorRef);
+
   searchQuery: string = '';
   activeTab: 'weekly' | 'monthly' | 'all' = 'all';
+  // Filter by game mode; default 'solo'
+  mode: 'solo' | 'multi' | '' = 'solo'; // Default to solo mode
 
   topChampions: Champion[] = [];
   rankings: RankingItem[] = [];
+  totalCount: number = 0;
 
   ngOnInit() {
     // Tải dữ liệu lần đầu tiên truy cập
@@ -62,13 +66,45 @@ export class Leaderboard implements OnInit {
     this.fetchLeaderboard();
   }
 
-  fetchLeaderboard() {
+  async fetchLeaderboard() {
     // Chèn params để gửi lên Backend
-    const url = `${API_CONFIG.API_BASE}/leaderboard?period=${this.activeTab}&q=${this.searchQuery}`;
-    
-    this.http.get<LeaderboardUser[]>(url).subscribe({
-      next: (res) => {
-        const data = res || [];
+    const params = new URLSearchParams();
+    params.set('period', this.activeTab);
+    params.set('q', this.searchQuery);
+    if (this.mode) {
+      params.set('mode', this.mode);
+    }
+    const url = `${API_CONFIG.API_BASE}/leaderboard?${params.toString()}`;
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const res = await response.json();
+
+      // Backend may return an array or an object wrapping the array (e.g., { value: [...], Count: n })
+      let dataArray: any[] = [];
+      if (Array.isArray(res)) {
+        dataArray = res;
+      } else if (res && (res.value || res.results)) {
+        dataArray = res.value || res.results;
+      } else if (res && typeof res === 'object') {
+        // sometimes backend returns { Count: n, ... } or a custom wrapper; try to find first array
+        const firstArray = Object.values(res).find(v => Array.isArray(v));
+        dataArray = firstArray || [];
+      }
+
+      const data = dataArray || [];
+
+      this.zone.run(() => {
+        this.totalCount = data.length || 0;
 
         // 1. Tổ chức dữ liệu cho Top 3 (Champions)
         const top3 = data.slice(0, 3);
@@ -83,14 +119,14 @@ export class Leaderboard implements OnInit {
         });
 
         if (top3.length > 0) {
-            // Sắp xếp dạng bục: Hạng 2 -> Hạng 1 -> Hạng 3
-            if (top3[1]) arrangedTop.push(mapToChampion(top3[1]));
-            if (top3[0]) arrangedTop.push(mapToChampion(top3[0]));
-            if (top3[2]) arrangedTop.push(mapToChampion(top3[2]));
+          // Sắp xếp dạng bục: Hạng 2 -> Hạng 1 -> Hạng 3
+          if (top3[1]) arrangedTop.push(mapToChampion(top3[1]));
+          if (top3[0]) arrangedTop.push(mapToChampion(top3[0]));
+          if (top3[2]) arrangedTop.push(mapToChampion(top3[2]));
         }
         this.topChampions = arrangedTop;
 
-        // 2. Tổ chức dữ liệu cho List Ranking (Từ hạng 4 trở đi)
+        // 2. Tổ chức dữ liệu cho List Ranking (từ hạng 4 trở đi)
         this.rankings = data.slice(3).map(u => ({
           rank: u.rank,
           img: u.avatar || 'assets/default-avatar.png',
@@ -102,10 +138,17 @@ export class Leaderboard implements OnInit {
           trendDown: false,
           isUser: false // Hiện tại giả lập false, có thể so user hiện tại từ localstorage sau
         }));
-      },
-      error: (err) => {
-        console.error("Lỗi lấy dữ liệu bảng xếp hạng từ backend:", err);
-      }
-    });
+
+        this.cdr.detectChanges();
+      });
+    } catch (err) {
+      this.zone.run(() => {
+        console.error('Lỗi lấy dữ liệu bảng xếp hạng từ backend:', err);
+        this.topChampions = [];
+        this.rankings = [];
+        this.totalCount = 0;
+        this.cdr.detectChanges();
+      });
+    }
   }
 }

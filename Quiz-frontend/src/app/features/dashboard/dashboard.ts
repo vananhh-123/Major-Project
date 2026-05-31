@@ -75,5 +75,9 @@ export class Dashboard implements OnInit {
   getQuizImg(quiz: any): string {
     return quiz.img || '/Cyber.png';
   }
+
+  sendInvite() {
+    alert('Tính năng này hiện tại chưa được phát triển. Vui lòng chờ cập nhật trong tương lai!');
+  }
 }
 

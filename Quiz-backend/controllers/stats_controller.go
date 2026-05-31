@@ -32,9 +32,9 @@ func GetUserStats(c *gin.Context) {
 
 	var res StatsResponse
 
-	// ===== 1. Mạch dữ liệu cho chế độ SOLO (room_id IS NULL) =====
+	// ===== 1. Mạch dữ liệu cho chế độ SOLO (mode='solo' hoặc room_id IS NULL cho dữ liệu cũ) =====
 	var soloResults []models.Result
-	config.DB.Where("user_id = ? AND room_id IS NULL", userId).Find(&soloResults)
+	config.DB.Where("user_id = ? AND (mode = ? OR (mode IS NULL AND room_id IS NULL))", userId, "solo").Find(&soloResults)
 
 	res.Solo.Games = len(soloResults)
 	var totalSoloPoints int
@@ -60,9 +60,9 @@ func GetUserStats(c *gin.Context) {
 		res.Solo.AvgScore = totalSoloPercentage / float64(soloQuizzesWithQuestionsFound)
 	}
 
-	// ===== 2. Mạch dữ liệu cho chế độ MULTI (room_id IS NOT NULL) =====
+	// ===== 2. Mạch dữ liệu cho chế độ MULTI (mode='multi' hoặc room_id IS NOT NULL cho dữ liệu cũ) =====
 	var multiResults []models.Result
-	config.DB.Where("user_id = ? AND room_id IS NOT NULL", userId).Find(&multiResults)
+	config.DB.Where("user_id = ? AND (mode = ? OR (mode IS NULL AND room_id IS NOT NULL))", userId, "multi").Find(&multiResults)
 
 	res.Multi.Games = len(multiResults) // Đếm cả số quiz lặp lại (mỗi lượt result là 1 game play)
 	var totalMultiPoints int
@@ -93,7 +93,7 @@ func GetUserStats(c *gin.Context) {
 	var soloLeaderboard []UserPoints
 	config.DB.Model(&models.Result{}).
 		Select("user_id, SUM(score) as points").
-		Where("room_id IS NULL").
+		Where("mode = ? OR (mode IS NULL AND room_id IS NULL)", "solo").
 		Group("user_id").
 		Order("points DESC").
 		Scan(&soloLeaderboard)
@@ -109,7 +109,7 @@ func GetUserStats(c *gin.Context) {
 	var multiLeaderboard []UserPoints
 	config.DB.Model(&models.Result{}).
 		Select("user_id, SUM(score) as points").
-		Where("room_id IS NOT NULL").
+		Where("mode = ? OR (mode IS NULL AND room_id IS NOT NULL)", "multi").
 		Group("user_id").
 		Order("points DESC").
 		Scan(&multiLeaderboard)
@@ -144,6 +144,7 @@ func GetUserHistory(c *gin.Context) {
 		Color   string `json:"color"`
 		Icon    string `json:"icon"`
 		IsSolo  bool   `json:"is_solo"`
+		Mode    string `json:"mode"`
 	}
 
 	var history []HistoryItem
@@ -153,7 +154,21 @@ func GetUserHistory(c *gin.Context) {
 			quizTitle = r.Quiz.Title
 		}
 
-		isSolo := (r.RoomID == nil)
+		mode := ""
+		if r.Mode != nil {
+			mode = *r.Mode
+		}
+
+		isSolo := mode == "solo"
+		if mode == "" {
+			isSolo = (r.RoomID == nil)
+			if isSolo {
+				mode = "solo"
+			} else {
+				mode = "multi"
+			}
+		}
+
 		players := "0"
 		if isSolo {
 			players = "1" // Solo is always 1 player
@@ -170,6 +185,7 @@ func GetUserHistory(c *gin.Context) {
 			Color:   "#6c2bd9",
 			Icon:    "videogame_asset",
 			IsSolo:  isSolo,
+			Mode:    mode,
 		})
 	}
 
@@ -179,7 +195,7 @@ func GetUserHistory(c *gin.Context) {
 func GetLeaderboard(c *gin.Context) {
 	period := c.DefaultQuery("period", "all")
 	search := c.DefaultQuery("q", "")
-
+	mode := c.Query("mode")
 	var results []LeaderboardEntry
 
 	// Kết hợp bảng results và bảng users để lấy username, avatar và tổng điểm (points)
@@ -194,6 +210,15 @@ func GetLeaderboard(c *gin.Context) {
 		query = query.Where("results.created_at >= CURRENT_DATE - INTERVAL '1 month'")
 	}
 
+	// Apply mode filter if provided. Prefer explicit `mode` column; fallback to room_id checks for older rows.
+	if mode != "" {
+		if mode == "solo" {
+			query = query.Where("(results.mode = ? OR (results.mode IS NULL AND results.room_id IS NULL))", "solo")
+		} else if mode == "multi" {
+			query = query.Where("(results.mode = ? OR (results.mode IS NULL AND results.room_id IS NOT NULL))", "multi")
+		}
+	}
+
 	// Bộ lọc nhập tên (LIKE)
 	if search != "" {
 		query = query.Where("users.username ILIKE ?", "%"+search+"%")
@@ -202,7 +227,6 @@ func GetLeaderboard(c *gin.Context) {
 	// Gom nhóm và sắp xếp từ trên xuống dưới theo điểm
 	query.Group("users.username, users.avatar").
 		Order("points DESC").
-		Limit(100).
 		Scan(&results)
 
 	// Ấn định thứ hạng

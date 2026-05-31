@@ -14,11 +14,11 @@
 
 .selection-card {
   background-color: #f1e9ff;
-  width: 90%;
-  max-width: 1100px;
-  border-radius: 40px;
-  padding: 60px 48px;
-  box-shadow: 0 30px 100px rgba(112, 41, 255, 0.1);
+  width: 92%;
+  max-width: 980px;
+  border-radius: 28px;
+  padding: 48px 40px;
+  box-shadow: 0 20px 60px rgba(112, 41, 255, 0.08);
   position: relative;
   text-align: center;
   margin: 0 auto;
@@ -68,12 +68,13 @@
 /* ===== QUIZ INFO CARD ===== */
 .quiz-info-card {
   background: white;
-  border-radius: 24px;
-  padding: 32px 36px;
+  border-radius: 20px;
+  padding: 28px 28px;
   text-align: left;
-  margin-bottom: 36px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  min-height: 460px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  min-height: 360px;
+  max-width: 560px;
+  box-sizing: border-box;
 }
 
 
@@ -349,24 +350,30 @@ input:checked + .slider:before { transform: translateX(20px); }
 /* Solo specific grid layout */
 .solo-content-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 32px;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 28px;
+  margin-bottom: 28px;
+  align-items: stretch;
 }
 
 .solo-content-grid .quiz-info-card {
   margin-bottom: 0;
+  height: 100%;
+  box-sizing: border-box;
+  min-height: unset;
 }
 
 .settings-card-solo {
   background: white;
-  border-radius: 24px;
-  padding: 32px 36px;
+  border-radius: 20px;
+  padding: 28px 28px;
   text-align: left;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
-  min-height: 460px;
+  width: 420px;
+  box-sizing: border-box;
+  height: 100%;
 }
 
 .settings-title {

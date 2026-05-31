@@ -25,9 +25,6 @@ func main() {
 	go hub.Run()
 
 	r := gin.Default()
-
-	r.GET("/api/leaderboard", controllers.GetLeaderboard)
-
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
 		AllowMethods:    []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -35,6 +32,8 @@ func main() {
 		ExposeHeaders:   []string{"Content-Length"},
 		MaxAge:          12 * time.Hour,
 	}))
+
+	r.GET("/api/leaderboard", controllers.GetLeaderboard)
 
 	config.ConnectDatabase()
 	// Tự động tạo bảng nếu chưa tồn tại

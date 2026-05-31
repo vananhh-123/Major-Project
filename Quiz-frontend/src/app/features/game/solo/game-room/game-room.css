@@ -2,19 +2,23 @@
   background-color: #faf7ff;
   min-height: calc(100vh - 140px);
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding: 50px 20px;
   font-family: 'Inter', sans-serif;
 }
 .game-room-container {
   max-width: 800px;
   width: 100%;
+  margin: 0 auto;
 }
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 30px;
+  width: 100%;
 }
 .badge {
   display: inline-flex;
@@ -144,6 +148,7 @@
 .action-section {
   display: flex;
   justify-content: flex-end;
+  width: 100%;
 }
 .next-btn {
   background: linear-gradient(135deg, #9b5af4, #8b4af0);

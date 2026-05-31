@@ -22,11 +22,18 @@ export class MultiModeSelection implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
-        this.quizId = params['id'] || '';
-        this.quizTitle = params['title'] || 'Mastering Cyber Security 2024';
-        this.quizDescription = params['desc'] || 'Test your defense mechanisms against modern threats with friends.';
-        this.quizLevel = params['level'] || 'Pro';
-        this.quizQuestions = params['length'] ? parseInt(params['length'], 10) : 25;
+        this.quizId = params['id'] || sessionStorage.getItem('currentQuizId') || '';
+        this.quizTitle = params['title'] || sessionStorage.getItem('currentQuizTitle') || 'Select a quiz';
+        this.quizDescription = params['desc'] || sessionStorage.getItem('currentQuizDescription') || 'Choose a quiz to continue.';
+        this.quizLevel = params['level'] || sessionStorage.getItem('currentQuizLevel') || 'Mid';
+        const lengthParam = params['length'] || sessionStorage.getItem('currentQuizLength');
+        this.quizQuestions = lengthParam ? parseInt(lengthParam, 10) : 0;
+
+        sessionStorage.setItem('currentQuizId', this.quizId);
+        sessionStorage.setItem('currentQuizTitle', this.quizTitle);
+        sessionStorage.setItem('currentQuizDescription', this.quizDescription);
+        sessionStorage.setItem('currentQuizLevel', this.quizLevel);
+        sessionStorage.setItem('currentQuizLength', String(this.quizQuestions || 0));
     });
   }
 
@@ -35,6 +42,12 @@ export class MultiModeSelection implements OnInit {
   }
 
   hostGame() {
+    sessionStorage.setItem('currentQuizId', this.quizId);
+    sessionStorage.setItem('currentQuizTitle', this.quizTitle);
+    sessionStorage.setItem('currentQuizDescription', this.quizDescription);
+    sessionStorage.setItem('currentQuizLevel', this.quizLevel);
+    sessionStorage.setItem('currentQuizLength', String(this.quizQuestions || 0));
+
     this.router.navigate(['/play/multi/lobby'], {
       queryParams: { 
         id: this.quizId,
@@ -46,5 +59,17 @@ export class MultiModeSelection implements OnInit {
         role: 'host'
       }
     });
+  }
+
+  getLevelDots(): boolean[] {
+    const levelMap: { [key: string]: number } = {
+      'easy': 1,
+      'mid': 2,
+      'pro': 3
+    };
+    const level = this.quizLevel?.toLowerCase() || 'mid';
+    const activeDots = levelMap[level] || 2;
+    // Luôn có 3 chấm, số đầu tiên là active, còn lại inactive
+    return [true, true, true].map((_, i) => i < activeDots);
   }
 }

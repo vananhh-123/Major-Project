@@ -239,8 +239,27 @@ export class MultiLobby implements OnInit, OnDestroy {
   }
 
   leaveRoom(): void {
+    this.clearLobbySession();
     this.ws.disconnect();
-    this.router.navigate(['/play/multi/mode']);
+    if (this.hasLoggedInAccount()) {
+      this.router.navigate(['/app/dashboard']);
+      return;
+    }
+
+    this.router.navigate(['/']);
+  }
+
+  private hasLoggedInAccount(): boolean {
+    try {
+      return !!(localStorage.getItem('user') || localStorage.getItem('token'));
+    } catch {
+      return false;
+    }
+  }
+
+  private clearLobbySession(): void {
+    sessionStorage.removeItem('roomPlayers');
+    sessionStorage.removeItem('roomGameMode');
   }
 }
 

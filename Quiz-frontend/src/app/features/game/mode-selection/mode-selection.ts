@@ -19,10 +19,20 @@ export class ModeSelection implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
-      if (params['title']) this.quizTitle = params['title'];
-      if (params['desc']) this.quizDesc = params['desc'];
-      if (params['level']) this.quizLevel = params['level'];
-      if (params['length']) this.quizLength = Number(params['length']);
+      this.quizTitle = params['title'] || sessionStorage.getItem('currentQuizTitle') || this.quizTitle;
+      this.quizDesc = params['desc'] || sessionStorage.getItem('currentQuizDescription') || this.quizDesc;
+      this.quizLevel = params['level'] || sessionStorage.getItem('currentQuizLevel') || this.quizLevel;
+      const lengthValue = params['length'] || sessionStorage.getItem('currentQuizLength');
+      this.quizLength = lengthValue ? Number(lengthValue) : this.quizLength;
+
+      if (params['id']) {
+        sessionStorage.setItem('currentQuizId', params['id']);
+      }
+      sessionStorage.setItem('currentQuizTitle', this.quizTitle || '');
+      sessionStorage.setItem('currentQuizDescription', this.quizDesc || '');
+      sessionStorage.setItem('currentQuizLevel', this.quizLevel || '');
+      sessionStorage.setItem('currentQuizLength', String(this.quizLength || 0));
+
     });
   }
 

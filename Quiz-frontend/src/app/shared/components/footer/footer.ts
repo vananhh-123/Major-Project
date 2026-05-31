@@ -10,6 +10,6 @@ import { Component } from '@angular/core';
 export class Footer {
   showComingSoon(event: Event) {
     event.preventDefault();
-    alert('Tính năng này hiện tại chưa được cập nhật!');
+    alert('Tính năng này hiện tại chưa được phát triển. Vui lòng chờ cập nhật trong tương lai!');
   }
 }

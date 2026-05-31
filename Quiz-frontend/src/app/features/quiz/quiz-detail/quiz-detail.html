@@ -1,7 +1,7 @@
 <div class="quiz-detail-container">
   <div class="main-layout-grid">
    
-    <!-- C?T TRÁI -->
+    <!-- C?T TRï¿½I -->
     <div class="main-content">
      
       @if (isOwner) {
@@ -20,7 +20,7 @@
           </div>
         </div>
 
-        <!-- MANAGE VISIBILITY (Ch? hi?n khi là Host) -->
+        <!-- MANAGE VISIBILITY (Ch? hi?n khi lï¿½ Host) -->
         <div class="visibility-section" style="text-align: center;">
           <div class="section-header" style="justify-content: center; margin-bottom: 1.5rem;">
             <i class="pi pi-eye"></i>
@@ -40,7 +40,7 @@
           </div>
         </div>
 
-        <!-- PREVIEW QUESTIONS (GI? NGUYÊN CHO HOST) -->
+        <!-- PREVIEW QUESTIONS (GI? NGUYï¿½N CHO HOST) -->
         <div class="preview-section">
           <div class="preview-header">
             <h2>Question Preview</h2>
@@ -105,7 +105,7 @@
 
           <div *ngIf="!reviews.length" class="empty-state">No reviews yet for this quiz.</div>
 
-          @for (rev of reviews; track rev.id) {
+          @for (rev of pagedReviews; track rev.id) {
             <div class="review-card-item">
               <div class="card-top-review">
                 <div class="user-block-review">
@@ -123,6 +123,25 @@
               <p class="comment-text-review">{{ rev.comment }}</p>
             </div>
           }
+
+          <div class="review-pagination-container" *ngIf="totalReviewPages > 1">
+            <button class="review-page-btn" (click)="goToReviewPage(currentReviewPage - 1)" [disabled]="currentReviewPage === 1">
+              <span class="material-icons">chevron_left</span>
+            </button>
+
+            <button
+              *ngFor="let page of getReviewPagesArray()"
+              class="review-page-btn"
+              [class.active]="currentReviewPage === page"
+              (click)="goToReviewPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button class="review-page-btn" (click)="goToReviewPage(currentReviewPage + 1)" [disabled]="currentReviewPage === totalReviewPages">
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
         </div>
       }
     </div>

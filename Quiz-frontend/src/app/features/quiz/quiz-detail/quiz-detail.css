@@ -225,6 +225,48 @@
 .comment-text-review  { margin-top: 15px; color: #475467; font-size: 15px; line-height: 1.6; }
 .empty-state { text-align: center; padding: 40px; color: #94a3b8; font-weight: 600; }
 
+.review-pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.review-page-btn {
+  width: 42px;
+  height: 42px;
+  border: 1.5px solid #e9e3ff;
+  background: #ffffff;
+  color: #6d28d9;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.review-page-btn:hover:not(:disabled) {
+  border-color: #7f56d9;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(127, 86, 217, 0.12);
+}
+
+.review-page-btn.active {
+  background: linear-gradient(135deg, #7f56d9 0%, #b11b6c 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 10px 22px rgba(127, 86, 217, 0.18);
+}
+
+.review-page-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 @media (max-width: 1000px) {
   .quiz-detail-container { padding: 24px 16px; }
   .main-layout-grid {

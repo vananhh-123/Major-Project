@@ -58,7 +58,7 @@ export class GameRoom implements OnInit, OnDestroy {
 
   hasAnswered: boolean = false;
   selectedAnswers: number[] = [];
-  lastAnswerResult: { isCorrect: boolean; points: number; totalScore: number } | null = null;
+  lastAnswerResult: { isCorrect: boolean; points: number; totalScore: number; correctAnswers?: number } | null = null;
   
   playerScore: number = 0;
   correctAnswersCount: number = 0;
@@ -244,6 +244,9 @@ export class GameRoom implements OnInit, OnDestroy {
               if (this.lastAnswerResult && this.lastAnswerResult.totalScore !== undefined) {
                   this.playerScore = this.lastAnswerResult.totalScore;
               }
+              if (this.lastAnswerResult && this.lastAnswerResult.correctAnswers !== undefined) {
+                  this.correctAnswersCount = this.lastAnswerResult.correctAnswers;
+              }
               const correctAnswers = msg.data.correctAnswers || [];
               const q = this.currentQuestion;
               if (q && q.options) {
@@ -297,6 +300,10 @@ export class GameRoom implements OnInit, OnDestroy {
         if (this.quizId) {
           sessionStorage.setItem('lastQuizId', this.quizId);
         }
+        // Lưu thông tin player hiện tại để result.ts tìm đúng rank
+        sessionStorage.setItem('currentUserId', this.currentUserId);
+        const meNow = this.players.find(p => p.userId === this.currentUserId);
+        if (meNow?.name) sessionStorage.setItem('currentUserName', meNow.name);
         setTimeout(() => {
           this.router.navigate(['/play/result'], {
             queryParams: {
@@ -513,16 +520,26 @@ export class GameRoom implements OnInit, OnDestroy {
   }
 
   private finishLocalGame(): void {
-    // Save a minimal finalScores for the local player so Result page can render
-    const finalScores = [{
-      userId: this.currentUserId,
-      name: '',
-      score: this.playerScore || 0,
-      avatar: this.currentUserAvatar,
-      isHost: this.isHost
-    }];
+    // Cập nhật score mới nhất của player hiện tại vào this.players
+    this.players = this.players.map(p =>
+      p.userId === this.currentUserId ? { ...p, score: this.playerScore || 0 } : p
+    );
+
+    // Dùng toàn bộ danh sách players (đã sync qua score_update) làm finalScores
+    // để Result page có đầy đủ leaderboard và tính rank đúng cho mọi người
+    const finalScores = this.players.map(p => ({
+      userId: p.userId,
+      name:   p.name,
+      score:  p.score || 0,
+      avatar: p.avatar || `https://api.dicebear.com/7.x/personas/svg?seed=${p.name || p.userId}`,
+      isHost: p.isHost || false
+    }));
     sessionStorage.setItem('finalScores', JSON.stringify(finalScores));
     if (this.quizId) sessionStorage.setItem('lastQuizId', this.quizId);
+    // Lưu thêm userId/Name để result.ts tìm đúng player hiện tại
+    sessionStorage.setItem('currentUserId', this.currentUserId);
+    const me = this.players.find(p => p.userId === this.currentUserId);
+    if (me?.name) sessionStorage.setItem('currentUserName', me.name);
 
     // Persist result to server (best-effort)
     let userId: string | null = null;
@@ -537,7 +554,9 @@ export class GameRoom implements OnInit, OnDestroy {
     const payload: any = {
       user_id: userId,
       quiz_id: this.quizId || null,
+      room_id: this.gamePin || null,
       is_solo: false,
+      mode: 'multi',
       score: this.playerScore || 0,
       correct_answers: this.correctAnswersCount || 0
     };
@@ -609,4 +628,3 @@ export class GameRoom implements OnInit, OnDestroy {
     return player.userId;
   }
 }
-

@@ -30,11 +30,12 @@ type Client struct {
 
 // PlayerInfo lưu thông tin người chơi trong phòng
 type PlayerInfo struct {
-	UserID string `json:"userId"`
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
-	Score  int    `json:"score"`
-	IsHost bool   `json:"isHost"`
+	UserID         string `json:"userId"`
+	Name           string `json:"name"`
+	Avatar         string `json:"avatar"`
+	Score          int    `json:"score"`
+	CorrectAnswers int    `json:"correctAnswers"`
+	IsHost         bool   `json:"isHost"`
 }
 
 // RoomState lưu trạng thái của 1 phòng chơi
@@ -302,24 +303,27 @@ func (h *Hub) handleSubmitAnswer(client *Client, data map[string]interface{}) {
 	points, _ := data["points"].(float64)
 	questionIdx, _ := data["questionIdx"].(float64)
 
-	// Cộng điểm cho player
+	// Cộng điểm cho player và track correct answers
 	if player, exists := state.Players[client.UserID]; exists {
 		if isCorrect {
 			player.Score += int(points)
-			state.Players[client.UserID] = player
+			player.CorrectAnswers += 1
 		}
+		state.Players[client.UserID] = player
 	}
 
 	// Gửi kết quả câu trả lời riêng cho player đó
+	currentPlayer := state.Players[client.UserID]
 	h.sendToClient(roomID, client.UserID, Message{
 		Action: "answer_result",
 		RoomID: roomID,
 		UserID: "SYSTEM",
 		Data: map[string]interface{}{
-			"isCorrect":   isCorrect,
-			"points":      int(points),
-			"questionIdx": int(questionIdx),
-			"totalScore":  state.Players[client.UserID].Score,
+			"isCorrect":      isCorrect,
+			"points":         int(points),
+			"questionIdx":    int(questionIdx),
+			"totalScore":     currentPlayer.Score,
+			"correctAnswers": currentPlayer.CorrectAnswers,
 		},
 	})
 
