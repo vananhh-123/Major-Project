@@ -138,6 +138,28 @@ export class GameRoom implements OnInit, OnDestroy {
     this.listenToWsEvents();
     // Load quiz for both host and players so players can advance locally in Classic mode
     this.loadQuiz();
+
+    // Ensure websocket is connected and we're joined to the room so reloads can re-enter
+    if (this.gamePin && this.currentUserId) {
+      try {
+        this.ws.connect(this.gamePin, this.currentUserId);
+        setTimeout(() => {
+          this.ws.joinRoom(
+            this.gamePin,
+            this.currentUserId,
+            // preserve name/avatar from sessionPlayers or localStorage
+            (this.players.find(p => p.userId === this.currentUserId)?.name) || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}').name : 'Guest'),
+            (this.players.find(p => p.userId === this.currentUserId)?.avatar) || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}').avatar : this.currentUserAvatar),
+            this.isHost,
+            this.gameMode,
+            this.gamePin,
+            this.quizId
+          );
+        }, 300);
+      } catch (e) {
+        console.warn('Reconnect/join attempt failed', e);
+      }
+    }
   }
 
   private loadCurrentUserAvatar(): void {
@@ -500,7 +522,8 @@ export class GameRoom implements OnInit, OnDestroy {
     if (!q) return;
     
     const correctIndices = q.options.map((o, idx) => o.is_correct ? idx : -1).filter(i => i !== -1);
-    this.ws.send({ action: "reveal_answer", roomId: this.gamePin, userId: this.currentUserId, data: { correctIndices } });
+    // Send the canonical `answer_reveal` event with `correctAnswers` key (clients listen for this)
+    this.ws.send({ action: 'answer_reveal', roomId: this.gamePin, userId: this.currentUserId, data: { correctAnswers: correctIndices } });
   }
 
   nextQuestionOrEnd(): void {

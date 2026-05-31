@@ -39,6 +39,7 @@ export class QuizList implements OnInit, OnDestroy {
   };
 
   quizzes: Quiz[] = [];
+  sortBy: string = 'recent';
 
   // Phân trang
   currentPage: number = 1;
@@ -91,12 +92,18 @@ export class QuizList implements OnInit, OnDestroy {
             plays: String(q.plays || 0),
             comments: String(comments),
             rating: String(rating),
+            // additional fields for sorting
+            createdAt: q.created_at || q.createdAt || '',
+            playsNum: Number(q.plays || 0),
+            ratingNum: Number(rating),
             level: q.level || 'Mid',
             image: q.cover_image && q.cover_image.startsWith('data:image') ? q.cover_image : '/Tech.png' // Fallback náº¿u ko cÃ³
           };
         });
 
         this.quizzes = apiQuizzes;
+        // Apply initial sort
+        this.applySort();
         this.cd.detectChanges();
       },
       error: (err: any) => {
@@ -180,5 +187,43 @@ export class QuizList implements OnInit, OnDestroy {
       Pro: false
     };
     this.saveState();
+  }
+
+  // Apply sort based on the selected option
+  applySort() {
+    if (!this.quizzes || this.quizzes.length === 0) return;
+    switch (this.sortBy) {
+      case 'recent':
+        this.quizzes.sort((a: any, b: any) => {
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return tb - ta;
+        });
+        break;
+      case 'played':
+        this.quizzes.sort((a: any, b: any) => (b.playsNum || 0) - (a.playsNum || 0));
+        break;
+      case 'popular':
+        this.quizzes.sort((a: any, b: any) => (b.ratingNum || 0) - (a.ratingNum || 0));
+        break;
+      case 'trending':
+        // Simple trending heuristic: prioritize recent plays
+        this.quizzes.sort((a: any, b: any) => {
+          const scoreA = (a.playsNum || 0) * 0.7 + (a.ratingNum || 0) * 10;
+          const scoreB = (b.playsNum || 0) * 0.7 + (b.ratingNum || 0) * 10;
+          return scoreB - scoreA;
+        });
+        break;
+      case 'alphabetical':
+        this.quizzes.sort((a: any, b: any) => (a.title || '').localeCompare(b.title || ''));
+        break;
+    }
+    this.currentPage = 1;
+    this.cd.detectChanges();
+  }
+
+  // Notify user for unimplemented features
+  notifyNotImplemented() {
+    alert('Tính năng này hiện tại chưa được phát triển. Vui lòng chờ cập nhật trong tương lai!');
   }
 }

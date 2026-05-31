@@ -41,7 +41,7 @@
         <div class="filter-group">
           <label class="label-bold">Sort By</label>
           <div class="select-ui-box">
-            <select>
+            <select [(ngModel)]="sortBy" (ngModelChange)="applySort()">
               <option value="recent">Most Recent</option>
               <option value="played">Most Played</option>
               <option value="popular">Popularity</option>

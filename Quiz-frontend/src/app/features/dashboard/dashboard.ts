@@ -30,9 +30,34 @@ export class Dashboard implements OnInit {
       if (res && Array.isArray(res)) {
         // Lấy tất cả quiz public, không lọc theo creator email
         const publicQuizzes = res.filter(q => q.visibility === 'public' || !q.visibility);
+        // Tính điểm đề xuất cho mỗi quiz: kết hợp plays, rating và độ mới
+        const scored = publicQuizzes.map((q: any) => {
+          const plays = Number(q.plays || 0);
+          let comments = 0;
+          let rating = 0;
+          if (q.reviews && q.reviews.length > 0) {
+             comments = q.reviews.length;
+             const sum = q.reviews.reduce((a: number, b: any) => a + (Number(b.rating) || 0), 0);
+             rating = Math.round((sum / comments) * 10) / 10;
+          }
+          // recency score: newer quizzes score higher (days since creation)
+          const createdAt = q.created_at || q.createdAt || null;
+          let recencyScore = 0;
+          if (createdAt) {
+            const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24));
+            recencyScore = Math.max(0, 30 - days); // range 0..30
+          }
+          // final score weights
+          const score = plays * 1 + (rating || 0) * 18 + recencyScore * 1.5;
+
+          return { raw: q, plays, comments, rating, score };
+        });
+
+        // Sắp xếp giảm dần theo score và lấy top 4
+        const recommended = scored.sort((a: any, b: any) => b.score - a.score).slice(0, 4).map((item: any) => item.raw);
 
         // Lấy tối đa 4 quiz
-        this.quizzes = publicQuizzes.slice(0, 4).map(q => {
+        this.quizzes = recommended.map(q => {
           const plays = q.plays || 0;
           let comments = 0;
           let rating = 0;

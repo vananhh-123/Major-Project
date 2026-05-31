@@ -147,6 +147,10 @@ export class Review implements OnInit, OnDestroy {
     return Number((sum / this.reviews.length).toFixed(1));
   }
 
+  get reviewCount(): number {
+    return this.reviews?.length || 0;
+  }
+
   getStars(rating: any): number[] {
     const r = Math.floor(Number(rating) || 0);
     return Array(Math.max(0, r)).fill(0);

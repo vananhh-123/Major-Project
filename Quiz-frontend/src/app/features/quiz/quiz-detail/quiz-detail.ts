@@ -214,8 +214,7 @@ export class QuizDetail implements OnInit {
   }
 
   shareQuiz() {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => alert('Link copied: ' + url));
+    alert('Tính năng này hiện tại chưa được phát triển. Vui lòng chờ cập nhật trong tương lai!');
   }
     // B? sung ch?c nang Delete
   deleteQuiz() {

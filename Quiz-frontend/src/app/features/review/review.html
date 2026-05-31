@@ -58,7 +58,10 @@
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="side-card stats-card">
-        <h3>Rating Overview</h3>
+        <div class="stats-card-header">
+          <h3>Rating Overview</h3>
+          <span class="review-count-badge">{{ reviewCount }}</span>
+        </div>
         <div class="rating-list">
           @for (star of [5,4,3,2,1]; track star) {
             <div class="rating-row">
