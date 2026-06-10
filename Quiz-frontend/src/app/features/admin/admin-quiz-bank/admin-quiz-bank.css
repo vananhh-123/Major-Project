@@ -1,0 +1,267 @@
+.page-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.page-eyebrow {
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin-bottom: .25rem;
+}
+
+.primary-action-btn {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+
+  padding: .6rem 1.25rem;
+
+  background: linear-gradient(135deg, var(--primary), var(--primary-container));
+  border: none;
+  border-radius: var(--radius-full);
+
+  font-family: var(--font-body);
+  font-size: .8125rem;
+  font-weight: 700;
+
+  color: var(--on-primary);
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(110, 18, 248, .25);
+  transition: all .2s;
+}
+
+.primary-action-btn:hover {
+  transform: scale(1.03);
+}
+
+.primary-action-btn span {
+  font-size: 1rem;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.kpi-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.filter-card {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.mini-search {
+  position: relative;
+  min-width: 300px;
+}
+
+.mini-search span {
+  position: absolute;
+  left: .75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--on-surface-variant);
+  font-size: 1rem;
+}
+
+.mini-search input {
+  width: 100%;
+  background: var(--surface-container-high);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: .5rem .875rem .5rem 2.1rem;
+
+  font-family: var(--font-body);
+  font-size: .8125rem;
+  color: var(--on-surface);
+  outline: none;
+}
+
+select {
+  background: var(--surface-container-high);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: .5rem .875rem;
+
+  font-family: var(--font-body);
+  font-size: .8125rem;
+  color: var(--on-surface);
+  outline: none;
+  cursor: pointer;
+}
+
+.result-count {
+  margin-left: auto;
+  font-size: .75rem;
+  color: var(--on-surface-variant);
+  font-weight: 600;
+}
+
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead tr {
+  background: rgba(240, 219, 255, .25);
+}
+
+.admin-table th {
+  padding: 1rem;
+  text-align: left;
+  color: var(--on-surface-variant);
+  font-size: .7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.admin-table td {
+  padding: .875rem 1rem;
+  border-bottom: 1px solid rgba(188, 164, 209, .1);
+  color: var(--on-surface);
+  font-size: .8125rem;
+}
+
+.quiz-row {
+  transition: background .2s;
+}
+
+.quiz-row:hover {
+  background: var(--surface-container-low);
+}
+
+.quiz-cell {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.quiz-icon {
+  font-size: 1.25rem;
+  color: var(--primary);
+  background: rgba(110, 18, 248, .08);
+  padding: .375rem;
+  border-radius: var(--radius-md);
+}
+
+.quiz-title {
+  font-weight: 700;
+}
+
+.quiz-meta {
+  font-size: .7rem;
+  color: var(--on-surface-variant);
+}
+
+.diff-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: .2rem .6rem;
+  border-radius: var(--radius-full);
+
+  font-size: .65rem;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.diff-badge.easy {
+  background: rgba(22, 163, 74, .1);
+  color: #16a34a;
+}
+
+.diff-badge.mid {
+  background: rgba(234, 179, 8, .1);
+  color: #ca8a04;
+}
+
+.diff-badge.pro {
+  background: rgba(180, 19, 64, .1);
+  color: var(--error);
+}
+
+.badge-status.public-status {
+  background: rgba(110, 18, 248, .08);
+  color: var(--primary);
+}
+
+.badge-status.private-status {
+  background: rgba(188, 164, 209, .2);
+  color: var(--on-surface-variant);
+}
+
+.center {
+  text-align: center;
+}
+
+.right {
+  text-align: right;
+}
+
+.strong-text {
+  font-weight: 700;
+}
+
+.muted-text {
+  font-size: .75rem;
+  color: var(--on-surface-variant);
+}
+
+.action-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: .25rem;
+}
+
+.action-btn {
+  width: 2rem;
+  height: 2rem;
+}
+
+.action-btn span {
+  font-size: 1.1rem;
+}
+
+.action-btn.danger {
+  color: var(--error);
+}
+
+.empty-cell {
+  padding: 3rem !important;
+  text-align: center;
+  color: var(--on-surface-variant);
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,221 @@
+<section class="page-header-row">
+  <div>
+    <p class="page-eyebrow">Content Library</p>
+
+    <h2 class="page-headline">Quiz Bank</h2>
+
+    <p class="page-subline">
+      Manage quizzes with Public/Private status and Easy/Mid/Pro difficulty.
+    </p>
+  </div>
+
+  <button class="primary-action-btn" routerLink="/app/create-quiz">
+    <span class="material-symbols-outlined">add</span>
+    New Quiz
+  </button>
+</section>
+
+<section class="kpi-grid">
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Total Quizzes</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        quiz
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ totalQuizzes }}</div>
+    <div class="kpi-trend text-primary">Available quizzes</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Public</span>
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
+        public
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ publicQuizzes }}</div>
+    <div class="kpi-trend text-muted">Visible to users</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Private</span>
+      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
+        lock
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ privateQuizzes }}</div>
+    <div class="kpi-trend text-tertiary">Hidden quizzes</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Questions</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        help
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ totalQuestions }}</div>
+    <div class="kpi-trend text-muted">Total questions</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Avg Rating</span>
+      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
+        star
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ averageRating }}</div>
+    <div class="kpi-trend text-tertiary">From reviews</div>
+  </div>
+</section>
+
+<section class="chart-card filter-card">
+  <div class="filter-row">
+    <div class="mini-search">
+      <span class="material-symbols-outlined">search</span>
+
+      <input
+        type="text"
+        placeholder="Search quizzes, creators or IDs..."
+        [(ngModel)]="searchText"
+      />
+    </div>
+
+    <select [(ngModel)]="difficultyFilter">
+      <option value="">Difficulty: All</option>
+      <option value="Easy">Easy</option>
+      <option value="Mid">Mid</option>
+      <option value="Pro">Pro</option>
+    </select>
+
+    <select [(ngModel)]="statusFilter">
+      <option value="">Status: All</option>
+      <option value="Public">Public</option>
+      <option value="Private">Private</option>
+    </select>
+
+    <span class="result-count">
+      {{ filteredQuizzes.length }} quizzes
+    </span>
+  </div>
+</section>
+
+<section class="chart-card table-card">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Quiz</th>
+        <th>Difficulty</th>
+        <th class="center">Questions</th>
+        <th class="center">Rating</th>
+        <th>Created</th>
+        <th>Status</th>
+        <th class="right">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr class="quiz-row" *ngFor="let quiz of filteredQuizzes">
+        <td>
+          <div class="quiz-cell">
+            <span class="quiz-icon material-symbols-outlined">
+              {{ quiz.icon }}
+            </span>
+
+            <div>
+              <div class="quiz-title">{{ quiz.title }}</div>
+              <div class="quiz-meta">
+                {{ quiz.id }} · by {{ quiz.creator }}
+              </div>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <span
+            class="diff-badge"
+            [class.easy]="quiz.difficulty === 'Easy'"
+            [class.mid]="quiz.difficulty === 'Mid'"
+            [class.pro]="quiz.difficulty === 'Pro'"
+          >
+            {{ quiz.difficulty }}
+          </span>
+        </td>
+
+        <td class="center strong-text">
+          {{ quiz.questions }}
+        </td>
+
+        <td class="center strong-text">
+          ★ {{ quiz.rating }}
+        </td>
+
+        <td class="muted-text">
+          {{ quiz.createdAt }}
+        </td>
+
+        <td>
+          <span
+            class="badge-status"
+            [class.public-status]="quiz.status === 'Public'"
+            [class.private-status]="quiz.status === 'Private'"
+          >
+            {{ quiz.status }}
+          </span>
+        </td>
+
+        <td class="right">
+          <div class="action-group">
+            <button class="topbar-icon-btn action-btn" title="View">
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
+
+            <button class="topbar-icon-btn action-btn" title="Edit">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+
+            <button
+              class="topbar-icon-btn action-btn"
+              title="Set Public"
+              *ngIf="quiz.status === 'Private'"
+              (click)="setStatus(quiz, 'Public')"
+            >
+              <span class="material-symbols-outlined">public</span>
+            </button>
+
+            <button
+              class="topbar-icon-btn action-btn"
+              title="Set Private"
+              *ngIf="quiz.status === 'Public'"
+              (click)="setStatus(quiz, 'Private')"
+            >
+              <span class="material-symbols-outlined">lock</span>
+            </button>
+
+            <button
+              class="topbar-icon-btn action-btn danger"
+              title="Delete"
+              (click)="deleteQuiz(quiz.id)"
+            >
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      <tr *ngIf="filteredQuizzes.length === 0">
+        <td colspan="7" class="empty-cell">
+          No quizzes found.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>

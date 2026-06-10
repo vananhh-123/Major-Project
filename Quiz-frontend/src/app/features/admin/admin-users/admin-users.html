@@ -1,0 +1,292 @@
+<section style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem;">
+  <div>
+    <p style="font-size:.7rem;font-weight:700;color:var(--on-surface-variant);text-transform:uppercase;letter-spacing:.12em;margin-bottom:.25rem;">
+      Management
+    </p>
+
+    <h2 class="page-headline">User Management</h2>
+
+    <p class="page-subline">
+      Manage users, admin permissions, solo games and multiplayer games.
+    </p>
+  </div>
+
+  <div style="display:flex;gap:.75rem;">
+    <button class="outline-action-btn">
+      <span class="material-symbols-outlined" style="font-size:1rem;">person_add</span>
+      Invite User
+    </button>
+
+    <button class="primary-action-btn">
+      <span class="material-symbols-outlined" style="font-size:1rem;">download</span>
+      Export CSV
+    </button>
+  </div>
+</section>
+
+<section style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem;" class="stagger">
+  <div class="kpi-card animate-fade-up">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <span class="kpi-label">Total Users</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">group</span>
+    </div>
+
+    <div class="kpi-value">{{ totalUsers }}</div>
+
+    <div class="kpi-trend text-tertiary">
+      <span class="material-symbols-outlined" style="font-size:.9rem;">trending_up</span>
+      +32 this week
+    </div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <span class="kpi-label">Active Users</span>
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">bolt</span>
+    </div>
+
+    <div class="kpi-value">{{ activeUsers }}</div>
+
+    <div class="kpi-trend text-primary">
+      <span class="material-symbols-outlined" style="font-size:.9rem;">trending_up</span>
+      Online today
+    </div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <span class="kpi-label">Admins</span>
+      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">admin_panel_settings</span>
+    </div>
+
+    <div class="kpi-value">{{ adminUsers }}</div>
+
+    <div class="kpi-trend text-muted">
+      No moderator role
+    </div>
+  </div>
+
+  <div class="kpi-card animate-fade-up" style="border-color:rgba(180,19,64,.12);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <span class="kpi-label">Blocked</span>
+      <span class="kpi-icon bg-error-soft text-error material-symbols-outlined">block</span>
+    </div>
+
+    <div class="kpi-value" style="color:var(--error);">{{ blockedUsers }}</div>
+
+    <div class="kpi-trend text-error">
+      <span class="material-symbols-outlined" style="font-size:.9rem;">warning</span>
+      Needs review
+    </div>
+  </div>
+</section>
+
+<div class="chart-card" style="margin-bottom:1.5rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div style="display:flex;gap:.25rem;background:var(--surface-container-low);padding:.25rem;border-radius:var(--radius-lg);">
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'all'"
+        (click)="switchTab('all')"
+      >
+        All Users
+      </button>
+
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'active'"
+        (click)="switchTab('active')"
+      >
+        Active
+      </button>
+
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'blocked'"
+        (click)="switchTab('blocked')"
+      >
+        Blocked
+      </button>
+
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'admin'"
+        (click)="switchTab('admin')"
+      >
+        Admins
+      </button>
+    </div>
+
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+      <div class="mini-search">
+        <span class="material-symbols-outlined">search</span>
+
+        <input
+          type="text"
+          placeholder="Search users, emails or IDs..."
+          [(ngModel)]="searchText"
+        />
+      </div>
+
+      <select [(ngModel)]="roleFilter">
+        <option value="">Role: All</option>
+        <option value="Admin">Admin</option>
+        <option value="User">User</option>
+      </select>
+
+      <select [(ngModel)]="statusFilter">
+        <option value="">Status: All</option>
+        <option value="Active">Active</option>
+        <option value="Blocked">Blocked</option>
+      </select>
+
+      <span style="font-size:.75rem;color:var(--on-surface-variant);font-weight:600;">
+        Showing {{ filteredUsers.length }} users
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="chart-card" style="padding:0;overflow:hidden;">
+  <table class="admin-table">
+    <thead>
+      <tr style="background:rgba(240,219,255,.25);">
+        <th style="padding:1rem 1.25rem;">
+          <input type="checkbox" style="accent-color:var(--primary);width:1rem;height:1rem;cursor:pointer;" />
+        </th>
+
+        <th style="padding:1rem;">User</th>
+        <th style="padding:1rem;">Role</th>
+        <th style="padding:1rem;text-align:center;">Quizzes</th>
+        <th style="padding:1rem;text-align:center;">Solo Games</th>
+        <th style="padding:1rem;text-align:center;">Multi Games</th>
+        <th style="padding:1rem;text-align:center;">Avg Score</th>
+        <th style="padding:1rem;">Joined</th>
+        <th style="padding:1rem;">Status</th>
+        <th style="padding:1rem;text-align:right;">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr class="user-row" *ngFor="let user of filteredUsers">
+        <td style="padding:.875rem 1.25rem;">
+          <input type="checkbox" style="accent-color:var(--primary);width:1rem;height:1rem;cursor:pointer;" />
+        </td>
+
+        <td style="padding:.875rem 1rem;">
+          <div style="display:flex;align-items:center;gap:.75rem;">
+            <img
+              [src]="'https://api.dicebear.com/8.x/avataaars/svg?seed=' + user.seed + '&size=40&backgroundColor=b6e3f4'"
+              style="width:2.25rem;height:2.25rem;border-radius:50%;border:2px solid rgba(110,18,248,.1);"
+              alt="User avatar"
+            />
+
+            <div>
+              <div style="font-weight:700;font-size:.8125rem;">{{ user.name }}</div>
+              <div style="font-size:.7rem;color:var(--on-surface-variant);">{{ user.email }}</div>
+              <div style="font-size:.65rem;color:var(--outline);font-weight:700;">{{ user.id }}</div>
+            </div>
+          </div>
+        </td>
+
+        <td style="padding:.875rem 1rem;">
+          <span
+            class="badge-status"
+            [class.admin-role]="user.role === 'Admin'"
+            [class.user-role]="user.role === 'User'"
+          >
+            {{ user.role }}
+          </span>
+        </td>
+
+        <td style="padding:.875rem 1rem;text-align:center;font-weight:700;">
+          {{ user.quizzes }}
+        </td>
+
+        <td style="padding:.875rem 1rem;text-align:center;font-weight:700;">
+          {{ user.soloGames }}
+        </td>
+
+        <td style="padding:.875rem 1rem;text-align:center;font-weight:700;">
+          {{ user.multiGames }}
+        </td>
+
+        <td style="padding:.875rem 1rem;text-align:center;">
+          <div style="font-weight:700;">{{ user.score }}%</div>
+
+          <div class="progress-bar" style="width:3rem;margin:.25rem auto 0;">
+            <div
+              class="progress-fill"
+              [style.width.%]="user.score"
+              style="background:var(--primary);"
+            ></div>
+          </div>
+        </td>
+
+        <td style="padding:.875rem 1rem;font-size:.75rem;color:var(--on-surface-variant);">
+          {{ user.joined }}
+        </td>
+
+        <td style="padding:.875rem 1rem;">
+          <div
+            class="status-dot-text"
+            [class.active-status]="user.status === 'Active'"
+            [class.blocked-status]="user.status === 'Blocked'"
+          >
+            <span></span>
+            {{ user.status }}
+          </div>
+        </td>
+
+        <td style="padding:.875rem 1.25rem;text-align:right;">
+          <div style="display:flex;justify-content:flex-end;gap:.25rem;">
+            <button class="topbar-icon-btn" title="View" style="color:var(--primary);">
+              <span class="material-symbols-outlined" style="font-size:1.1rem;">visibility</span>
+            </button>
+
+            <button class="topbar-icon-btn" title="Edit">
+              <span class="material-symbols-outlined" style="font-size:1.1rem;">edit</span>
+            </button>
+
+            <button
+              class="topbar-icon-btn"
+              title="Block / Unblock"
+              [style.color]="user.status === 'Active' ? 'var(--error)' : 'var(--primary)'"
+              (click)="toggleStatus(user)"
+            >
+              <span class="material-symbols-outlined" style="font-size:1.1rem;">
+                {{ user.status === 'Active' ? 'block' : 'check_circle' }}
+              </span>
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      <tr *ngIf="filteredUsers.length === 0">
+        <td colspan="10" style="padding:3rem;text-align:center;color:var(--on-surface-variant);">
+          No users found.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-top:1px solid rgba(188,164,209,.1);">
+    <span style="font-size:.75rem;color:var(--on-surface-variant);">
+      Page 1 of 1
+    </span>
+
+    <div style="display:flex;gap:.375rem;">
+      <button class="topbar-icon-btn" style="width:2rem;height:2rem;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">chevron_left</span>
+      </button>
+
+      <button style="width:2rem;height:2rem;border-radius:var(--radius-md);border:none;background:var(--primary);color:var(--on-primary);font-weight:700;font-size:.8rem;cursor:pointer;">
+        1
+      </button>
+
+      <button class="topbar-icon-btn" style="width:2rem;height:2rem;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,89 @@
+.achievement-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:1.5rem;
+}
+
+.achievement-card{
+  background:#fff;
+  border-radius:20px;
+  padding:1.5rem;
+  box-shadow:0 4px 16px rgba(0,0,0,.06);
+}
+
+.achievement-icon{
+  width:60px;
+  height:60px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  margin-bottom:1rem;
+}
+
+.achievement-icon span{
+  font-size:30px;
+}
+
+.achievement-card h3{
+  margin-bottom:.5rem;
+}
+
+.achievement-card p{
+  color:#666;
+}
+
+.achievement-info{
+  margin-top:1rem;
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+}
+
+.achievement-info div{
+  display:flex;
+  justify-content:space-between;
+}
+
+.achievement-footer{
+  margin-top:1.25rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.status-badge{
+  padding:.4rem .9rem;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:700;
+}
+
+.active{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.disabled{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.actions{
+  display:flex;
+  gap:.5rem;
+}
+
+.actions button{
+  border:none;
+  background:#f5f5f5;
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.actions .danger{
+  color:#dc2626;
+}

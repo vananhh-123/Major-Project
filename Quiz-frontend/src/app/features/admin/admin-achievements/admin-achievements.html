@@ -1,0 +1,111 @@
+<section class="admin-page-header">
+
+  <div>
+    <p class="eyebrow">Achievement System</p>
+
+    <h2>Achievements</h2>
+
+    <p>
+      Manage badges, rewards and achievement progression.
+    </p>
+  </div>
+
+  <button class="primary-btn">
+    <span class="material-symbols-outlined">add</span>
+    New Achievement
+  </button>
+
+</section>
+
+<section class="filter-card">
+
+  <div class="search-box">
+    <span class="material-symbols-outlined">search</span>
+
+    <input
+      type="text"
+      placeholder="Search achievements..."
+      [(ngModel)]="searchText">
+  </div>
+
+</section>
+
+<section class="achievement-grid">
+
+  <div
+    class="achievement-card"
+    *ngFor="let item of filteredAchievements">
+
+    <div
+      class="achievement-icon"
+      [style.background]="item.color">
+
+      <span class="material-symbols-outlined">
+        {{ item.icon }}
+      </span>
+
+    </div>
+
+    <h3>{{ item.name }}</h3>
+
+    <p>{{ item.description }}</p>
+
+    <div class="achievement-info">
+
+      <div>
+        <strong>XP</strong>
+        <span>{{ item.xp }}</span>
+      </div>
+
+      <div>
+        <strong>Condition</strong>
+        <span>{{ item.condition }}</span>
+      </div>
+
+    </div>
+
+    <div class="achievement-footer">
+
+      <span
+        class="status-badge"
+        [class.active]="item.status === 'Active'"
+        [class.disabled]="item.status === 'Disabled'">
+
+        {{ item.status }}
+
+      </span>
+
+      <div class="actions">
+
+        <button>
+          <span class="material-symbols-outlined">
+            edit
+          </span>
+        </button>
+
+        <button
+          (click)="toggleStatus(item)">
+
+          <span class="material-symbols-outlined">
+            visibility
+          </span>
+
+        </button>
+
+        <button
+          class="danger"
+          (click)="deleteAchievement(item.id)">
+
+          <span class="material-symbols-outlined">
+            delete
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>

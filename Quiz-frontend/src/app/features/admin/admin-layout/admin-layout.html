@@ -1,0 +1,153 @@
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>JUST4QUIZ</h1>
+      <p>Admin Console</p>
+    </div>
+
+    <a routerLink="/app/create-quiz" class="btn-new-quiz ripple-host">
+      <span class="material-symbols-outlined">add</span>
+      New Quiz
+    </a>
+
+    <div id="sidebar-nav">
+      <ul>
+        <li>
+          <a
+            routerLink="/admin"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/analytics" routerLinkActive="active">
+            <span class="material-symbols-outlined">analytics</span>
+            <span>Analytics</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/users" routerLinkActive="active">
+            <span class="material-symbols-outlined">group</span>
+            <span>User Management</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/quiz-bank" routerLinkActive="active">
+            <span class="material-symbols-outlined">quiz</span>
+            <span>Quiz Bank</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/reviews" routerLinkActive="active">
+            <span class="material-symbols-outlined">rate_review</span>
+            <span>Reviews</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/multiplayer" routerLinkActive="active">
+            <span class="material-symbols-outlined">sports_esports</span>
+            <span>Multiplayer Rooms</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/leaderboard" routerLinkActive="active">
+            <span class="material-symbols-outlined">military_tech</span>
+            <span>Leaderboard</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/achievements" routerLinkActive="active">
+            <span class="material-symbols-outlined">emoji_events</span>
+            <span>Achievements</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/reports" routerLinkActive="active">
+            <span class="material-symbols-outlined">report</span>
+            <span>Reports</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/settings" routerLinkActive="active">
+            <span class="material-symbols-outlined">settings</span>
+            <span>System Settings</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/admin/logs" routerLinkActive="active">
+            <span class="material-symbols-outlined">history</span>
+            <span>Activity Logs</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="#">
+        <span class="material-symbols-outlined">contact_support</span>
+        Support
+      </a>
+
+      <a routerLink="/" class="logout">
+        <span class="material-symbols-outlined">logout</span>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-search">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" placeholder="Search quizzes, users, logs…" />
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="badge"></span>
+        </button>
+
+        <button class="topbar-icon-btn">
+          <span class="material-symbols-outlined">help</span>
+        </button>
+
+        <button class="topbar-icon-btn" routerLink="/admin/settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+
+        <div class="topbar-divider"></div>
+
+        <div class="topbar-user">
+          <div class="topbar-user-info">
+            <div class="name">Admin</div>
+            <div class="role">Admin</div>
+          </div>
+
+          <img
+            class="topbar-avatar"
+            src="https://api.dicebear.com/8.x/avataaars/svg?seed=Just4QuizAdmin&backgroundColor=b6e3f4"
+            alt="Admin avatar"
+          />
+        </div>
+      </div>
+    </header>
+
+    <div class="page-canvas">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
