@@ -4,6 +4,7 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { WebsocketService, PlayerInfo } from '../../../../core/services/websocket.service';
 import { API_CONFIG } from '../../../../config/api.config';
+import { HttpClient } from '@angular/common/http';
 
 // ─────────────────────────────────────────
 // TYPES (local)
@@ -70,7 +71,8 @@ export class MultiLobby implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private ws: WebsocketService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private http: HttpClient
   ) {}
 
   // ─────────────────────────────────────────
@@ -155,12 +157,11 @@ export class MultiLobby implements OnInit, OnDestroy {
   }
 
   private connectAndJoin(): void {
-    if (!this.currentUserId || !this.gamePin) return;
+  if (!this.currentUserId || !this.gamePin) return;
 
-    // Kết nối WebSocket với roomId = gamePin
+  const joinSocket = () => {
     this.ws.connect(this.gamePin, this.currentUserId);
 
-    // Gửi join_room sau 500ms để đảm bảo kết nối ổn định
     setTimeout(() => {
       this.ws.joinRoom(
         this.gamePin,
@@ -172,8 +173,39 @@ export class MultiLobby implements OnInit, OnDestroy {
         this.gamePin,
         this.quizId
       );
+
+      this.http.post(`${API_CONFIG.API_BASE}/rooms/join`, {
+        room_code: this.gamePin,
+        user_id: this.currentUserId,
+        name: this.currentUserName
+      }).subscribe({
+        next: () => console.log('Player saved to DB'),
+        error: err => console.error('Save player error:', err)
+      });
+
     }, 500);
+  };
+
+  if (this.isHost) {
+    this.http.post(`${API_CONFIG.API_BASE}/rooms`, {
+      room_code: this.gamePin,
+      host_id: this.currentUserId,
+      quiz_id: this.quizId,
+      game_mode: this.gameMode
+    }).subscribe({
+      next: () => {
+        console.log('Room saved to DB');
+        joinSocket();
+      },
+      error: err => {
+        console.error('Create room error:', err);
+        joinSocket();
+      }
+    });
+  } else {
+    joinSocket();
   }
+}
 
   // ─────────────────────────────────────────
   // WEBSOCKET LISTENERS

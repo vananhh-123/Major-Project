@@ -46,8 +46,9 @@ func SubmitResult(c *gin.Context) {
 
 	roomUUID, err := resolveRoomUUID(req.RoomID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room_id"})
-		return
+		// Multi players can reach the result screen after the room is already cleaned up.
+		// In that case, keep the result save and fall back to a nil room_id.
+		roomUUID = nil
 	}
 
 	// Determine mode: prefer explicit field, else infer from room presence
@@ -62,18 +63,32 @@ func SubmitResult(c *gin.Context) {
 		modePtr = &m
 	}
 
-	// If this is a solo play, try updating existing solo result (user+quiz with no room)
-	if modePtr != nil && *modePtr == "solo" && req.UserID != nil && req.QuizID != nil {
+	if req.UserID != nil && req.QuizID != nil {
 		var existingResult models.Result
-		err := config.DB.Where("user_id = ? AND quiz_id = ? AND room_id IS NULL", req.UserID, req.QuizID).First(&existingResult).Error
-		if err == nil {
-			// Found existing record. Update score if higher
-			if req.Score > existingResult.Score {
+		query := config.DB.Where("user_id = ? AND quiz_id = ?", req.UserID, req.QuizID)
+
+		if roomUUID != nil {
+			query = query.Where("room_id = ?", roomUUID)
+		} else if modePtr != nil && *modePtr == "solo" {
+			query = query.Where("room_id IS NULL")
+		} else if modePtr != nil && *modePtr == "multi" {
+			query = query.Where("mode = ? OR (mode IS NULL AND room_id IS NOT NULL)", "multi")
+		}
+
+		if err := query.First(&existingResult).Error; err == nil {
+			// Keep solo records at the highest score, but allow multi records to be refreshed.
+			if modePtr != nil && *modePtr == "solo" {
+				if req.Score > existingResult.Score {
+					existingResult.Score = req.Score
+					existingResult.CorrectAnswers = req.CorrectAnswers
+				}
+			} else {
 				existingResult.Score = req.Score
 				existingResult.CorrectAnswers = req.CorrectAnswers
 			}
-			solo := "solo"
-			existingResult.Mode = &solo
+
+			existingResult.RoomID = roomUUID
+			existingResult.Mode = modePtr
 			if err := config.DB.Save(&existingResult).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update result"})
 				return

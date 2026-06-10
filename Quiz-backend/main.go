@@ -54,17 +54,18 @@ func main() {
 			sockets.ServeWs(hub, c)
 		})
 
+		api.POST("/rooms", controllers.CreateRoom)
+		api.POST("/rooms/join", controllers.JoinRoom)
+
 		api.POST("/quizzes", controllers.CreateQuiz)
 		api.GET("/quizzes", controllers.GetQuizzes)
 		api.GET("/quizzes/:id", controllers.GetQuiz)
 		api.PUT("/quizzes/:id", controllers.UpdateQuiz)
 		api.DELETE("/quizzes/:id", controllers.DeleteQuiz)
-		api.PATCH("/quizzes/:id/visibility", controllers.UpdateQuizVisibility)
+
 		api.POST("/results", controllers.SubmitResult)
 		api.GET("/stats/:id", controllers.GetUserStats)
 		api.GET("/users/:id/history", controllers.GetUserHistory)
-		api.POST("/quizzes/reviews", controllers.CreateReview)
-		api.GET("/quizzes/:id/reviews", controllers.GetQuizReviews)
 	}
 
 	r.Run(":8080")

@@ -81,7 +81,7 @@ export class GameRoom implements OnInit, OnDestroy {
     return 283 - (283 * ratio);
   }
   
-  private apiUrl = `http://${'localhost'}:8080/api`;
+  private apiUrl = API_CONFIG.API_BASE;
 
   constructor(
     private router: Router,
@@ -684,34 +684,6 @@ export class GameRoom implements OnInit, OnDestroy {
     sessionStorage.setItem('currentUserId', this.currentUserId);
     const me = this.players.find(p => p.userId === this.currentUserId);
     if (me?.name) sessionStorage.setItem('currentUserName', me.name);
-
-    // Persist result to server (best-effort)
-    let userId: string | null = null;
-    try {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        userId = user.id || null;
-      }
-    } catch {}
-
-    const payload: any = {
-      user_id: userId,
-      quiz_id: this.quizId || null,
-      room_id: this.gamePin || null,
-      is_solo: false,
-      mode: 'multi',
-      score: this.playerScore || 0,
-      correct_answers: this.correctAnswersCount || 0
-    };
-    this.http.post(API_CONFIG.ENDPOINTS.RESULTS, payload).subscribe({
-      next: () => {
-        // ignore
-      },
-      error: () => {
-        // ignore
-      }
-    });
 
     // Navigate to Result screen with summary params
     this.router.navigate(['/play/result'], {
