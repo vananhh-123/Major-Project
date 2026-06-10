@@ -1,1 +1,318 @@
-<p>admin-leaderboard works!</p>
+<section class="leaderboard-header">
+  <div>
+    <p class="page-eyebrow">Ranking System</p>
+
+    <h2 class="page-headline">Leaderboard</h2>
+
+    <p class="page-subline">
+      Manage top players, solo rankings and multiplayer performance.
+    </p>
+  </div>
+
+  <button class="primary-action-btn">
+    <span class="material-symbols-outlined">download</span>
+    Export Ranking
+  </button>
+</section>
+
+<section class="leaderboard-kpi-grid">
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Ranked Users</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        group
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ totalRankedUsers }}</div>
+    <div class="kpi-trend text-primary">Users on leaderboard</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Solo Players</span>
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
+        person
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ soloPlayers }}</div>
+    <div class="kpi-trend text-tertiary">Solo ranked users</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Multi Players</span>
+      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
+        groups
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ multiPlayers }}</div>
+    <div class="kpi-trend text-primary">Multiplayer ranked users</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Highest Score</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        emoji_events
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ highestScore }}%</div>
+    <div class="kpi-trend text-muted">Current top score</div>
+  </div>
+</section>
+
+<section class="leaderboard-toolbar">
+  <div class="filter-tabs">
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'All'"
+      (click)="setTab('All')"
+    >
+      All
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'Solo'"
+      (click)="setTab('Solo')"
+    >
+      Solo
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'Multi'"
+      (click)="setTab('Multi')"
+    >
+      Multi
+    </button>
+  </div>
+
+  <div class="mini-search">
+    <span class="material-symbols-outlined">search</span>
+
+    <input
+      type="text"
+      placeholder="Search player, category or badge..."
+      [(ngModel)]="searchText"
+    />
+  </div>
+</section>
+
+<section class="top-player-grid">
+  <article
+    class="top-player-card animate-fade-up"
+    *ngFor="let player of topPlayers"
+    [class.rank-one]="player.rank === 1"
+    [class.rank-two]="player.rank === 2"
+    [class.rank-three]="player.rank === 3"
+  >
+    <div class="top-medal">
+      <span *ngIf="player.rank === 1">🥇</span>
+      <span *ngIf="player.rank === 2">🥈</span>
+      <span *ngIf="player.rank === 3">🥉</span>
+    </div>
+
+    <img
+      class="top-avatar"
+      [src]="'https://api.dicebear.com/8.x/avataaars/svg?seed=' + player.avatarSeed + '&size=72&backgroundColor=b6e3f4'"
+      alt="Player avatar"
+    />
+
+    <h3>{{ player.username }}</h3>
+    <p>{{ player.category }} · {{ player.badge }}</p>
+
+    <div class="top-score">{{ player.score }}%</div>
+
+    <div class="top-meta">
+      <span>{{ player.games }} games</span>
+      <span>🔥 {{ player.streak }}d</span>
+    </div>
+  </article>
+</section>
+
+<section class="ranking-card">
+  <div class="ranking-header">
+    <h3>Full Rankings</h3>
+
+    <div class="ranking-filter">
+      <button
+        [class.active]="timeFilter === 'All Time'"
+        (click)="setTimeFilter('All Time')"
+      >
+        All Time
+      </button>
+
+      <button
+        [class.active]="timeFilter === 'This Month'"
+        (click)="setTimeFilter('This Month')"
+      >
+        This Month
+      </button>
+
+      <button
+        [class.active]="timeFilter === 'This Week'"
+        (click)="setTimeFilter('This Week')"
+      >
+        This Week
+      </button>
+    </div>
+  </div>
+
+  <div class="ranking-table-wrapper">
+    <table class="ranking-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Category</th>
+          <th>Score</th>
+          <th>Games</th>
+          <th>Streak</th>
+          <th>Badge</th>
+          <th class="right">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          *ngFor="let player of paginatedPlayers"
+          [class.highlight-row]="player.rank === 3"
+          [class.blocked-row]="player.status === 'Blocked'"
+        >
+          <td>
+            <div class="rank-cell">
+              <span
+                class="rank-number"
+                [class.top-rank]="player.rank <= 3"
+              >
+                <span *ngIf="player.rank === 1">🥇</span>
+                <span *ngIf="player.rank === 2">🥈</span>
+                <span *ngIf="player.rank === 3">🥉</span>
+                <span *ngIf="player.rank > 3">#{{ player.rank }}</span>
+              </span>
+
+              <span
+                class="trend"
+                [class.up]="player.trend === 'up'"
+                [class.down]="player.trend === 'down'"
+              >
+                {{ player.trend === 'up' ? '▲' : player.trend === 'down' ? '▼' : '—' }}
+              </span>
+            </div>
+          </td>
+
+          <td>
+            <div class="player-cell">
+              <img
+                [src]="'https://api.dicebear.com/8.x/avataaars/svg?seed=' + player.avatarSeed + '&size=48&backgroundColor=b6e3f4'"
+                alt="Player avatar"
+              />
+
+              <div>
+                <strong>{{ player.username }}</strong>
+                <span>{{ player.email }}</span>
+              </div>
+            </div>
+          </td>
+
+          <td>{{ player.category }}</td>
+
+          <td>
+            <div class="score-cell">
+              <strong>{{ player.score }}%</strong>
+
+              <div class="score-bar">
+                <div [style.width.%]="player.score"></div>
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <strong>{{ player.games | number }}</strong>
+          </td>
+
+          <td>
+            🔥 {{ player.streak }}d
+          </td>
+
+          <td>
+            {{ player.badgeIcon }} {{ player.badge }}
+          </td>
+
+          <td class="right">
+            <div class="table-actions">
+              <button
+                class="icon-action view-btn"
+                title="View Player"
+              >
+                <span class="material-symbols-outlined">account_circle</span>
+              </button>
+
+              <button
+                class="icon-action message-btn"
+                title="Message"
+              >
+                <span class="material-symbols-outlined">chat_bubble</span>
+              </button>
+
+              <button
+                class="icon-action block-btn"
+                title="Block / Unblock"
+                (click)="toggleStatus(player)"
+              >
+                <span class="material-symbols-outlined">
+                  {{ player.status === 'Active' ? 'block' : 'check_circle' }}
+                </span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="paginatedPlayers.length === 0">
+          <td colspan="8" class="empty-cell">
+            No ranking users found.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <p>
+      Showing {{ rangeStart }} - {{ rangeEnd }} of
+      {{ rankingPlayers.length }} users
+    </p>
+
+    <div class="pagination-actions">
+      <button
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        (click)="previousPage()"
+      >
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+
+      <button
+        class="page-number"
+        *ngFor="let page of pageNumbers"
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        class="page-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="nextPage()"
+      >
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</section>
