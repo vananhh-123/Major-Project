@@ -34,6 +34,7 @@ func main() {
 	}))
 
 	r.GET("/api/leaderboard", controllers.GetLeaderboard)
+	r.GET("/api/network-info", controllers.GetNetworkInfo)
 
 	config.ConnectDatabase()
 	// Tự động tạo bảng nếu chưa tồn tại

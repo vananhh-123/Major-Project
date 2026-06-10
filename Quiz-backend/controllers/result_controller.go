@@ -67,8 +67,7 @@ func SubmitResult(c *gin.Context) {
 		var existingResult models.Result
 		err := config.DB.Where("user_id = ? AND quiz_id = ? AND room_id IS NULL", req.UserID, req.QuizID).First(&existingResult).Error
 		if err == nil {
-			// Found existing record. Increment play count and update score if higher
-			existingResult.PlayCount += 1
+			// Found existing record. Update score if higher
 			if req.Score > existingResult.Score {
 				existingResult.Score = req.Score
 				existingResult.CorrectAnswers = req.CorrectAnswers
@@ -92,7 +91,6 @@ func SubmitResult(c *gin.Context) {
 		Score:          req.Score,
 		CorrectAnswers: req.CorrectAnswers,
 		Mode:           modePtr,
-		PlayCount:      1,
 	}
 
 	if err := config.DB.Create(&result).Error; err != nil {

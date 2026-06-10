@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"net/http"
+	"net/url"
 	"quiz-backend/config"
 	"quiz-backend/models"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,6 +23,7 @@ type StatsResponse struct {
 }
 
 type LeaderboardEntry struct {
+	UserID string `json:"userId"`
 	Rank   int    `json:"rank"`
 	Name   string `json:"name"`
 	Points int    `json:"points"`
@@ -200,7 +203,7 @@ func GetLeaderboard(c *gin.Context) {
 
 	// Kết hợp bảng results và bảng users để lấy username, avatar và tổng điểm (points)
 	query := config.DB.Table("results").
-		Select("users.username as name, sum(results.score) as points, users.avatar as avatar").
+		Select("users.id as user_id, users.username as name, sum(results.score) as points, users.avatar as avatar").
 		Joins("left join users on users.id = results.user_id")
 
 	// Bộ lọc thời gian thực tế
@@ -225,13 +228,21 @@ func GetLeaderboard(c *gin.Context) {
 	}
 
 	// Gom nhóm và sắp xếp từ trên xuống dưới theo điểm
-	query.Group("users.username, users.avatar").
+	query.Group("users.id, users.username, users.avatar").
 		Order("points DESC").
 		Scan(&results)
 
 	// Ấn định thứ hạng
 	for i := range results {
 		results[i].Rank = i + 1
+		avatar := strings.TrimSpace(results[i].Avatar)
+		if avatar == "" || strings.Contains(strings.ToLower(avatar), "quiz") || strings.Contains(strings.ToLower(avatar), "space") {
+			seed := results[i].Name
+			if seed == "" {
+				seed = results[i].UserID
+			}
+			results[i].Avatar = "https://api.dicebear.com/7.x/personas/svg?seed=" + url.QueryEscape(seed)
+		}
 	}
 
 	c.JSON(http.StatusOK, results)

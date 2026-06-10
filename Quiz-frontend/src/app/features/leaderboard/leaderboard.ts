@@ -6,10 +6,15 @@ import { RouterModule } from '@angular/router';
 import { API_CONFIG } from '../../config/api.config';
 
 export interface LeaderboardUser {
+  userId: string;
   rank: number;
   name: string;
   points: number;
   avatar: string;
+  games?: number;
+  avgScore?: number;
+  badges?: string[];
+  subtitle?: string;
 }
 
 export interface Champion {
@@ -17,7 +22,9 @@ export interface Champion {
   name: string;
   img: string;
   title?: string;
+  subtitle?: string;
   points: number;
+  badges?: string[];
 }
 
 export interface RankingItem {
@@ -25,8 +32,11 @@ export interface RankingItem {
   img: string;
   name: string;
   badge?: string;
+  badges?: string[];
   subtitle?: string;
   points: number;
+  games?: number;
+  avgScore?: number;
   trendDown?: boolean;
   trend?: string;
   isUser?: boolean;
@@ -51,6 +61,15 @@ export class Leaderboard implements OnInit {
   topChampions: Champion[] = [];
   rankings: RankingItem[] = [];
   totalCount: number = 0;
+
+  private normalizeAvatar(avatar: string | null | undefined, name: string, userId?: string): string {
+    const value = (avatar || '').trim();
+    if (value && !/quiz|space/i.test(value)) {
+      return value;
+    }
+
+    return '/User.png';
+  }
 
   ngOnInit() {
     // Tải dữ liệu lần đầu tiên truy cập
@@ -103,19 +122,76 @@ export class Leaderboard implements OnInit {
 
       const data = dataArray || [];
 
+      const awardedPlayers = await Promise.all(
+        data.map(async (item: any) => {
+          const statsUrl = API_CONFIG.ENDPOINTS.USER_STATS(item.userId || item.user_id || item.id);
+
+          try {
+            const statsResponse = await fetch(statsUrl, {
+              headers: {
+                Accept: 'application/json'
+              }
+            });
+
+            if (!statsResponse.ok) {
+              throw new Error(`HTTP ${statsResponse.status}`);
+            }
+
+            const stats = await statsResponse.json();
+            const modeStats = this.mode === 'multi' ? stats.multi : stats.solo;
+
+            return {
+              ...item,
+              games: modeStats?.games || 0,
+              avgScore: Number(modeStats?.avgScore || 0)
+            };
+          } catch {
+            return {
+              ...item,
+              games: 0,
+              avgScore: 0
+            };
+          }
+        })
+      );
+
+      const maxPoints = Math.max(...awardedPlayers.map((player: any) => Number(player.points || 0)), 0);
+      const maxAvgScore = Math.max(...awardedPlayers.map((player: any) => Number(player.avgScore || 0)), 0);
+      const maxGames = Math.max(...awardedPlayers.map((player: any) => Number(player.games || 0)), 0);
+
+      const badgeForPlayer = (player: any): string[] => {
+        const badges: string[] = [];
+
+        if (Number(player.points || 0) === maxPoints && maxPoints > 0) {
+          badges.push('Quiz Titan');
+        }
+
+        if (Number(player.avgScore || 0) === maxAvgScore && maxAvgScore > 0) {
+          badges.push('Accuracy Ace');
+        }
+
+        if (Number(player.games || 0) === maxGames && maxGames > 0) {
+          badges.push('Marathon Player');
+        }
+
+        return badges;
+      };
+
       this.zone.run(() => {
-        this.totalCount = data.length || 0;
+        this.totalCount = awardedPlayers.length || 0;
 
         // 1. Tổ chức dữ liệu cho Top 3 (Champions)
-        const top3 = data.slice(0, 3);
+        const top3 = awardedPlayers.slice(0, 3);
         const arrangedTop: Champion[] = [];
 
         const mapToChampion = (u: LeaderboardUser): Champion => ({
           rank: u.rank,
           name: u.name,
-          img: u.avatar || 'assets/default-avatar.png',
-          title: u.rank === 1 ? 'Quiz Master' : 'Pro Player',
-          points: u.points
+          img: this.normalizeAvatar(u.avatar, u.name, u.userId),
+          title: (badgeForPlayer(u)[0] || (u.rank === 1 ? 'Quiz Master' : 'Pro Player')),
+          subtitle: `${u.points.toLocaleString()} pts • ${Math.round(u.avgScore || 0)}% avg`,
+          points: u.points,
+          badges: badgeForPlayer(u)
         });
 
         if (top3.length > 0) {
@@ -127,13 +203,16 @@ export class Leaderboard implements OnInit {
         this.topChampions = arrangedTop;
 
         // 2. Tổ chức dữ liệu cho List Ranking (từ hạng 4 trở đi)
-        this.rankings = data.slice(3).map(u => ({
+        this.rankings = awardedPlayers.slice(3).map(u => ({
           rank: u.rank,
-          img: u.avatar || 'assets/default-avatar.png',
+          img: this.normalizeAvatar(u.avatar, u.name, u.userId),
           name: u.name,
-          badge: u.points > 1000 ? 'TOP PERFORMER' : '', // Giả lập dữ liệu badge
-          subtitle: 'Active Player',
+          badge: badgeForPlayer(u)[0] || '',
+          badges: badgeForPlayer(u),
+          subtitle: `${Math.round(u.avgScore || 0)}% avg • ${u.games || 0} games`,
           points: u.points,
+          games: u.games,
+          avgScore: u.avgScore,
           trend: 'STABLE', 
           trendDown: false,
           isUser: false // Hiện tại giả lập false, có thể so user hiện tại từ localstorage sau

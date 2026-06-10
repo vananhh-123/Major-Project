@@ -18,6 +18,7 @@ export interface PlayerInfo {
   name: string;
   avatar: string;
   score: number;
+  correctAnswers?: number;
   isHost: boolean;
 }
 

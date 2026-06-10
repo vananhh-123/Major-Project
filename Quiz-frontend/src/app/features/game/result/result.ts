@@ -169,6 +169,7 @@ export class Result implements OnInit {
     if (this.hasSaved) return;
     this.hasSaved = true;
 
+    // Ưu tiên lấy userId từ localStorage (authenticated user), fallback sang sessionStorage
     let userId = null;
     try {
       const userStr = localStorage.getItem('user');
@@ -177,6 +178,13 @@ export class Result implements OnInit {
         userId = user.id || user.ID || null;
       }
     } catch { /* ignore */ }
+
+    // Fallback: lấy từ sessionStorage nếu localStorage không có
+    if (!userId) {
+      try {
+        userId = sessionStorage.getItem('currentUserId');
+      } catch { /* ignore */ }
+    }
 
     // Lấy roomId từ query params (pin) khi là Multi
     let roomId: string | null = null;
@@ -198,8 +206,14 @@ export class Result implements OnInit {
     console.log('Saving result payload:', resultPayload);
 
     this.http.post(API_CONFIG.ENDPOINTS.RESULTS, resultPayload).subscribe({
-      next:  (res) => console.log('Result saved successfully', res),
-      error: (err) => console.error('Failed to save result', err)
+      next:  (res) => {
+        console.log('Result saved successfully', res);
+        console.log('Kết quả đã lưu vào database');
+      },
+      error: (err) => {
+        console.error('Failed to save result', err);
+        console.error('Backend response:', err.error || err.message);
+      }
     });
   }
 

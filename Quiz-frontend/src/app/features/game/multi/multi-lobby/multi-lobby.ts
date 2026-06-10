@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { WebsocketService, PlayerInfo } from '../../../../core/services/websocket.service';
+import { API_CONFIG } from '../../../../config/api.config';
 
 // ─────────────────────────────────────────
 // TYPES (local)
@@ -41,6 +42,7 @@ export class MultiLobby implements OnInit, OnDestroy {
   currentUserId: string = '';
   currentUserName: string = '';
   currentUserAvatar: string = '';
+  private hostIp: string = '';
 
   // ── Danh sách player thật từ WebSocket ──
   players: PlayerInfoWithStatus[] = [];
@@ -58,6 +60,12 @@ export class MultiLobby implements OnInit, OnDestroy {
   get joinedPlayerCount(): number {
     return this.players.filter(p => !p.isHost).length;
   }
+
+  get lobbyJoinUrl(): string {
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const host = this.hostIp || window.location.hostname;
+    return `${window.location.protocol}//${host}${port}`;
+  }
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -72,6 +80,7 @@ export class MultiLobby implements OnInit, OnDestroy {
   ngOnInit(): void {
     // 1. Lấy thông tin user từ localStorage
     this.loadCurrentUser();
+    this.loadHostIp();
 
     // 2. Lấy params từ URL và kết nối WebSocket
     this.subs.add(
@@ -114,6 +123,23 @@ export class MultiLobby implements OnInit, OnDestroy {
     } else {
       this.setFallbackUser();
     }
+  }
+
+  private loadHostIp(): void {
+    fetch(`${API_CONFIG.API_BASE}/network-info`, {
+      headers: { Accept: 'application/json' }
+    })
+      .then(res => res.ok ? res.json() : Promise.reject(res.status))
+      .then((data: any) => {
+        if (data?.hostIp) {
+          this.hostIp = data.hostIp;
+          this.cdr.detectChanges();
+        }
+      })
+      .catch(() => {
+        this.hostIp = this.hostIp || window.location.hostname;
+        this.cdr.detectChanges();
+      });
   }
 
   private setFallbackUser(): void {
