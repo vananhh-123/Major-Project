@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -36,19 +37,24 @@ type PlayerInfo struct {
 	Score          int    `json:"score"`
 	CorrectAnswers int    `json:"correctAnswers"`
 	IsHost         bool   `json:"isHost"`
+	Connected      bool   `json:"connected"`
 }
 
 // RoomState lưu trạng thái của 1 phòng chơi
 type RoomState struct {
-	HostID      string                `json:"hostId"`
-	GameMode    string                `json:"gameMode"` // "classic" | "focus"
-	QuizID      string                `json:"quizId"`
-	GamePin     string                `json:"gamePin"`
-	Status      string                `json:"status"`  // "waiting" | "playing" | "ended"
-	Players     map[string]PlayerInfo `json:"players"` // userID → PlayerInfo
-	QuestionIdx int                   `json:"questionIdx"`
-	ReadyNext   map[string]bool       `json:"readyNext"`
-	AdvanceSent bool                  `json:"advanceSent"`
+	HostID            string                 `json:"hostId"`
+	GameMode          string                 `json:"gameMode"` // "classic" | "focus"
+	QuizID            string                 `json:"quizId"`
+	GamePin           string                 `json:"gamePin"`
+	Status            string                 `json:"status"`  // "waiting" | "playing" | "ended"
+	Players           map[string]PlayerInfo  `json:"players"` // userID → PlayerInfo
+	QuestionIdx       int                    `json:"questionIdx"`
+	ReadyNext         map[string]bool        `json:"readyNext"`
+	AdvanceSent       bool                   `json:"advanceSent"`
+	QuestionPhase     string                 `json:"questionPhase"`
+	CurrentQuestion   map[string]interface{} `json:"currentQuestion"`
+	QuestionStartedAt time.Time              `json:"questionStartedAt"`
+	QuestionDuration  int                    `json:"questionDuration"`
 }
 
 // Hub quản lý toàn bộ các phòng chơi
@@ -116,9 +122,40 @@ func (h *Hub) getPlayerList(roomID string) []PlayerInfo {
 	}
 	list := make([]PlayerInfo, 0, len(state.Players))
 	for _, p := range state.Players {
-		list = append(list, p)
+		if p.Connected {
+			list = append(list, p)
+		}
 	}
 	return list
+}
+
+func (h *Hub) getConnectedPlayerCount(roomID string) int {
+	state, ok := h.RoomStates[roomID]
+	if !ok {
+		return 0
+	}
+	count := 0
+	for _, p := range state.Players {
+		if p.Connected {
+			count++
+		}
+	}
+	return count
+}
+
+func (h *Hub) getCurrentQuestionTimeLeft(state *RoomState) int {
+	if state == nil || state.QuestionDuration <= 0 || state.QuestionStartedAt.IsZero() {
+		return 0
+	}
+	if state.QuestionPhase != "question" {
+		return 0
+	}
+	elapsed := int(time.Since(state.QuestionStartedAt).Seconds())
+	remaining := state.QuestionDuration - elapsed
+	if remaining < 0 {
+		return 0
+	}
+	return remaining
 }
 
 // ─────────────────────────────────────────
@@ -175,12 +212,25 @@ func (h *Hub) handleJoinRoom(client *Client, data map[string]interface{}) {
 	}
 
 	// Thêm player vào state
+	existingPlayer, exists := h.RoomStates[roomID].Players[userID]
 	h.RoomStates[roomID].Players[userID] = PlayerInfo{
-		UserID: userID,
-		Name:   name,
-		Avatar: avatar,
-		Score:  0,
-		IsHost: isHost,
+		UserID:         userID,
+		Name:           name,
+		Avatar:         avatar,
+		Score:          existingPlayer.Score,
+		CorrectAnswers: existingPlayer.CorrectAnswers,
+		IsHost:         isHost,
+		Connected:      true,
+	}
+	if exists {
+		// Keep the latest player metadata but preserve progress.
+		if name == "" {
+			h.RoomStates[roomID].Players[userID] = existingPlayer
+			tmp := h.RoomStates[roomID].Players[userID]
+			tmp.Connected = true
+			tmp.IsHost = isHost
+			h.RoomStates[roomID].Players[userID] = tmp
+		}
 	}
 
 	// Broadcast danh sách player mới cho cả phòng
@@ -205,8 +255,14 @@ func (h *Hub) handlePlayerLeft(roomID string, userID string) {
 		return
 	}
 
-	playerName := state.Players[userID].Name
-	delete(state.Players, userID)
+	player, exists := state.Players[userID]
+	if !exists {
+		return
+	}
+	player.Connected = false
+	state.Players[userID] = player
+	delete(state.ReadyNext, userID)
+	playerName := player.Name
 
 	h.broadcastToRoom(roomID, Message{
 		Action: "player_left",
@@ -218,12 +274,7 @@ func (h *Hub) handlePlayerLeft(roomID string, userID string) {
 		},
 	})
 
-	// Xóa phòng nếu trống
-	if len(state.Players) == 0 {
-		delete(h.RoomStates, roomID)
-	}
-
-	fmt.Printf("[ROOM %s] %s left. Remaining: %d\n", roomID, playerName, len(state.Players))
+	fmt.Printf("[ROOM %s] %s left. Connected: %d\n", roomID, playerName, h.getConnectedPlayerCount(roomID))
 }
 
 // handleStartGame: Host bắt đầu game
@@ -256,6 +307,10 @@ func (h *Hub) handleStartGame(client *Client, data map[string]interface{}) {
 
 	state.Status = "playing"
 	state.QuestionIdx = 0
+	state.QuestionPhase = "waiting"
+	state.CurrentQuestion = nil
+	state.QuestionStartedAt = time.Time{}
+	state.QuestionDuration = 0
 
 	h.broadcastToRoom(roomID, Message{
 		Action: "game_started",
@@ -285,6 +340,14 @@ func (h *Hub) handleNextQuestion(client *Client, data map[string]interface{}) {
 		UserID: "SYSTEM",
 		Data:   data, // {index, content, answers, timeLimit, points}
 	})
+	state.QuestionPhase = "question"
+	state.CurrentQuestion = data
+	state.QuestionStartedAt = time.Now()
+	if timeLimit, ok := data["timeLimit"].(float64); ok {
+		state.QuestionDuration = int(timeLimit)
+	} else {
+		state.QuestionDuration = 0
+	}
 	state.AdvanceSent = false
 	state.ReadyNext = make(map[string]bool)
 
@@ -374,7 +437,7 @@ func (h *Hub) handlePlayerReadyNext(client *Client, data map[string]interface{})
 	// count non-host players
 	totalNonHost := 0
 	for _, p := range state.Players {
-		if !p.IsHost {
+		if p.Connected && !p.IsHost {
 			totalNonHost++
 		}
 	}
@@ -409,6 +472,44 @@ func (h *Hub) handlePlayerReadyNext(client *Client, data map[string]interface{})
 		// reset ready map for next round
 		state.ReadyNext = make(map[string]bool)
 	}
+}
+
+func (h *Hub) handleRoomStateRequest(client *Client) {
+	roomID := client.RoomID
+	state, ok := h.RoomStates[roomID]
+	if !ok {
+		h.sendToClient(roomID, client.UserID, Message{
+			Action: "error",
+			RoomID: roomID,
+			UserID: "SYSTEM",
+			Data:   "Phòng chơi không tồn tại.",
+		})
+		return
+	}
+
+	var currentPlayer *PlayerInfo
+	if p, exists := state.Players[client.UserID]; exists {
+		copyPlayer := p
+		currentPlayer = &copyPlayer
+	}
+
+	h.sendToClient(roomID, client.UserID, Message{
+		Action: "room_state",
+		RoomID: roomID,
+		UserID: "SYSTEM",
+		Data: map[string]interface{}{
+			"hostId":          state.HostID,
+			"gameMode":        state.GameMode,
+			"quizId":          state.QuizID,
+			"status":          state.Status,
+			"questionIdx":     state.QuestionIdx,
+			"questionPhase":   state.QuestionPhase,
+			"timeLeft":        h.getCurrentQuestionTimeLeft(state),
+			"players":         h.getPlayerList(roomID),
+			"currentPlayer":   currentPlayer,
+			"currentQuestion": state.CurrentQuestion,
+		},
+	})
 }
 
 // handleEndGame: Host kết thúc game
@@ -513,6 +614,19 @@ func (h *Hub) Run() {
 			case "player_ready_next":
 				if senderClient != nil {
 					h.handlePlayerReadyNext(senderClient, data)
+				}
+
+			case "request_room_state":
+				if senderClient != nil {
+					h.handleRoomStateRequest(senderClient)
+				}
+
+			case "answer_reveal":
+				if senderClient != nil {
+					if state, ok := h.RoomStates[message.RoomID]; ok {
+						state.QuestionPhase = "answer_reveal"
+					}
+					h.broadcastToRoom(message.RoomID, message)
 				}
 
 			case "end_game":

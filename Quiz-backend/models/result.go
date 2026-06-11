@@ -17,7 +17,6 @@ type Result struct {
 	CorrectAnswers int        `gorm:"default:0"`
 	// Mode indicates how the result was obtained: 'solo' or 'multi'
 	Mode      *string   `json:"mode" gorm:"type:varchar(10)"`
-	PlayCount int       `gorm:"default:1"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 
 	Quiz *Quiz `json:"quiz" gorm:"foreignKey:QuizID;references:ID"`
