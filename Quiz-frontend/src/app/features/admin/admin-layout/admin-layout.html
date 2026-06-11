@@ -92,6 +92,13 @@
             <span>Activity Logs</span>
           </a>
         </li>
+        <li>
+          <a routerLink="/admin/profile" routerLinkActive="active">
+            <span class="material-symbols-outlined">account_circle</span>
+            <span>Admin Profile</span>
+          </a>
+        </li>
+
       </ul>
     </div>
 
@@ -131,7 +138,7 @@
 
         <div class="topbar-divider"></div>
 
-        <div class="topbar-user">
+        <div class="topbar-user" routerLink="/admin/profile">
           <div class="topbar-user-info">
             <div class="name">Admin</div>
             <div class="role">Admin</div>
