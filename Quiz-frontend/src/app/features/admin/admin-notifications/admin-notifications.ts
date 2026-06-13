@@ -27,6 +27,7 @@ interface AdminNotification {
 export class AdminNotifications {
   searchText = '';
   activeTab: 'All' | 'Unread' | NotificationType = 'All';
+  selectedNotification: AdminNotification | null = null;
 
   notifications: AdminNotification[] = [
     {
@@ -94,28 +95,6 @@ export class AdminNotifications {
       date: 'Jun 10, 2026',
       icon: 'admin_panel_settings',
       priority: 'High'
-    },
-    {
-      id: 'NT007',
-      type: 'Room',
-      status: 'Read',
-      title: 'Room closed',
-      message: 'Room PIN 650312 was closed by Admin.',
-      time: 'Yesterday',
-      date: 'Jun 10, 2026',
-      icon: 'do_not_disturb_on',
-      priority: 'Normal'
-    },
-    {
-      id: 'NT008',
-      type: 'Quiz',
-      status: 'Read',
-      title: 'Quiz status changed',
-      message: 'Programming Quiz was changed from Private to Public.',
-      time: 'Yesterday',
-      date: 'Jun 10, 2026',
-      icon: 'public',
-      priority: 'Low'
     }
   ];
 
@@ -158,22 +137,57 @@ export class AdminNotifications {
     this.activeTab = tab;
   }
 
+  viewNotification(item: AdminNotification): void {
+    this.selectedNotification = item;
+
+    if (item.status === 'Unread') {
+      item.status = 'Read';
+    }
+  }
+
+  closeDetail(): void {
+    this.selectedNotification = null;
+  }
+
   markAsRead(item: AdminNotification): void {
     item.status = 'Read';
   }
 
   markAllAsRead(): void {
-    this.notifications = this.notifications.map(item => ({
-      ...item,
-      status: 'Read'
-    }));
+    this.notifications = this.notifications.map(item => {
+      if (item.status === 'Unread') {
+        return {
+          ...item,
+          status: 'Read'
+        };
+      }
+
+      return item;
+    });
   }
 
   deleteNotification(id: string): void {
+    const confirmed = confirm('Delete this notification?');
+
+    if (!confirmed) {
+      return;
+    }
+
     this.notifications = this.notifications.filter(item => item.id !== id);
+
+    if (this.selectedNotification?.id === id) {
+      this.selectedNotification = null;
+    }
   }
 
   clearRead(): void {
+    const confirmed = confirm('Clear all read notifications?');
+
+    if (!confirmed) {
+      return;
+    }
+
     this.notifications = this.notifications.filter(item => item.status !== 'Read');
+    this.selectedNotification = null;
   }
 }

@@ -1,3 +1,4 @@
+```html
 <section class="notifications-header">
   <div>
     <p class="page-eyebrow">Notification Center</p>
@@ -23,52 +24,52 @@
 </section>
 
 <section class="notifications-kpi-grid">
-  <div class="kpi-card animate-fade-up">
+  <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">Total</span>
-      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+      <span class="kpi-icon material-symbols-outlined">
         notifications
       </span>
     </div>
 
     <div class="kpi-value">{{ totalNotifications }}</div>
-    <div class="kpi-trend text-primary">All notifications</div>
+    <div class="kpi-trend">All notifications</div>
   </div>
 
-  <div class="kpi-card animate-fade-up">
+  <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">Unread</span>
-      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
+      <span class="kpi-icon material-symbols-outlined">
         mark_email_unread
       </span>
     </div>
 
     <div class="kpi-value">{{ unreadCount }}</div>
-    <div class="kpi-trend text-tertiary">Need attention</div>
+    <div class="kpi-trend">Need attention</div>
   </div>
 
-  <div class="kpi-card animate-fade-up">
+  <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">System</span>
-      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
+      <span class="kpi-icon material-symbols-outlined">
         settings
       </span>
     </div>
 
     <div class="kpi-value">{{ systemCount }}</div>
-    <div class="kpi-trend text-muted">System alerts</div>
+    <div class="kpi-trend">System alerts</div>
   </div>
 
-  <div class="kpi-card animate-fade-up">
+  <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">Today</span>
-      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+      <span class="kpi-icon material-symbols-outlined">
         today
       </span>
     </div>
 
     <div class="kpi-value">{{ todayCount }}</div>
-    <div class="kpi-trend text-primary">Today events</div>
+    <div class="kpi-trend">Today's activity</div>
   </div>
 </section>
 
@@ -77,56 +78,49 @@
     <button
       class="filter-tab"
       [class.active]="activeTab === 'All'"
-      (click)="setTab('All')"
-    >
+      (click)="setTab('All')">
       All
     </button>
 
     <button
       class="filter-tab"
       [class.active]="activeTab === 'Unread'"
-      (click)="setTab('Unread')"
-    >
+      (click)="setTab('Unread')">
       Unread
     </button>
 
     <button
       class="filter-tab"
       [class.active]="activeTab === 'System'"
-      (click)="setTab('System')"
-    >
+      (click)="setTab('System')">
       System
     </button>
 
     <button
       class="filter-tab"
       [class.active]="activeTab === 'User'"
-      (click)="setTab('User')"
-    >
+      (click)="setTab('User')">
       User
     </button>
 
     <button
       class="filter-tab"
       [class.active]="activeTab === 'Quiz'"
-      (click)="setTab('Quiz')"
-    >
+      (click)="setTab('Quiz')">
       Quiz
     </button>
 
     <button
       class="filter-tab"
       [class.active]="activeTab === 'Room'"
-      (click)="setTab('Room')"
-    >
+      (click)="setTab('Room')">
       Room
     </button>
 
     <button
       class="filter-tab"
       [class.active]="activeTab === 'Review'"
-      (click)="setTab('Review')"
-    >
+      (click)="setTab('Review')">
       Review
     </button>
   </div>
@@ -144,19 +138,12 @@
 
 <section class="notifications-list">
   <article
-    class="notification-card animate-fade-up"
+    class="notification-card"
     *ngFor="let item of filteredNotifications"
     [class.unread]="item.status === 'Unread'"
     [class.high]="item.priority === 'High'"
   >
-    <div
-      class="notification-icon"
-      [class.system]="item.type === 'System'"
-      [class.user]="item.type === 'User'"
-      [class.quiz]="item.type === 'Quiz'"
-      [class.room]="item.type === 'Room'"
-      [class.review]="item.type === 'Review'"
-    >
+    <div class="notification-icon">
       <span class="material-symbols-outlined">
         {{ item.icon }}
       </span>
@@ -171,22 +158,11 @@
         </div>
 
         <div class="notification-badges">
-          <span
-            class="type-badge"
-            [class.system]="item.type === 'System'"
-            [class.user]="item.type === 'User'"
-            [class.quiz]="item.type === 'Quiz'"
-            [class.room]="item.type === 'Room'"
-            [class.review]="item.type === 'Review'"
-          >
+          <span class="type-badge">
             {{ item.type }}
           </span>
 
-          <span
-            class="status-badge"
-            [class.read]="item.status === 'Read'"
-            [class.unread-status]="item.status === 'Unread'"
-          >
+          <span class="status-badge">
             {{ item.status }}
           </span>
         </div>
@@ -202,25 +178,123 @@
 
     <div class="notification-actions">
       <button
-        class="icon-action read-btn"
-        title="Mark as read"
-        *ngIf="item.status === 'Unread'"
-        (click)="markAsRead(item)"
+        class="icon-action view-btn"
+        (click)="viewNotification(item)"
+        title="View Detail"
       >
-        <span class="material-symbols-outlined">done</span>
+        <span class="material-symbols-outlined">
+          visibility
+        </span>
+      </button>
+
+      <button
+        *ngIf="item.status === 'Unread'"
+        class="icon-action read-btn"
+        (click)="markAsRead(item)"
+        title="Mark Read"
+      >
+        <span class="material-symbols-outlined">
+          done
+        </span>
       </button>
 
       <button
         class="icon-action delete-btn"
-        title="Delete"
         (click)="deleteNotification(item.id)"
+        title="Delete"
       >
-        <span class="material-symbols-outlined">delete</span>
+        <span class="material-symbols-outlined">
+          delete
+        </span>
       </button>
     </div>
   </article>
 
-  <div class="empty-state" *ngIf="filteredNotifications.length === 0">
+  <div
+    class="empty-state"
+    *ngIf="filteredNotifications.length === 0"
+  >
     No notifications found.
   </div>
 </section>
+
+<!-- DETAIL MODAL -->
+
+<div
+  class="notification-modal-backdrop"
+  *ngIf="selectedNotification"
+>
+  <div class="notification-modal">
+    <button
+      class="modal-close-btn"
+      (click)="closeDetail()"
+    >
+      <span class="material-symbols-outlined">
+        close
+      </span>
+    </button>
+
+    <div class="modal-icon">
+      <span class="material-symbols-outlined">
+        {{ selectedNotification.icon }}
+      </span>
+    </div>
+
+    <h3>
+      {{ selectedNotification.title }}
+    </h3>
+
+    <p>
+      {{ selectedNotification.message }}
+    </p>
+
+    <div class="modal-info-grid">
+      <div>
+        <span>ID</span>
+        <strong>{{ selectedNotification.id }}</strong>
+      </div>
+
+      <div>
+        <span>Type</span>
+        <strong>{{ selectedNotification.type }}</strong>
+      </div>
+
+      <div>
+        <span>Status</span>
+        <strong>{{ selectedNotification.status }}</strong>
+      </div>
+
+      <div>
+        <span>Priority</span>
+        <strong>{{ selectedNotification.priority }}</strong>
+      </div>
+
+      <div>
+        <span>Time</span>
+        <strong>{{ selectedNotification.time }}</strong>
+      </div>
+
+      <div>
+        <span>Date</span>
+        <strong>{{ selectedNotification.date }}</strong>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button
+        class="outline-action-btn"
+        (click)="closeDetail()"
+      >
+        Close
+      </button>
+
+      <button
+        class="danger-action-btn"
+        (click)="deleteNotification(selectedNotification.id)"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+```

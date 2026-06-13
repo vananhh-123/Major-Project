@@ -134,7 +134,7 @@
 
 .notification-card {
   display: grid;
-  grid-template-columns: 52px 1fr auto;
+  grid-template-columns: 52px 1fr 190px;
   gap: 1rem;
   align-items: flex-start;
   padding: 1.15rem;
@@ -284,6 +284,8 @@
 .notification-actions {
   display: flex;
   gap: .45rem;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .icon-action {
@@ -342,5 +344,117 @@
 
   .notification-badges {
     justify-content: flex-start;
+    min-width: 120px;
   }
+}
+.view-btn {
+  background: rgba(110, 18, 248, .1);
+  color: var(--primary);
+}
+
+.notification-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(57, 38, 76, .35);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-modal {
+  position: relative;
+  width: 460px;
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: 0 30px 80px rgba(57, 38, 76, .25);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  cursor: pointer;
+}
+
+.modal-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1.25rem;
+  background: rgba(110, 18, 248, .1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.modal-icon span {
+  font-size: 2rem;
+}
+
+.notification-modal h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--on-surface);
+}
+
+.notification-modal p {
+  margin: .7rem 0 1.25rem;
+  color: var(--on-surface-variant);
+  line-height: 1.5;
+  font-size: .86rem;
+}
+
+.modal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .75rem;
+}
+
+.modal-info-grid div {
+  padding: .85rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-low);
+}
+
+.modal-info-grid span {
+  display: block;
+  color: var(--on-surface-variant);
+  font-size: .68rem;
+  font-weight: 800;
+}
+
+.modal-info-grid strong {
+  display: block;
+  margin-top: .2rem;
+  color: var(--on-surface);
+  font-size: .8rem;
+  font-weight: 900;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin-top: 1.5rem;
+}
+
+.danger-action-btn {
+  border: none;
+  border-radius: var(--radius-full);
+  padding: .65rem 1.1rem;
+  background: rgba(180, 19, 64, .1);
+  color: var(--error);
+  font-weight: 900;
+  cursor: pointer;
 }
