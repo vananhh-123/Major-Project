@@ -92,13 +92,13 @@
             <span>Activity Logs</span>
           </a>
         </li>
+
         <li>
           <a routerLink="/admin/profile" routerLinkActive="active">
             <span class="material-symbols-outlined">account_circle</span>
             <span>Admin Profile</span>
           </a>
         </li>
-
       </ul>
     </div>
 
@@ -123,16 +123,30 @@
       </div>
 
       <div class="topbar-actions">
-        <button class="topbar-icon-btn">
+        <button
+          type="button"
+          class="topbar-icon-btn"
+          routerLink="/admin/notifications"
+          title="Notifications"
+        >
           <span class="material-symbols-outlined">notifications</span>
           <span class="badge"></span>
         </button>
 
-        <button class="topbar-icon-btn">
+        <button
+          type="button"
+          class="topbar-icon-btn"
+          title="Help"
+        >
           <span class="material-symbols-outlined">help</span>
         </button>
 
-        <button class="topbar-icon-btn" routerLink="/admin/settings">
+        <button
+          type="button"
+          class="topbar-icon-btn"
+          routerLink="/admin/settings"
+          title="Settings"
+        >
           <span class="material-symbols-outlined">settings</span>
         </button>
 

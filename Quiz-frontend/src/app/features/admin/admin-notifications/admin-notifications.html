@@ -1,0 +1,226 @@
+<section class="notifications-header">
+  <div>
+    <p class="page-eyebrow">Notification Center</p>
+
+    <h2 class="page-headline">Notifications</h2>
+
+    <p class="page-subline">
+      Track system alerts, user activities, quiz updates, rooms and review events.
+    </p>
+  </div>
+
+  <div class="header-actions">
+    <button class="outline-action-btn" (click)="clearRead()">
+      <span class="material-symbols-outlined">delete_sweep</span>
+      Clear Read
+    </button>
+
+    <button class="primary-action-btn" (click)="markAllAsRead()">
+      <span class="material-symbols-outlined">done_all</span>
+      Mark All Read
+    </button>
+  </div>
+</section>
+
+<section class="notifications-kpi-grid">
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Total</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        notifications
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ totalNotifications }}</div>
+    <div class="kpi-trend text-primary">All notifications</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Unread</span>
+      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
+        mark_email_unread
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ unreadCount }}</div>
+    <div class="kpi-trend text-tertiary">Need attention</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">System</span>
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
+        settings
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ systemCount }}</div>
+    <div class="kpi-trend text-muted">System alerts</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Today</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        today
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ todayCount }}</div>
+    <div class="kpi-trend text-primary">Today events</div>
+  </div>
+</section>
+
+<section class="notifications-toolbar">
+  <div class="filter-tabs">
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'All'"
+      (click)="setTab('All')"
+    >
+      All
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'Unread'"
+      (click)="setTab('Unread')"
+    >
+      Unread
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'System'"
+      (click)="setTab('System')"
+    >
+      System
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'User'"
+      (click)="setTab('User')"
+    >
+      User
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'Quiz'"
+      (click)="setTab('Quiz')"
+    >
+      Quiz
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'Room'"
+      (click)="setTab('Room')"
+    >
+      Room
+    </button>
+
+    <button
+      class="filter-tab"
+      [class.active]="activeTab === 'Review'"
+      (click)="setTab('Review')"
+    >
+      Review
+    </button>
+  </div>
+
+  <div class="mini-search">
+    <span class="material-symbols-outlined">search</span>
+
+    <input
+      type="text"
+      placeholder="Search notifications..."
+      [(ngModel)]="searchText"
+    />
+  </div>
+</section>
+
+<section class="notifications-list">
+  <article
+    class="notification-card animate-fade-up"
+    *ngFor="let item of filteredNotifications"
+    [class.unread]="item.status === 'Unread'"
+    [class.high]="item.priority === 'High'"
+  >
+    <div
+      class="notification-icon"
+      [class.system]="item.type === 'System'"
+      [class.user]="item.type === 'User'"
+      [class.quiz]="item.type === 'Quiz'"
+      [class.room]="item.type === 'Room'"
+      [class.review]="item.type === 'Review'"
+    >
+      <span class="material-symbols-outlined">
+        {{ item.icon }}
+      </span>
+    </div>
+
+    <div class="notification-body">
+      <div class="notification-top">
+        <div>
+          <h3>{{ item.title }}</h3>
+
+          <p>{{ item.message }}</p>
+        </div>
+
+        <div class="notification-badges">
+          <span
+            class="type-badge"
+            [class.system]="item.type === 'System'"
+            [class.user]="item.type === 'User'"
+            [class.quiz]="item.type === 'Quiz'"
+            [class.room]="item.type === 'Room'"
+            [class.review]="item.type === 'Review'"
+          >
+            {{ item.type }}
+          </span>
+
+          <span
+            class="status-badge"
+            [class.read]="item.status === 'Read'"
+            [class.unread-status]="item.status === 'Unread'"
+          >
+            {{ item.status }}
+          </span>
+        </div>
+      </div>
+
+      <div class="notification-meta">
+        <span>ID: {{ item.id }}</span>
+        <span>{{ item.time }}</span>
+        <span>{{ item.date }}</span>
+        <span>Priority: {{ item.priority }}</span>
+      </div>
+    </div>
+
+    <div class="notification-actions">
+      <button
+        class="icon-action read-btn"
+        title="Mark as read"
+        *ngIf="item.status === 'Unread'"
+        (click)="markAsRead(item)"
+      >
+        <span class="material-symbols-outlined">done</span>
+      </button>
+
+      <button
+        class="icon-action delete-btn"
+        title="Delete"
+        (click)="deleteNotification(item.id)"
+      >
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+    </div>
+  </article>
+
+  <div class="empty-state" *ngIf="filteredNotifications.length === 0">
+    No notifications found.
+  </div>
+</section>
