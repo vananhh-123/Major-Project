@@ -1,11 +1,23 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import {
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet
+} from '@angular/router';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive
+  ],
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.css'
 })
-export class AdminLayout {}
+export class AdminLayout {
+  unreadNotifications = 4;
+}

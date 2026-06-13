@@ -1,0 +1,119 @@
+<section class="health-header">
+  <div>
+    <p class="page-eyebrow">Infrastructure Monitor</p>
+    <h2 class="page-headline">System Health</h2>
+    <p class="page-subline">
+      Monitor API, database, WebSocket and storage status for JUST4QUIZ.
+    </p>
+  </div>
+
+  <button class="primary-action-btn" (click)="refreshHealth()">
+    <span class="material-symbols-outlined">refresh</span>
+    Refresh Status
+  </button>
+</section>
+
+<section class="health-kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">System Score</span>
+      <span class="kpi-icon material-symbols-outlined">monitor_heart</span>
+    </div>
+    <div class="kpi-value">{{ systemScore }}</div>
+    <div class="kpi-trend text-primary">Overall health</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">Online</span>
+      <span class="kpi-icon material-symbols-outlined">check_circle</span>
+    </div>
+    <div class="kpi-value">{{ onlineServices }}</div>
+    <div class="kpi-trend text-success">Services running</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">Warnings</span>
+      <span class="kpi-icon material-symbols-outlined">warning</span>
+    </div>
+    <div class="kpi-value">{{ warningServices }}</div>
+    <div class="kpi-trend text-warning">Needs attention</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">Offline</span>
+      <span class="kpi-icon material-symbols-outlined">error</span>
+    </div>
+    <div class="kpi-value">{{ offlineServices }}</div>
+    <div class="kpi-trend text-danger">Critical issues</div>
+  </div>
+</section>
+
+<section class="health-grid">
+  <article
+    class="health-card"
+    *ngFor="let item of healthItems"
+    [class.online]="item.status === 'Online'"
+    [class.warning]="item.status === 'Warning'"
+    [class.offline]="item.status === 'Offline'"
+  >
+    <div class="health-card-top">
+      <div class="health-icon">
+        <span class="material-symbols-outlined">
+          {{ item.icon }}
+        </span>
+      </div>
+
+      <span class="status-badge">
+        {{ item.status }}
+      </span>
+    </div>
+
+    <h3>{{ item.name }}</h3>
+    <p>{{ item.description }}</p>
+
+    <div class="health-meta">
+      <div>
+        <span>Uptime</span>
+        <strong>{{ item.uptime }}</strong>
+      </div>
+
+      <div>
+        <span>Latency</span>
+        <strong>{{ item.latency }}</strong>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="health-log-panel">
+  <div class="panel-header">
+    <div>
+      <h3>Health Activity</h3>
+      <p>Latest infrastructure checks and service events.</p>
+    </div>
+  </div>
+
+  <div class="health-log-list">
+    <div class="health-log-item" *ngFor="let log of logs">
+      <div
+        class="log-icon"
+        [class.success]="log.type === 'success'"
+        [class.warning]="log.type === 'warning'"
+        [class.danger]="log.type === 'danger'"
+      >
+        <span class="material-symbols-outlined">
+          {{ log.icon }}
+        </span>
+      </div>
+
+      <div>
+        <h4>{{ log.title }}</h4>
+        <p>{{ log.description }}</p>
+        <small>{{ log.time }}</small>
+      </div>
+    </div>
+  </div>
+</section>

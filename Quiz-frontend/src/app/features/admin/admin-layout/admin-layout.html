@@ -12,6 +12,7 @@
 
     <div id="sidebar-nav">
       <ul>
+
         <li>
           <a
             routerLink="/admin"
@@ -94,43 +95,72 @@
         </li>
 
         <li>
+          <a routerLink="/admin/system-health" routerLinkActive="active">
+            <span class="material-symbols-outlined">monitor_heart</span>
+            <span>System Health</span>
+          </a>
+        </li>
+
+        <li>
           <a routerLink="/admin/profile" routerLinkActive="active">
             <span class="material-symbols-outlined">account_circle</span>
             <span>Admin Profile</span>
           </a>
         </li>
+
       </ul>
     </div>
 
     <div class="sidebar-footer">
       <a href="#">
-        <span class="material-symbols-outlined">contact_support</span>
+        <span class="material-symbols-outlined">
+          contact_support
+        </span>
         Support
       </a>
 
       <a routerLink="/" class="logout">
-        <span class="material-symbols-outlined">logout</span>
+        <span class="material-symbols-outlined">
+          logout
+        </span>
         Logout
       </a>
     </div>
   </aside>
 
   <div class="main-content">
+
     <header class="topbar">
+
       <div class="topbar-search">
-        <span class="material-symbols-outlined">search</span>
-        <input type="text" placeholder="Search quizzes, users, logs…" />
+        <span class="material-symbols-outlined">
+          search
+        </span>
+
+        <input
+          type="text"
+          placeholder="Search quizzes, users, logs..."
+        />
       </div>
 
       <div class="topbar-actions">
+
         <button
           type="button"
-          class="topbar-icon-btn"
+          class="topbar-icon-btn notification-button"
           routerLink="/admin/notifications"
           title="Notifications"
         >
-          <span class="material-symbols-outlined">notifications</span>
-          <span class="badge"></span>
+          <span class="material-symbols-outlined">
+            notifications
+          </span>
+
+          <span
+            class="notification-count"
+            *ngIf="unreadNotifications > 0"
+          >
+            {{ unreadNotifications }}
+          </span>
         </button>
 
         <button
@@ -138,7 +168,9 @@
           class="topbar-icon-btn"
           title="Help"
         >
-          <span class="material-symbols-outlined">help</span>
+          <span class="material-symbols-outlined">
+            help
+          </span>
         </button>
 
         <button
@@ -147,15 +179,25 @@
           routerLink="/admin/settings"
           title="Settings"
         >
-          <span class="material-symbols-outlined">settings</span>
+          <span class="material-symbols-outlined">
+            settings
+          </span>
         </button>
 
         <div class="topbar-divider"></div>
 
-        <div class="topbar-user" routerLink="/admin/profile">
+        <div
+          class="topbar-user"
+          routerLink="/admin/profile"
+        >
           <div class="topbar-user-info">
-            <div class="name">Admin</div>
-            <div class="role">Admin</div>
+            <div class="name">
+              Admin
+            </div>
+
+            <div class="role">
+              Super Admin
+            </div>
           </div>
 
           <img
@@ -164,11 +206,14 @@
             alt="Admin avatar"
           />
         </div>
+
       </div>
+
     </header>
 
     <div class="page-canvas">
       <router-outlet></router-outlet>
     </div>
+
   </div>
 </div>

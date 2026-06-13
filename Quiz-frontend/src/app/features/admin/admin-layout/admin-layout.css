@@ -340,3 +340,36 @@
 .page-canvas {
   padding: 32px;
 }
+/* =========================
+   NOTIFICATION BADGE
+========================= */
+
+.notification-button {
+  position: relative;
+}
+
+.notification-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 5px;
+
+  border-radius: 999px;
+
+  background: #ef4444;
+  color: #ffffff;
+
+  font-size: .65rem;
+  font-weight: 900;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, .25);
+}
