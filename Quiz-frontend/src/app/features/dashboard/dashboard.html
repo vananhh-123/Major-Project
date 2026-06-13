@@ -34,7 +34,7 @@
 
   <section class="action-cards-grid">
 
-    <div class="action-card-item" [routerLink]="['/app/create-quiz']">
+    <div class="action-card-item" (click)="guardedNavigate('/app/create-quiz')">
       <div class="card-icon-circle purple">
         <span class="material-icons">add_circle_outline</span>
       </div>
@@ -66,7 +66,7 @@
 
       <div class="recommended-quiz-list">
         @for (item of quizzes; track item.id) {
-          <div class="quiz-row-card" [routerLink]="['/app/quiz-detail', item.id || 1]">
+          <div class="quiz-row-card" (click)="openQuizDetail(item.id)">
             <img [src]="item.img" [alt]="item.title" style="width: 50px; height: 50px; border-radius: 12px; object-fit: cover;">
             <div class="quiz-card-info">
               <h4>{{ item.title }}</h4>
@@ -87,7 +87,7 @@
       <div class="invite-gradient-card">
         <h4>Invite your friends</h4>
         <p>Challenge your classmates or coworkers and win exclusive badges.</p> 
-        <button class="btn-send-invite" (click)="sendInvite()">SEND INVITE</button>
+        <button class="btn-send-invite" (click)="guardedAction(() => sendInvite())">SEND INVITE</button>
       </div>
     </section>
   </div>

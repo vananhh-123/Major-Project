@@ -64,7 +64,7 @@
             <span class="col-date">DATE</span>
             <span class="col-score">SCORE</span>
             <span class="col-rank">RANK</span>
-            <span class="col-players">PLAYERS</span>
+            <span class="col-players">PLAYER COUNT</span>
           </div>
 
           <!-- Trạng thái trống (Empty State) -->
@@ -89,7 +89,7 @@
                 {{ item.rank }}
               </span>
             </div>
-            <div class="col-players">{{ item.players }}</div>
+            <div class="col-players">{{ formatPlayerCount(item.players) }}</div>
           </div>
         </div>
         
@@ -109,6 +109,8 @@
           <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
             <span class="material-icons">chevron_right</span>
           </button>
+
+          <span class="pagination-meta">Page {{ currentPage }} / {{ totalPages }}</span>
         </div>        
       </div>
 

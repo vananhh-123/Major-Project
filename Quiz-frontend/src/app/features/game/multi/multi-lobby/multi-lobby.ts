@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { WebsocketService, PlayerInfo } from '../../../../core/services/websocket.service';
+import { API_CONFIG } from '../../../../config/api.config';
+import { HttpClient } from '@angular/common/http';
 
 // ─────────────────────────────────────────
 // TYPES (local)
@@ -41,6 +43,7 @@ export class MultiLobby implements OnInit, OnDestroy {
   currentUserId: string = '';
   currentUserName: string = '';
   currentUserAvatar: string = '';
+  private hostIp: string = '';
 
   // ── Danh sách player thật từ WebSocket ──
   players: PlayerInfoWithStatus[] = [];
@@ -58,11 +61,18 @@ export class MultiLobby implements OnInit, OnDestroy {
   get joinedPlayerCount(): number {
     return this.players.filter(p => !p.isHost).length;
   }
+
+  get lobbyJoinUrl(): string {
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const host = this.hostIp || window.location.hostname;
+    return `${window.location.protocol}//${host}${port}`;
+  }
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private ws: WebsocketService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private http: HttpClient
   ) {}
 
   // ─────────────────────────────────────────
@@ -72,6 +82,7 @@ export class MultiLobby implements OnInit, OnDestroy {
   ngOnInit(): void {
     // 1. Lấy thông tin user từ localStorage
     this.loadCurrentUser();
+    this.loadHostIp();
 
     // 2. Lấy params từ URL và kết nối WebSocket
     this.subs.add(
@@ -116,6 +127,23 @@ export class MultiLobby implements OnInit, OnDestroy {
     }
   }
 
+  private loadHostIp(): void {
+    fetch(`${API_CONFIG.API_BASE}/network-info`, {
+      headers: { Accept: 'application/json' }
+    })
+      .then(res => res.ok ? res.json() : Promise.reject(res.status))
+      .then((data: any) => {
+        if (data?.hostIp) {
+          this.hostIp = data.hostIp;
+          this.cdr.detectChanges();
+        }
+      })
+      .catch(() => {
+        this.hostIp = this.hostIp || window.location.hostname;
+        this.cdr.detectChanges();
+      });
+  }
+
   private setFallbackUser(): void {
     // Fallback nếu chưa đăng nhập (dev mode)
     this.currentUserId   = 'user_' + Math.random().toString(36).slice(2, 7);
@@ -129,12 +157,11 @@ export class MultiLobby implements OnInit, OnDestroy {
   }
 
   private connectAndJoin(): void {
-    if (!this.currentUserId || !this.gamePin) return;
+  if (!this.currentUserId || !this.gamePin) return;
 
-    // Kết nối WebSocket với roomId = gamePin
+  const joinSocket = () => {
     this.ws.connect(this.gamePin, this.currentUserId);
 
-    // Gửi join_room sau 500ms để đảm bảo kết nối ổn định
     setTimeout(() => {
       this.ws.joinRoom(
         this.gamePin,
@@ -146,8 +173,39 @@ export class MultiLobby implements OnInit, OnDestroy {
         this.gamePin,
         this.quizId
       );
+
+      this.http.post(`${API_CONFIG.API_BASE}/rooms/join`, {
+        room_code: this.gamePin,
+        user_id: this.currentUserId,
+        name: this.currentUserName
+      }).subscribe({
+        next: () => console.log('Player saved to DB'),
+        error: err => console.error('Save player error:', err)
+      });
+
     }, 500);
+  };
+
+  if (this.isHost) {
+    this.http.post(`${API_CONFIG.API_BASE}/rooms`, {
+      room_code: this.gamePin,
+      host_id: this.currentUserId,
+      quiz_id: this.quizId,
+      game_mode: this.gameMode
+    }).subscribe({
+      next: () => {
+        console.log('Room saved to DB');
+        joinSocket();
+      },
+      error: err => {
+        console.error('Create room error:', err);
+        joinSocket();
+      }
+    });
+  } else {
+    joinSocket();
   }
+}
 
   // ─────────────────────────────────────────
   // WEBSOCKET LISTENERS

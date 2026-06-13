@@ -28,6 +28,7 @@
       </div>
       <h3 class="name">{{player.name}}</h3>
       <p class="title" *ngIf="player.title">{{player.title}}</p>
+      <p class="subtitle" *ngIf="player.subtitle">{{player.subtitle}}</p>
       <div class="points-box">
         <span class="value">{{player.points | number:'1.0-0'}}</span>
         <span class="label">PTS</span>
@@ -50,6 +51,9 @@
             <div class="name-badge">
               <span class="name">{{item.name}}</span>
               <span class="badge" *ngIf="item.badge">{{item.badge}}</span>
+            </div>
+            <div class="badge-list" *ngIf="item.badges?.length">
+              <span class="badge-chip" *ngFor="let badge of item.badges">{{ badge }}</span>
             </div>
             <span class="subtitle">{{item.subtitle}}</span>
           </div>

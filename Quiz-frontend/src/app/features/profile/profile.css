@@ -49,6 +49,8 @@
 
 .pagination-container { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 25px; }
 
+.pagination-meta { margin-left: 12px; font-size: 0.9rem; font-weight: 600; color: #7b7b8f; }
+
 .page-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid #f0eaff; background: white; color: #7b7b8f; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 
 .page-btn.active { background: #8e5dfa; color: white; border-color: #8e5dfa; }
@@ -61,6 +63,8 @@
 .quiz-mini-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 .quiz-title-name { font-weight: 700; font-size: 1.05rem; }
 .text-danger-bold { color: #d92b5a; font-weight: 800; font-size: 1.15rem; }
+
+.col-players { justify-self: center; font-weight: 700; color: #2d2d3f; }
 
 .rank-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; background: #f0f0f5; display: inline-flex; align-items: center; gap: 6px; }
 .rank-pill.gold { background: #fff9e6; color: #f1ad1d; }
@@ -171,6 +175,8 @@
   .user-identity h1 { font-size: 2rem; }
   .history-table-header { display: none; }
   .history-item-row { grid-template-columns: 1fr; gap: 8px; }
+  .pagination-container { flex-wrap: wrap; }
+  .pagination-meta { width: 100%; text-align: center; margin-left: 0; }
 }
 
 @media (max-width: 600px) {

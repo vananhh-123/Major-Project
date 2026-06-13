@@ -291,23 +291,22 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   }
 
   calculateScore() {
-    const sMax = this.currentQuestion.points || 1000;
-    let finalPoints = 0;
-    if (this.enableTimer) {
-      const tUser = this.maxTime - this.timeLeft;
-      const tMax = this.maxTime;
-      const K = 0.5;
-      const linearBase = sMax * (1 - (tUser / tMax) * K);
-      let multiplier = 1.0;
-      if (tUser < 2) multiplier = 1.5;
-      else if (tUser >= 2 && tUser <= 5) multiplier = 1.2;
-      else if (tUser > 5 && tUser <= 10) multiplier = 1.0;
-      else multiplier = 0.8;
-      finalPoints = Math.round((linearBase * multiplier) + (this.streak * 10));
-    } else {
-      finalPoints = sMax + (this.streak * 10);
+    const sMax = this.currentQuestion.points || 100;
+    const totalTime = Math.max(1, this.maxTime || this.currentQuestion.time_limit || 20);
+    const remainingTime = Math.max(0, Math.min(this.timeLeft, totalTime));
+    const remainingRatio = remainingTime / totalTime;
+
+    // Base score is strictly proportional to remaining time.
+    // Late answers naturally get fewer points; no bonus can push above max.
+    let finalPoints = Math.round(sMax * remainingRatio);
+
+    if (!this.enableTimer) {
+      finalPoints = sMax;
     }
-    
+
+    // Keep score bounded to the question max.
+    if (finalPoints > sMax) finalPoints = sMax;
+    if (finalPoints < 0) finalPoints = 0;
     this.lastGainedScore = finalPoints;
     this.score += finalPoints;
     

@@ -35,6 +35,7 @@ export class GameRoom implements OnInit, OnDestroy {
   currentUserId: string = '';
   currentUserAvatar: string = '/User.png';
   playerWaiting: boolean = false;
+  private pendingRoomState: any = null;
 
   questions: Question[] = [];
   currentQuestionIdx: number = 0;
@@ -64,7 +65,7 @@ export class GameRoom implements OnInit, OnDestroy {
   correctAnswersCount: number = 0;
   submissionsCount: number = 0;
   submittedPlayerIds = new Set<string>();
-  players: (PlayerInfo & { isCurrentUser?: boolean })[] = [];
+  players: (PlayerInfo & { isCurrentUser?: boolean; correctAnswers?: number })[] = [];
 
   private countdownTimer: any;
   private questionTimer: any;
@@ -80,7 +81,7 @@ export class GameRoom implements OnInit, OnDestroy {
     return 283 - (283 * ratio);
   }
   
-  private apiUrl = `http://${'localhost'}:8080/api`;
+  private apiUrl = API_CONFIG.API_BASE;
 
   constructor(
     private router: Router,
@@ -211,12 +212,120 @@ export class GameRoom implements OnInit, OnDestroy {
             this.startCountdown();
           }
         }
+
+        if (this.pendingRoomState) {
+          this.applyRoomState(this.pendingRoomState);
+          this.pendingRoomState = null;
+        }
       },
       error: (err) => console.error('Load quiz error:', err)
     });
   }
 
+  private applyRoomState(state: any): void {
+    if (!state) return;
+
+    this.gameMode = state.gameMode || this.gameMode;
+    this.quizId = state.quizId || this.quizId;
+
+    if (Array.isArray(state.players)) {
+      this.players = state.players.map((p: any) => ({
+        ...p,
+        avatar: p.avatar || `https://api.dicebear.com/7.x/personas/svg?seed=${p.name || p.userId}`,
+        isCurrentUser: p.userId === this.currentUserId
+      }));
+    }
+
+    const me = this.players.find(p => p.userId === this.currentUserId);
+    if (me) {
+      this.playerScore = me.score || 0;
+      this.correctAnswersCount = me.correctAnswers || 0;
+      if (me.avatar) {
+        this.currentUserAvatar = me.avatar;
+      }
+    }
+
+    const questionIndex = Number(state.questionIdx || 0);
+    this.currentQuestionIdx = Number.isFinite(questionIndex) ? questionIndex : 0;
+
+    if (state.currentQuestion) {
+      const q = state.currentQuestion;
+      const normalizedQuestion = {
+        id: String(q.index ?? this.currentQuestionIdx),
+        content: q.content,
+        time_limit: q.timeLimit ?? q.time_limit ?? 20,
+        points: q.points ?? 100,
+        multiple_correct: q.multipleCorrect ?? q.multiple_correct ?? false,
+        options: (q.answers || q.options || []).map((opt: any) => ({
+          text: opt.text,
+          is_correct: opt.is_correct
+        }))
+      };
+
+      this.questions[this.currentQuestionIdx] = normalizedQuestion;
+
+      if (state.questionPhase === 'question') {
+        const remaining = Number(state.timeLeft || normalizedQuestion.time_limit || 20);
+        this.resumeQuestionFromState(remaining, normalizedQuestion);
+      } else if (state.questionPhase === 'answer_reveal') {
+        this.gamePhase = 'answer_reveal';
+        this.timeLeft = 0;
+        this.hasAnswered = true;
+        const correctAnswers = (q.answers || q.options || [])
+          .map((a: any, idx: number) => a.is_correct ? idx : -1)
+          .filter((idx: number) => idx !== -1);
+        correctAnswers.forEach((idx: number) => {
+          if (this.questions[this.currentQuestionIdx]?.options[idx]) {
+            this.questions[this.currentQuestionIdx].options[idx].is_correct = true;
+          }
+        });
+      } else if (state.status === 'playing') {
+        this.gamePhase = 'question';
+      }
+    }
+
+    this.playerWaiting = false;
+    this.cdr.detectChanges();
+  }
+
+  private resumeQuestionFromState(remainingTime: number, q: Question): void {
+    this.clearTimers();
+    this.gamePhase = 'question';
+    this.countdown = 0;
+    this.timeLeft = Math.max(0, remainingTime);
+    this.hasAnswered = false;
+    this.selectedAnswers = [];
+    this.lastAnswerResult = null;
+    this.cdr.detectChanges();
+
+    this.questionTimer = setInterval(() => {
+      this.timeLeft--;
+      this.cdr.detectChanges();
+      if (this.timeLeft <= 0) {
+        clearInterval(this.questionTimer);
+        if (!this.isHost && !this.hasAnswered) {
+          this.gamePhase = 'answer_reveal';
+          this.submitAnswer();
+        }
+        if (this.isHost) {
+          this.hostRevealAnswer();
+        }
+      }
+    }, 1000);
+  }
+
   private listenToWsEvents(): void {
+    this.subs.add(
+      this.ws.on('room_state').subscribe((msg: any) => {
+        if (!msg?.data) return;
+        if (!this.questions || this.questions.length === 0) {
+          this.pendingRoomState = msg.data;
+          return;
+        }
+        this.applyRoomState(msg.data);
+      })
+    );
+
     this.subs.add(
       this.ws.on('question').subscribe((msg: any) => {
           const q = msg.data;
@@ -489,15 +598,27 @@ export class GameRoom implements OnInit, OnDestroy {
           }
         }
 
-        // Calculate points proportional to remaining time so faster answers score higher
+        // Calculate points strictly from remaining time so late answers score less.
         let awardedPoints = 0;
-        if (isCorrectLocal && q.time_limit > 0) {
-          // proportion of remaining time (0..1) times question max points
-          const ratio = Math.max(0, this.timeLeft) / q.time_limit;
-          awardedPoints = Math.round((q.points || 0) * ratio);
-        } else if (isCorrectLocal) {
-          // fallback: award full points if no time limit defined
-          awardedPoints = q.points || 0;
+        if (isCorrectLocal) {
+          const maxPoints = q.points || 100;
+          const totalTime = Math.max(1, q.time_limit || 20);
+          const remainingTime = Math.max(0, Math.min(this.timeLeft, totalTime));
+          const remainingRatio = remainingTime / totalTime;
+
+          if (q.multiple_correct) {
+            // Partial credit only if the selected answers are correct;
+            // still capped by remaining time.
+            const totalCorrect = correctIndices.length || 1;
+            const selectedCorrect = this.selectedAnswers.filter((a: number) => correctIndices.indexOf(a) !== -1).length;
+            const portion = Math.min(selectedCorrect / totalCorrect, 1);
+            awardedPoints = Math.round(maxPoints * portion * remainingRatio);
+          } else {
+            awardedPoints = Math.round(maxPoints * remainingRatio);
+          }
+
+          if (awardedPoints > maxPoints) awardedPoints = maxPoints;
+          if (awardedPoints < 0) awardedPoints = 0;
         }
 
         this.ws.submitAnswer(this.gamePin, this.currentUserId, {
@@ -563,34 +684,6 @@ export class GameRoom implements OnInit, OnDestroy {
     sessionStorage.setItem('currentUserId', this.currentUserId);
     const me = this.players.find(p => p.userId === this.currentUserId);
     if (me?.name) sessionStorage.setItem('currentUserName', me.name);
-
-    // Persist result to server (best-effort)
-    let userId: string | null = null;
-    try {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        userId = user.id || null;
-      }
-    } catch {}
-
-    const payload: any = {
-      user_id: userId,
-      quiz_id: this.quizId || null,
-      room_id: this.gamePin || null,
-      is_solo: false,
-      mode: 'multi',
-      score: this.playerScore || 0,
-      correct_answers: this.correctAnswersCount || 0
-    };
-    this.http.post(API_CONFIG.ENDPOINTS.RESULTS, payload).subscribe({
-      next: () => {
-        // ignore
-      },
-      error: () => {
-        // ignore
-      }
-    });
 
     // Navigate to Result screen with summary params
     this.router.navigate(['/play/result'], {

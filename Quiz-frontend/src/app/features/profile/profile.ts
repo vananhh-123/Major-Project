@@ -118,6 +118,7 @@ export class Profile implements OnInit {
     });
 
     this.totalPages = Math.ceil(filtered.length / this.pageSize) || 1;
+    this.currentPage = Math.min(this.currentPage, this.totalPages);
     
     const startIndex = (this.currentPage - 1) * this.pageSize;
     this.historySessions = filtered.slice(startIndex, startIndex + this.pageSize);
@@ -135,6 +136,19 @@ export class Profile implements OnInit {
 
   getPagesArray(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  formatPlayerCount(value: any): string {
+    if (value === null || value === undefined || value === '') {
+      return 'N/A';
+    }
+
+    const normalized = String(value).trim();
+    if (!normalized || normalized.toLowerCase() === 'n/a') {
+      return 'N/A';
+    }
+
+    return `#${normalized}`;
   }
 
   // BỔ SUNG PHÂN TRANG CHO MY CREATED QUIZZES
