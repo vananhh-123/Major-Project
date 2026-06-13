@@ -12,7 +12,6 @@
 
     <div id="sidebar-nav">
       <ul>
-
         <li>
           <a
             routerLink="/admin"
@@ -95,47 +94,26 @@
         </li>
 
         <li>
-          <a routerLink="/admin/system-health" routerLinkActive="active">
-            <span class="material-symbols-outlined">monitor_heart</span>
-            <span>System Health</span>
-          </a>
-        </li>
-
-        <li>
           <a routerLink="/admin/profile" routerLinkActive="active">
             <span class="material-symbols-outlined">account_circle</span>
             <span>Admin Profile</span>
           </a>
         </li>
-
       </ul>
     </div>
 
     <div class="sidebar-footer">
-      <a href="#">
-        <span class="material-symbols-outlined">
-          contact_support
-        </span>
-        Support
-      </a>
-
-      <a routerLink="/" class="logout">
-        <span class="material-symbols-outlined">
-          logout
-        </span>
+      <a routerLink="/admin/logout" class="logout">
+        <span class="material-symbols-outlined">logout</span>
         Logout
       </a>
     </div>
   </aside>
 
   <div class="main-content">
-
     <header class="topbar">
-
       <div class="topbar-search">
-        <span class="material-symbols-outlined">
-          search
-        </span>
+        <span class="material-symbols-outlined">search</span>
 
         <input
           type="text"
@@ -144,7 +122,6 @@
       </div>
 
       <div class="topbar-actions">
-
         <button
           type="button"
           class="topbar-icon-btn notification-button"
@@ -166,7 +143,8 @@
         <button
           type="button"
           class="topbar-icon-btn"
-          title="Help"
+          (click)="openSupport()"
+          title="Support"
         >
           <span class="material-symbols-outlined">
             help
@@ -191,29 +169,82 @@
           routerLink="/admin/profile"
         >
           <div class="topbar-user-info">
-            <div class="name">
-              Admin
-            </div>
-
-            <div class="role">
-              Super Admin
-            </div>
+            <div class="name">Admin</div>
+            <div class="role">Super Admin</div>
           </div>
 
           <img
             class="topbar-avatar"
             src="https://api.dicebear.com/8.x/avataaars/svg?seed=Just4QuizAdmin&backgroundColor=b6e3f4"
-            alt="Admin avatar"
+            alt="Admin Avatar"
           />
         </div>
-
       </div>
-
     </header>
 
     <div class="page-canvas">
       <router-outlet></router-outlet>
     </div>
+  </div>
+</div>
 
+<!-- SUPPORT MODAL -->
+
+<div
+  class="support-modal-backdrop"
+  *ngIf="showSupportModal"
+>
+  <div class="support-modal">
+    <button
+      class="support-close-btn"
+      (click)="closeSupport()"
+    >
+      <span class="material-symbols-outlined">
+        close
+      </span>
+    </button>
+
+    <div class="support-icon">
+      <span class="material-symbols-outlined">
+        contact_support
+      </span>
+    </div>
+
+    <h3>JUST4QUIZ Support Center</h3>
+
+    <p>
+      Need help with the Admin Console?
+      Contact the support team for technical assistance,
+      account recovery, bug reports and platform issues.
+    </p>
+
+    <div class="support-info">
+      <div>
+        <span>Email</span>
+        <strong>support@just4quiz.com</strong>
+      </div>
+
+      <div>
+        <span>Phone</span>
+        <strong>+84 900 000 000</strong>
+      </div>
+
+      <div>
+        <span>Working Hours</span>
+        <strong>Monday - Friday | 08:00 - 17:00</strong>
+      </div>
+
+      <div>
+        <span>Version</span>
+        <strong>JUST4QUIZ Admin v1.0.0</strong>
+      </div>
+    </div>
+
+    <button
+      class="support-primary-btn"
+      (click)="closeSupport()"
+    >
+      Got It
+    </button>
   </div>
 </div>

@@ -373,3 +373,129 @@
   border: 2px solid #ffffff;
   box-shadow: 0 4px 10px rgba(239, 68, 68, .25);
 }
+.footer-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .65rem .75rem;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: .82rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+}
+
+.footer-link:hover {
+  background: var(--surface-container-low);
+}
+
+.footer-link.logout {
+  color: var(--error);
+}
+
+.support-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(57, 38, 76, .35);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.support-modal {
+  position: relative;
+  width: 430px;
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: 0 30px 80px rgba(57, 38, 76, .25);
+  text-align: center;
+}
+
+.support-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  cursor: pointer;
+}
+
+.support-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  border-radius: 1.25rem;
+  background: rgba(110, 18, 248, .1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.support-icon span {
+  font-size: 2rem;
+}
+
+.support-modal h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--on-surface);
+}
+
+.support-modal p {
+  margin: .75rem 0 1.25rem;
+  color: var(--on-surface-variant);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
+.support-info {
+  display: grid;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+
+.support-info div {
+  padding: .85rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-low);
+  text-align: left;
+}
+
+.support-info span {
+  display: block;
+  color: var(--on-surface-variant);
+  font-size: .68rem;
+  font-weight: 800;
+}
+
+.support-info strong {
+  display: block;
+  margin-top: .2rem;
+  color: var(--on-surface);
+  font-size: .82rem;
+  font-weight: 900;
+}
+
+.support-primary-btn {
+  border: none;
+  border-radius: var(--radius-full);
+  padding: .7rem 1.4rem;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 900;
+  cursor: pointer;
+}

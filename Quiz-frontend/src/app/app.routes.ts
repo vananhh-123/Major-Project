@@ -55,6 +55,7 @@ import { AdminLogs } from './features/admin/admin-logs/admin-logs';
 import { AdminProfile } from './features/admin/admin-profile/admin-profile';
 import { AdminNotifications } from './features/admin/admin-notifications/admin-notifications';
 import { AdminSystemHealth } from './features/admin/admin-system-health/admin-system-health';
+import { AdminLogout } from './features/admin/admin-logout/admin-logout';
 
 export const routes: Routes = [
   {
@@ -74,6 +75,7 @@ export const routes: Routes = [
       { path: 'logs', component: AdminLogs },
       { path: 'profile', component: AdminProfile },
       { path: 'notifications', component: AdminNotifications },
+      { path: 'logout', component: AdminLogout },
       { path: 'system-health', component: AdminSystemHealth }
     ]
   },
