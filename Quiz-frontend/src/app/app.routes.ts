@@ -38,6 +38,18 @@ import { MultiModeSelection } from './features/game/multi/multi-mode-selection/m
 import { MultiLobby } from './features/game/multi/multi-lobby/multi-lobby';
 import { GameRoom as MultiGameRoom } from './features/game/multi/game-room/game-room';
 
+// Admin
+import { AdminLayout } from './features/admin/admin-layout/admin-layout';
+import { AdminDashboard } from './features/admin/admin-dashboard/admin-dashboard';
+import { AdminUsers } from './features/admin/admin-users/admin-users';
+import { AdminQuizBank } from './features/admin/admin-quiz-bank/admin-quiz-bank';
+import { AdminReviews } from './features/admin/admin-reviews/admin-reviews';
+import { AdminAnalytics } from './features/admin/admin-analytics/admin-analytics';
+import { AdminLeaderboard } from './features/admin/admin-leaderboard/admin-leaderboard';
+import { AdminReports } from './features/admin/admin-reports/admin-reports';
+import { AdminAchievements } from './features/admin/admin-achievements/admin-achievements';
+import { AdminSettings } from './features/admin/admin-settings/admin-settings';
+
 export const routes: Routes = [
 
   // AUTH LAYOUT
@@ -84,6 +96,23 @@ export const routes: Routes = [
       { path: 'multi/mode', component: MultiModeSelection },
       { path: 'multi/lobby', component: MultiLobby },
       { path: 'multi/room', component: MultiGameRoom }
+    ]
+  },
+
+  {
+    path: 'admin',
+    component: AdminLayout,
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: AdminDashboard },
+      { path: 'users', component: AdminUsers },
+      { path: 'analytics', component: AdminAnalytics },
+      { path: 'quiz-bank', component: AdminQuizBank },
+      { path: 'reviews', component: AdminReviews },
+      { path: 'leaderboard', component: AdminLeaderboard },
+      { path: 'reports', component: AdminReports },
+      { path: 'achievements', component: AdminAchievements },
+      { path: 'settings', component: AdminSettings }
     ]
   },
 
