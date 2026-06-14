@@ -15,7 +15,7 @@ declare var google: any;
   styleUrls: ['./login.css']
 })
 export class Login implements OnInit {
-  passwordVisible: boolean = false;
+  passwordVisible = false;
   email = '';
   password = '';
 
@@ -26,40 +26,73 @@ export class Login implements OnInit {
   ngOnInit() {
     if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
-        client_id: '1071989516356-g8rlcjaq54f9mfhtefnt9o84m9gfkcki.apps.googleusercontent.com', 
+        client_id: '1071989516356-g8rlcjaq54f9mfhtefnt9o84m9gfkcki.apps.googleusercontent.com',
         callback: (response: any) => this.handleGoogleLogin(response)
       });
+
       google.accounts.id.renderButton(
-        document.getElementById("google-btn"),
-        { theme: "outline", size: "large", width: 360, shape: "rectangular", type: "standard", text: "continue_with" }
+        document.getElementById('google-btn'),
+        {
+          theme: 'outline',
+          size: 'large',
+          width: 360,
+          shape: 'rectangular',
+          type: 'standard',
+          text: 'continue_with'
+        }
       );
     }
   }
 
-  handleGoogleLogin(response: any) {
-    if (response.credential) {
-      // Gọi API Backend của chúng ta với token từ Google
-      this.http.post(`${API_CONFIG.AUTH_API}/google`, { token: response.credential }).subscribe({
-        next: (res: any) => {
-          this.ngZone.run(() => {
-            console.log('Google Login success:', res);
-            localStorage.setItem('token', res?.token || 'test-token');
-            if (res?.user) localStorage.setItem('user', JSON.stringify(res.user));
-            this.router.navigate(['/app/dashboard']);
-          });
-        },
-        error: (err) => {
-          this.ngZone.run(() => {
-            console.error('Google Login error:', err);
-            alert('Google login failed: ' + (err.error?.error || 'Server error'));
-          });
-        }
-      });
+  private redirectAfterLogin(user: any) {
+    const role = String(user?.role || '').toLowerCase();
+    const status = String(user?.status || '').toLowerCase();
+
+    console.log('ROLE:', role);
+    console.log('STATUS:', status);
+
+    if (status === 'blocked') {
+      alert('Tài khoản của bạn đã bị khóa.');
+      localStorage.clear();
+      return;
+    }
+
+    if (role === 'admin') {
+      this.router.navigate(['/admin/dashboard']);
+    } else {
+      this.router.navigate(['/app/dashboard']);
     }
   }
 
-  togglePassword() { 
-    this.passwordVisible = !this.passwordVisible; 
+  handleGoogleLogin(response: any) {
+    if (!response.credential) return;
+
+    this.http.post(`${API_CONFIG.AUTH_API}/google`, {
+      token: response.credential
+    }).subscribe({
+      next: (res: any) => {
+        this.ngZone.run(() => {
+          console.log('Google Login success:', res);
+
+          localStorage.setItem('token', res?.token || 'test-token');
+
+          if (res?.user) {
+            localStorage.setItem('user', JSON.stringify(res.user));
+            this.redirectAfterLogin(res.user);
+          }
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          console.error('Google Login error:', err);
+          alert('Google login failed: ' + (err.error?.error || 'Server error'));
+        });
+      }
+    });
+  }
+
+  togglePassword() {
+    this.passwordVisible = !this.passwordVisible;
   }
 
   showComingSoon(event: Event) {
@@ -72,21 +105,20 @@ export class Login implements OnInit {
       alert('Please enter email and password');
       return;
     }
-    
+
     this.http.post(`${API_CONFIG.AUTH_API}/login`, {
       email: this.email,
       password: this.password
     }).subscribe({
       next: (res: any) => {
         console.log('Login success:', res);
+
         localStorage.setItem('token', res?.token || 'test-token');
-        
-        // Save user info to show in Navbar / Dashboard
+
         if (res?.user) {
           localStorage.setItem('user', JSON.stringify(res.user));
+          this.redirectAfterLogin(res.user);
         }
-
-        this.router.navigate(['/app/dashboard']);
       },
       error: (err) => {
         console.error('Login error:', err);
@@ -95,4 +127,3 @@ export class Login implements OnInit {
     });
   }
 }
-

@@ -15,6 +15,8 @@ type User struct {
 	Avatar    *string   `json:"avatar"`
 	Bio       *string   `json:"bio"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+	Role      string    `json:"role" gorm:"type:varchar(20);default:user"`
+	Status    string    `json:"status" gorm:"type:varchar(20);default:active"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {

@@ -247,3 +247,49 @@ func GetLeaderboard(c *gin.Context) {
 
 	c.JSON(http.StatusOK, results)
 }
+func GetAdminDashboard(c *gin.Context) {
+	var totalUsers int64
+	var totalQuizzes int64
+	var totalQuestions int64
+	var totalResults int64
+	var totalReviews int64
+
+	config.DB.Model(&models.User{}).Count(&totalUsers)
+	config.DB.Model(&models.Quiz{}).Count(&totalQuizzes)
+	config.DB.Model(&models.Question{}).Count(&totalQuestions)
+	config.DB.Model(&models.Result{}).Count(&totalResults)
+	config.DB.Model(&models.Review{}).Count(&totalReviews)
+
+	c.JSON(http.StatusOK, gin.H{
+		"totalUsers":     totalUsers,
+		"totalQuizzes":   totalQuizzes,
+		"totalQuestions": totalQuestions,
+		"totalResults":   totalResults,
+		"totalReviews":   totalReviews,
+		"activeRooms":    0,
+	})
+}
+func GetAdminQuizzes(c *gin.Context) {
+	var quizzes []models.Quiz
+
+	if err := config.DB.Find(&quizzes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Cannot fetch quizzes",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, quizzes)
+}
+func GetAdminReviews(c *gin.Context) {
+	var reviews []models.Review
+
+	if err := config.DB.Find(&reviews).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Cannot fetch reviews",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, reviews)
+}

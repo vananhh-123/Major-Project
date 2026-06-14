@@ -14,31 +14,52 @@ import (
 )
 
 func main() {
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	// Khởi tạo WebSocket Hub
 	hub := sockets.NewHub()
 	go hub.Run()
 
 	r := gin.Default()
+
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
-		AllowMethods:    []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:    []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:   []string{"Content-Length"},
-		MaxAge:          12 * time.Hour,
+		AllowMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"PATCH",
+			"DELETE",
+			"OPTIONS",
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Accept",
+			"Authorization",
+		},
+		ExposeHeaders: []string{
+			"Content-Length",
+		},
+		MaxAge: 12 * time.Hour,
 	}))
+
+	config.ConnectDatabase()
+
+	config.DB.AutoMigrate(
+		&models.User{},
+		&models.Quiz{},
+		&models.Question{},
+		&models.Result{},
+		&models.Review{},
+		&models.Room{},
+		&models.Player{},
+	)
 
 	r.GET("/api/leaderboard", controllers.GetLeaderboard)
 	r.GET("/api/network-info", controllers.GetNetworkInfo)
-
-	config.ConnectDatabase()
-	// Tự động tạo bảng nếu chưa tồn tại
-	config.DB.AutoMigrate(&models.User{}, &models.Quiz{}, &models.Question{}, &models.Result{}, &models.Review{}, &models.Room{}, &models.Player{})
 
 	auth := r.Group("/auth")
 	{
@@ -66,6 +87,15 @@ func main() {
 		api.POST("/results", controllers.SubmitResult)
 		api.GET("/stats/:id", controllers.GetUserStats)
 		api.GET("/users/:id/history", controllers.GetUserHistory)
+
+		api.GET("/admin/dashboard", controllers.GetAdminDashboard)
+
+		api.GET("/admin/users", controllers.GetAdminUsers)
+		api.GET("/admin/users/stats", controllers.GetAdminUserStats)
+		api.PATCH("/admin/users/:id/status", controllers.ToggleUserStatus)
+
+		api.GET("/admin/quizzes", controllers.GetAdminQuizzes)
+		api.GET("/admin/reviews", controllers.GetAdminReviews)
 	}
 
 	r.Run(":8080")
