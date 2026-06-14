@@ -106,6 +106,8 @@ func Login(c *gin.Context) {
 			"email":    user.Email,
 			"avatar":   user.Avatar,
 			"bio":      user.Bio,
+			"role":     user.Role,
+			"status":   user.Status,
 		},
 	})
 }
@@ -148,12 +150,16 @@ func GoogleLogin(c *gin.Context) {
 	// Trả về user (KHÔNG trả password)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Đăng nhập Google thành công!",
-		"token":   "fake_jwt_token_for_" + user.Username, // Replace với true JWT token trên file Auth hệ thống
+		"token":   "fake_jwt_token_for_" + user.Username,
 		"user": gin.H{
 			"id":       user.ID,
 			"username": user.Username,
-			"email":    user.Email, "avatar": user.Avatar,
-			"bio": user.Bio},
+			"email":    user.Email,
+			"avatar":   user.Avatar,
+			"bio":      user.Bio,
+			"role":     user.Role,
+			"status":   user.Status,
+		},
 	})
 }
 

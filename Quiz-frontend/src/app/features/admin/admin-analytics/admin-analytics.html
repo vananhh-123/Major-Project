@@ -1,0 +1,118 @@
+<section class="analytics-header">
+  <div>
+    <p class="page-eyebrow">Insights</p>
+
+    <h2 class="page-headline">Analytics & Reports</h2>
+
+    <p class="page-subline">
+      Deep-dive into platform performance and user behavior.
+    </p>
+  </div>
+
+  <div class="header-actions">
+    <button class="outline-action-btn">
+      <span class="material-symbols-outlined">calendar_month</span>
+      Last 30 Days
+    </button>
+
+    <button class="primary-action-btn">
+      <span class="material-symbols-outlined">download</span>
+      Export Report
+    </button>
+  </div>
+</section>
+
+<section class="analytics-kpi-grid">
+  <div class="kpi-card animate-fade-up" *ngFor="let item of kpis">
+    <div class="kpi-top">
+      <span class="kpi-label">{{ item.label }}</span>
+
+      <span
+        class="kpi-icon material-symbols-outlined"
+        [ngClass]="item.iconClass"
+      >
+        {{ item.icon }}
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ item.value }}</div>
+
+    <div class="kpi-trend" [ngClass]="item.trendClass">
+      <span class="material-symbols-outlined">trending_up</span>
+      {{ item.note }}
+    </div>
+  </div>
+</section>
+
+<section class="analytics-main-grid">
+  <div class="chart-card daily-users-card">
+    <div class="chart-title-block">
+      <h3>Daily Active Users</h3>
+      <p>30-day trend with 7-day rolling average</p>
+    </div>
+
+    <apx-chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [xaxis]="chartOptions.xaxis"
+      [yaxis]="chartOptions.yaxis"
+      [stroke]="chartOptions.stroke"
+      [fill]="chartOptions.fill"
+      [dataLabels]="chartOptions.dataLabels"
+      [grid]="chartOptions.grid"
+      [tooltip]="chartOptions.tooltip"
+      [markers]="chartOptions.markers"
+      [legend]="chartOptions.legend"
+      [colors]="chartOptions.colors"
+    ></apx-chart>
+  </div>
+
+  <div class="chart-card overview-card">
+    <div class="chart-title-block">
+      <h3>Game Overview</h3>
+      <p>Solo games, multiplayer games, reviews and active rooms</p>
+    </div>
+
+    <div class="overview-list">
+      <div class="overview-item">
+        <div class="overview-row">
+          <span>Solo Games</span>
+          <strong>4,890</strong>
+        </div>
+        <div class="overview-bar">
+          <div class="overview-fill primary" style="width:84%"></div>
+        </div>
+      </div>
+
+      <div class="overview-item">
+        <div class="overview-row">
+          <span>Multi Games</span>
+          <strong>1,736</strong>
+        </div>
+        <div class="overview-bar">
+          <div class="overview-fill secondary" style="width:58%"></div>
+        </div>
+      </div>
+
+      <div class="overview-item">
+        <div class="overview-row">
+          <span>Reviews</span>
+          <strong>892</strong>
+        </div>
+        <div class="overview-bar">
+          <div class="overview-fill tertiary" style="width:66%"></div>
+        </div>
+      </div>
+
+      <div class="overview-item">
+        <div class="overview-row">
+          <span>Active Rooms</span>
+          <strong>24</strong>
+        </div>
+        <div class="overview-bar">
+          <div class="overview-fill primary" style="width:34%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

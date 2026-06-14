@@ -1,0 +1,187 @@
+<section class="logs-header">
+  <div>
+    <p class="page-eyebrow">System History</p>
+
+    <h2 class="page-headline">Activity Logs</h2>
+
+    <p class="page-subline">
+      Track user actions, quiz changes, room events and system activities.
+    </p>
+  </div>
+
+  <button class="primary-action-btn">
+    <span class="material-symbols-outlined">download</span>
+    Export Logs
+  </button>
+</section>
+
+<section class="logs-kpi-grid">
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Total Logs</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        history
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ totalLogs }}</div>
+    <div class="kpi-trend text-primary">All recorded events</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Today Events</span>
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
+        event
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ todayEvents }}</div>
+    <div class="kpi-trend text-tertiary">Jun 10, 2026</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">User Activities</span>
+      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
+        group
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ userActivities }}</div>
+    <div class="kpi-trend text-primary">User-related logs</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">System Events</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        settings
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ systemEvents }}</div>
+    <div class="kpi-trend text-muted">Admin and system actions</div>
+  </div>
+</section>
+
+<section class="logs-toolbar">
+  <div class="filter-tabs">
+    <button class="filter-tab" [class.active]="activeTab === 'All'" (click)="setTab('All')">
+      All
+    </button>
+
+    <button class="filter-tab" [class.active]="activeTab === 'User'" (click)="setTab('User')">
+      User
+    </button>
+
+    <button class="filter-tab" [class.active]="activeTab === 'Quiz'" (click)="setTab('Quiz')">
+      Quiz
+    </button>
+
+    <button class="filter-tab" [class.active]="activeTab === 'Room'" (click)="setTab('Room')">
+      Room
+    </button>
+
+    <button class="filter-tab" [class.active]="activeTab === 'Review'" (click)="setTab('Review')">
+      Review
+    </button>
+
+    <button class="filter-tab" [class.active]="activeTab === 'System'" (click)="setTab('System')">
+      System
+    </button>
+  </div>
+
+  <div class="mini-search">
+    <span class="material-symbols-outlined">search</span>
+
+    <input
+      type="text"
+      placeholder="Search logs, actors or events..."
+      [(ngModel)]="searchText"
+    />
+  </div>
+</section>
+
+<section class="timeline-card">
+  <div class="timeline">
+    <article
+      class="timeline-item animate-fade-up"
+      *ngFor="let log of paginatedLogs"
+    >
+      <div class="timeline-time">
+        <strong>{{ log.time }}</strong>
+        <span>{{ log.date }}</span>
+      </div>
+
+      <div
+        class="timeline-icon"
+        [class.success]="log.level === 'Success'"
+        [class.info]="log.level === 'Info'"
+        [class.warning]="log.level === 'Warning'"
+        [class.danger]="log.level === 'Danger'"
+      >
+        <span class="material-symbols-outlined">
+          {{ log.icon }}
+        </span>
+      </div>
+
+      <div class="timeline-content">
+        <div class="timeline-top">
+          <div>
+            <h3>{{ log.title }}</h3>
+            <p>{{ log.description }}</p>
+          </div>
+
+          <span
+            class="type-badge"
+            [class.user]="log.type === 'User'"
+            [class.quiz]="log.type === 'Quiz'"
+            [class.room]="log.type === 'Room'"
+            [class.review]="log.type === 'Review'"
+            [class.system]="log.type === 'System'"
+          >
+            {{ log.type }}
+          </span>
+        </div>
+
+        <div class="timeline-meta">
+          <span>ID: {{ log.id }}</span>
+          <span>Actor: {{ log.actor }}</span>
+          <span>Level: {{ log.level }}</span>
+        </div>
+      </div>
+    </article>
+
+    <div class="empty-state" *ngIf="filteredLogs.length === 0">
+      No activity logs found.
+    </div>
+  </div>
+
+  <div class="pagination" *ngIf="filteredLogs.length > 0">
+    <button
+      class="page-btn"
+      [disabled]="currentPage === 1"
+      (click)="previousPage()"
+    >
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+
+    <button
+      class="page-number"
+      *ngFor="let page of pageNumbers"
+      [class.active]="page === currentPage"
+      (click)="goToPage(page)"
+    >
+      {{ page }}
+    </button>
+
+    <button
+      class="page-btn"
+      [disabled]="currentPage === totalPages"
+      (click)="nextPage()"
+    >
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
+  </div>
+</section>

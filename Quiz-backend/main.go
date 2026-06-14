@@ -66,6 +66,11 @@ func main() {
 		api.POST("/results", controllers.SubmitResult)
 		api.GET("/stats/:id", controllers.GetUserStats)
 		api.GET("/users/:id/history", controllers.GetUserHistory)
+
+		// Admin routes
+		api.GET("/admin/users", controllers.GetAdminUsers)
+		api.GET("/admin/users/stats", controllers.GetAdminUserStats)
+		api.PATCH("/admin/users/:id/status", controllers.ToggleUserStatus)
 	}
 
 	r.Run(":8080")

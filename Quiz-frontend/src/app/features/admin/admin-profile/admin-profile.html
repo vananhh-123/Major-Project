@@ -1,0 +1,306 @@
+<section class="profile-header">
+  <div>
+    <p class="page-eyebrow">Account Center</p>
+
+    <h2 class="page-headline">Admin Profile</h2>
+
+    <p class="page-subline">
+      Manage administrator account, permissions, security and recent activities.
+    </p>
+  </div>
+
+  <div class="header-actions">
+    <button class="outline-action-btn" (click)="changePassword()">
+      <span class="material-symbols-outlined">lock_reset</span>
+      Reset Password
+    </button>
+
+    <button class="primary-action-btn" (click)="saveProfile()">
+      <span class="material-symbols-outlined">save</span>
+      Save Profile
+    </button>
+  </div>
+</section>
+
+<section class="profile-kpi-grid">
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Role</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        admin_panel_settings
+      </span>
+    </div>
+
+    <div class="kpi-value small-value">{{ adminRole }}</div>
+    <div class="kpi-trend text-primary">Full permissions</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Status</span>
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
+        verified
+      </span>
+    </div>
+
+    <div class="kpi-value small-value">{{ adminStatus }}</div>
+    <div class="kpi-trend text-tertiary">Account verified</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Last Login</span>
+      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
+        login
+      </span>
+    </div>
+
+    <div class="kpi-value small-value">{{ lastLogin }}</div>
+    <div class="kpi-trend text-muted">Recent session</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">2FA</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        security
+      </span>
+    </div>
+
+    <div class="kpi-value small-value">
+      {{ twoFactorEnabled ? 'Enabled' : 'Disabled' }}
+    </div>
+
+    <div class="kpi-trend text-primary">Security layer</div>
+  </div>
+</section>
+
+<section class="profile-main-grid">
+  <article class="profile-card hero-card animate-fade-up">
+    <div class="hero-bg"></div>
+
+    <div class="avatar-wrap">
+      <img
+        class="profile-avatar"
+        src="https://api.dicebear.com/8.x/avataaars/svg?seed=Just4QuizAdmin&backgroundColor=b6e3f4"
+        alt="Admin avatar"
+      />
+
+      <button class="avatar-edit-btn" title="Change Avatar">
+        <span class="material-symbols-outlined">edit</span>
+      </button>
+    </div>
+
+    <h3>{{ adminName }}</h3>
+
+    <p>{{ adminEmail }}</p>
+
+    <div class="profile-badges">
+      <span class="role-badge">
+        <span class="material-symbols-outlined">admin_panel_settings</span>
+        {{ adminRole }}
+      </span>
+
+      <span class="status-badge">
+        <span class="material-symbols-outlined">verified</span>
+        {{ adminStatus }}
+      </span>
+    </div>
+
+    <div class="hero-info-grid">
+      <div>
+        <span>Joined</span>
+        <strong>{{ joinedAt }}</strong>
+      </div>
+
+      <div>
+        <span>Location</span>
+        <strong>{{ adminLocation }}</strong>
+      </div>
+    </div>
+  </article>
+
+  <article class="profile-card info-card animate-fade-up">
+    <div class="panel-header">
+      <div>
+        <h3>Personal Information</h3>
+        <p>Update administrator account details.</p>
+      </div>
+
+      <span class="panel-icon material-symbols-outlined">badge</span>
+    </div>
+
+    <div class="form-grid two-cols">
+      <label>
+        Full Name
+        <input type="text" [(ngModel)]="adminName" />
+      </label>
+
+      <label>
+        Email Address
+        <input type="email" [(ngModel)]="adminEmail" />
+      </label>
+
+      <label>
+        Phone Number
+        <input type="text" [(ngModel)]="adminPhone" />
+      </label>
+
+      <label>
+        Location
+        <input type="text" [(ngModel)]="adminLocation" />
+      </label>
+    </div>
+  </article>
+</section>
+
+<section class="profile-content-grid">
+  <article class="profile-card permission-card animate-fade-up">
+    <div class="panel-header">
+      <div>
+        <h3>Role & Permissions</h3>
+        <p>Capabilities granted to this admin account.</p>
+      </div>
+
+      <span class="panel-icon material-symbols-outlined">fact_check</span>
+    </div>
+
+    <div class="permission-grid">
+      <div class="permission-item">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div>
+          <strong>User Management</strong>
+          <p>Manage users and account status.</p>
+        </div>
+      </div>
+
+      <div class="permission-item">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div>
+          <strong>Quiz Bank</strong>
+          <p>Manage public and private quizzes.</p>
+        </div>
+      </div>
+
+      <div class="permission-item">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div>
+          <strong>Analytics</strong>
+          <p>View system and gameplay insights.</p>
+        </div>
+      </div>
+
+      <div class="permission-item">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div>
+          <strong>Reviews & Comments</strong>
+          <p>Hide, show and manage feedback.</p>
+        </div>
+      </div>
+
+      <div class="permission-item">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div>
+          <strong>Multiplayer Rooms</strong>
+          <p>Monitor and close live rooms.</p>
+        </div>
+      </div>
+
+      <div class="permission-item">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div>
+          <strong>System Settings</strong>
+          <p>Configure platform settings.</p>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="profile-card security-card animate-fade-up">
+    <div class="panel-header">
+      <div>
+        <h3>Security Preferences</h3>
+        <p>Protect admin account access.</p>
+      </div>
+
+      <span class="panel-icon material-symbols-outlined">security</span>
+    </div>
+
+    <div class="toggle-list">
+      <label class="toggle-row">
+        <div>
+          <strong>Two-Factor Authentication</strong>
+          <span>Add an extra security layer to admin login.</span>
+        </div>
+
+        <input type="checkbox" [(ngModel)]="twoFactorEnabled" />
+      </label>
+
+      <label class="toggle-row">
+        <div>
+          <strong>Email Notifications</strong>
+          <span>Receive important admin notifications.</span>
+        </div>
+
+        <input type="checkbox" [(ngModel)]="emailNotification" />
+      </label>
+
+      <label class="toggle-row">
+        <div>
+          <strong>Login Alert</strong>
+          <span>Send alert when admin account logs in.</span>
+        </div>
+
+        <input type="checkbox" [(ngModel)]="loginAlert" />
+      </label>
+
+      <label class="toggle-row">
+        <div>
+          <strong>Session Protection</strong>
+          <span>Require re-authentication for sensitive actions.</span>
+        </div>
+
+        <input type="checkbox" [(ngModel)]="sessionProtection" />
+      </label>
+    </div>
+  </article>
+</section>
+
+<section class="profile-card activity-panel animate-fade-up">
+  <div class="panel-header">
+    <div>
+      <h3>Recent Admin Activities</h3>
+      <p>Latest actions performed by this admin account.</p>
+    </div>
+
+    <button class="outline-action-btn" routerLink="/admin/logs">
+      <span class="material-symbols-outlined">history</span>
+      View Logs
+    </button>
+  </div>
+
+  <div class="activity-timeline">
+    <article class="activity-item" *ngFor="let item of activities">
+      <div class="activity-time">
+        <strong>{{ item.time }}</strong>
+        <span>{{ item.date }}</span>
+      </div>
+
+      <div
+        class="activity-icon"
+        [class.success]="item.type === 'success'"
+        [class.info]="item.type === 'info'"
+        [class.warning]="item.type === 'warning'"
+      >
+        <span class="material-symbols-outlined">
+          {{ item.icon }}
+        </span>
+      </div>
+
+      <div class="activity-content">
+        <h4>{{ item.title }}</h4>
+        <p>{{ item.description }}</p>
+      </div>
+    </article>
+  </div>
+</section>
