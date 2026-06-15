@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import {
   AdminApi,
   AdminLogApi,
   AdminUserApi
 } from '../../../services/admin-api';
+
+import { API_CONFIG } from '../../../config/api.config';
 
 type ActivityType = 'success' | 'info' | 'warning';
 
@@ -21,14 +24,26 @@ interface AdminActivity {
   type: ActivityType;
 }
 
+interface AdminPreference {
+  adminPhone: string;
+  adminLocation: string;
+  twoFactorEnabled: boolean;
+  emailNotification: boolean;
+  loginAlert: boolean;
+  sessionProtection: boolean;
+}
+
 @Component({
   selector: 'app-admin-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule],
   templateUrl: './admin-profile.html',
   styleUrl: './admin-profile.css'
 })
 export class AdminProfile implements OnInit {
+  private adminApi = inject(AdminApi);
+  private http = inject(HttpClient);
+
   adminId = '';
   adminName = 'Admin';
   adminEmail = 'just4quiz@gmail.com';
@@ -52,12 +67,10 @@ export class AdminProfile implements OnInit {
 
   activities: AdminActivity[] = [];
 
-  constructor(private adminApi: AdminApi) {}
-
   ngOnInit(): void {
     this.loadAdminFromLocalStorage();
-    this.loadAdminFromBackend();
     this.loadPreferences();
+    this.loadAdminFromBackend();
     this.loadActivities();
   }
 
@@ -73,12 +86,12 @@ export class AdminProfile implements OnInit {
       const user = JSON.parse(rawUser);
 
       this.adminId = String(user.id || user.ID || '');
-      this.adminName = user.username || user.name || 'JUST4QUIZ Admin';
-      this.adminEmail = user.email || 'just4quiz@gmail.com';
+      this.adminName = String(user.username || user.name || 'JUST4QUIZ Admin');
+      this.adminEmail = String(user.email || 'just4quiz@gmail.com');
       this.adminRole = this.formatRole(user.role || 'admin');
       this.adminStatus = this.formatStatus(user.status || 'active');
-      this.joinedAt = this.formatDate(user.created_at || user.createdAt || user.joined);
-      this.adminAvatar = user.avatar || '';
+      this.joinedAt = this.formatDate(user.created_at || user.createdAt || user.joined || '');
+      this.adminAvatar = String(user.avatar || '');
 
       if (!this.adminAvatar) {
         this.setFallbackAvatar();
@@ -91,38 +104,43 @@ export class AdminProfile implements OnInit {
   loadAdminFromBackend(): void {
     this.adminApi.getAdminUsers().subscribe({
       next: (users: AdminUserApi[]) => {
-        const currentEmail = this.adminEmail.toLowerCase();
-        const currentId = this.adminId;
+        const currentEmail = this.adminEmail.toLowerCase().trim();
+        const currentId = this.adminId.trim();
 
         const admin =
-          users.find(user => String(user.id) === currentId) ||
-          users.find(user => String(user.email || '').toLowerCase() === currentEmail) ||
-          users.find(user => String(user.email || '').toLowerCase() === 'just4quiz@gmail.com');
+          users.find(user => String(user.id || '') === currentId) ||
+          users.find(user => String(user.email || '').toLowerCase().trim() === currentEmail) ||
+          users.find(user => String(user.email || '').toLowerCase().trim() === 'just4quiz@gmail.com') ||
+          users.find(user => String(user.role || '').toLowerCase().includes('admin'));
 
         if (!admin) {
+          this.setFallbackAvatar();
           return;
         }
 
-        this.adminId = admin.id || this.adminId;
-        this.adminName = admin.name || admin.username || this.adminName;
-        this.adminEmail = admin.email || this.adminEmail;
+        this.adminId = String(admin.id || this.adminId);
+        this.adminName = String(admin.name || admin.username || this.adminName);
+        this.adminEmail = String(admin.email || this.adminEmail);
         this.adminRole = this.formatRole(admin.role || this.adminRole);
         this.adminStatus = this.formatStatus(admin.status || this.adminStatus);
-        this.joinedAt = admin.joined || this.formatDate(admin.created_at || '');
+        this.joinedAt = String(admin.joined || this.formatDate(admin.created_at || '') || this.joinedAt);
 
         this.totalQuizzes = Number(admin.quizzes || 0);
         this.soloGames = Number(admin.soloGames || 0);
         this.multiGames = Number(admin.multiGames || 0);
         this.avgScore = Math.round(Number(admin.score || 0));
 
-        if (admin.avatar && admin.avatar.trim() !== '') {
-          this.adminAvatar = admin.avatar;
+        if (admin.avatar && String(admin.avatar).trim() !== '') {
+          this.adminAvatar = String(admin.avatar);
         } else {
           this.setFallbackAvatar();
         }
+
+        this.syncLocalUser();
       },
       error: (err) => {
         console.error('Load admin profile failed:', err);
+        this.setFallbackAvatar();
       }
     });
   }
@@ -135,7 +153,7 @@ export class AdminProfile implements OnInit {
     }
 
     try {
-      const pref = JSON.parse(raw);
+      const pref = JSON.parse(raw) as Partial<AdminPreference>;
 
       this.adminPhone = pref.adminPhone || this.adminPhone;
       this.adminLocation = pref.adminLocation || this.adminLocation;
@@ -152,19 +170,19 @@ export class AdminProfile implements OnInit {
     this.adminApi.getAdminLogs().subscribe({
       next: (logs: AdminLogApi[]) => {
         this.activities = logs.slice(0, 5).map((item) => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          time: item.time,
-          date: item.date,
-          icon: item.icon,
+          id: String(item.id || ''),
+          title: String(item.title || 'Admin activity'),
+          description: String(item.description || ''),
+          time: String(item.time || 'Live'),
+          date: String(item.date || 'Today'),
+          icon: String(item.icon || 'history'),
           type: this.mapActivityType(item.level)
         }));
       },
       error: () => {
         this.activities = [
           {
-            id: 'ACT001',
+            id: 'ACT-LIVE',
             title: 'Admin profile opened',
             description: 'Admin viewed profile information.',
             time: 'Live',
@@ -178,37 +196,41 @@ export class AdminProfile implements OnInit {
   }
 
   saveProfile(): void {
-    const rawUser = localStorage.getItem('user');
+    this.savePreferences();
 
-    if (rawUser) {
-      try {
-        const user = JSON.parse(rawUser);
-
-        user.id = this.adminId || user.id;
-        user.username = this.adminName;
-        user.name = this.adminName;
-        user.email = this.adminEmail;
-        user.avatar = this.adminAvatar;
-        user.role = this.adminRole.toLowerCase().replace(' ', '_');
-        user.status = this.adminStatus.toLowerCase();
-
-        localStorage.setItem('user', JSON.stringify(user));
-      } catch {}
+    if (!this.adminId) {
+      this.syncLocalUser();
+      alert('Admin profile saved locally.');
+      return;
     }
 
-    localStorage.setItem(
-      'admin_profile_preferences',
-      JSON.stringify({
-        adminPhone: this.adminPhone,
-        adminLocation: this.adminLocation,
-        twoFactorEnabled: this.twoFactorEnabled,
-        emailNotification: this.emailNotification,
-        loginAlert: this.loginAlert,
-        sessionProtection: this.sessionProtection
-      })
-    );
+    this.http.patch<any>(API_CONFIG.ENDPOINTS.PROFILE_UPDATE, {
+      user_id: this.adminId,
+      username: this.adminName,
+      avatar: this.adminAvatar,
+      bio: `Phone: ${this.adminPhone} | Location: ${this.adminLocation}`
+    }).subscribe({
+      next: (res) => {
+        if (res?.user) {
+          const user = res.user;
 
-    alert('Admin profile saved successfully!');
+          this.adminName = user.username || this.adminName;
+          this.adminEmail = user.email || this.adminEmail;
+          this.adminAvatar = user.avatar || this.adminAvatar;
+          this.adminRole = this.formatRole(user.role || this.adminRole);
+          this.adminStatus = this.formatStatus(user.status || this.adminStatus);
+          this.joinedAt = this.formatDate(user.created_at || user.CreatedAt || this.joinedAt);
+        }
+
+        this.syncLocalUser();
+        alert('Admin profile saved successfully!');
+      },
+      error: (err) => {
+        console.error('Save admin profile failed:', err);
+        this.syncLocalUser();
+        alert('Profile saved locally. Backend profile update is not available.');
+      }
+    });
   }
 
   changePassword(): void {
@@ -218,12 +240,49 @@ export class AdminProfile implements OnInit {
   changeAvatar(): void {
     const seed = prompt('Enter avatar seed:', this.adminName);
 
-    if (!seed) {
+    if (!seed || !seed.trim()) {
       return;
     }
 
     this.adminAvatar =
-      `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+      `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(seed.trim())}`;
+  }
+
+  private savePreferences(): void {
+    const pref: AdminPreference = {
+      adminPhone: this.adminPhone,
+      adminLocation: this.adminLocation,
+      twoFactorEnabled: this.twoFactorEnabled,
+      emailNotification: this.emailNotification,
+      loginAlert: this.loginAlert,
+      sessionProtection: this.sessionProtection
+    };
+
+    localStorage.setItem('admin_profile_preferences', JSON.stringify(pref));
+  }
+
+  private syncLocalUser(): void {
+    const rawUser = localStorage.getItem('user');
+    let user: any = {};
+
+    if (rawUser) {
+      try {
+        user = JSON.parse(rawUser);
+      } catch {
+        user = {};
+      }
+    }
+
+    user.id = this.adminId || user.id || '';
+    user.username = this.adminName;
+    user.name = this.adminName;
+    user.email = this.adminEmail;
+    user.avatar = this.adminAvatar;
+    user.role = this.adminRole.toLowerCase().replace(' ', '_');
+    user.status = this.adminStatus.toLowerCase();
+    user.created_at = user.created_at || this.joinedAt;
+
+    localStorage.setItem('user', JSON.stringify(user));
   }
 
   private setFallbackAvatar(): void {
@@ -234,8 +293,12 @@ export class AdminProfile implements OnInit {
   private formatRole(value: string): string {
     const role = String(value || '').toLowerCase();
 
-    if (role === 'superadmin' || role === 'super_admin') {
+    if (role === 'superadmin' || role === 'super_admin' || role === 'super admin') {
       return 'Super Admin';
+    }
+
+    if (role === 'admin') {
+      return 'Admin';
     }
 
     return 'Admin';
@@ -246,6 +309,10 @@ export class AdminProfile implements OnInit {
 
     if (status === 'blocked') {
       return 'Blocked';
+    }
+
+    if (status === 'inactive') {
+      return 'Inactive';
     }
 
     return 'Active';

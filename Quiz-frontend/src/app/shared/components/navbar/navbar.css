@@ -176,3 +176,34 @@
     font-size: 13px;
   }
 }
+.admin-console-btn{
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+
+  border:none;
+
+  padding:.65rem 1rem;
+
+  border-radius:999px;
+
+  background:linear-gradient(
+    135deg,
+    #6E12F8,
+    #8B5CF6
+  );
+
+  color:#fff;
+
+  font-size:.8rem;
+  font-weight:800;
+
+  cursor:pointer;
+
+  transition:.2s ease;
+}
+
+.admin-console-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 20px rgba(110,18,248,.25);
+}

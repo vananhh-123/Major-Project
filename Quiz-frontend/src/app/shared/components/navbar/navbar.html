@@ -17,22 +17,46 @@
     </div>
 
     <div class="auth-switch" *ngIf="type === 'auth-signin'">
-      <span class="switch-text">Don't have an account?
+      <span class="switch-text">
+        Don't have an account?
         <a routerLink="/register" class="link-purple">Sign up here</a>
       </span>
     </div>
 
     <div class="auth-switch" *ngIf="type === 'auth-signup'">
-      <span class="switch-text">Already a member?
+      <span class="switch-text">
+        Already a member?
         <a routerLink="/login" class="link-purple">Sign in here</a>
       </span>
     </div>
 
-    <div class="profile-menu" *ngIf="type === 'profile' || type === 'dashboard'" routerLink="/app/profile">
+    <button
+      *ngIf="isAdmin && (type === 'profile' || type === 'dashboard')"
+      type="button"
+      class="admin-console-btn"
+      (click)="goToAdmin($event)"
+      title="Back to Admin Console"
+    >
+      <span class="material-symbols-outlined">admin_panel_settings</span>
+      Admin Console
+    </button>
+
+    <div
+      class="profile-menu"
+      *ngIf="type === 'profile' || type === 'dashboard'"
+      routerLink="/app/profile"
+    >
       <span class="profile-name">{{ username }}</span>
+
       <div class="avatar-circle">
-        <img [src]="avatar || '/User.png'" alt="Avatar" class="avatar-img" onerror="this.src='https://via.placeholder.com/36?text=U'">
+        <img
+          [src]="avatar || '/User.png'"
+          alt="Avatar"
+          class="avatar-img"
+          onerror="this.src='https://via.placeholder.com/36?text=U'"
+        />
       </div>
+
       <span class="material-icons drop-icon">expand_more</span>
     </div>
   </div>
