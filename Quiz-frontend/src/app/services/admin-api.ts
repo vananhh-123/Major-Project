@@ -34,12 +34,18 @@ export interface AdminQuizApi {
 
 export interface AdminUserApi {
   id: string;
-  username: string;
+  username?: string;
+  name?: string;
   email: string;
   role?: string;
   created_at?: string;
+  joined?: string;
   avatar?: string;
   status?: string;
+  quizzes?: number;
+  soloGames?: number;
+  multiGames?: number;
+  score?: number;
 }
 
 export interface AdminReviewApi {
@@ -47,15 +53,120 @@ export interface AdminReviewApi {
   content?: string;
   rating?: number;
   created_at?: string;
+  createdAt?: string;
   user_id?: string;
   quiz_id?: string;
+  quizId?: string;
   username?: string;
+  user?: string;
   email?: string;
   quizTitle?: string;
   title?: string;
   status?: string;
   likes?: number;
   replies?: number;
+}
+
+export interface AnalyticsApi {
+  totalUsers: number;
+  totalQuizzes: number;
+  totalResults: number;
+  totalReviews: number;
+  soloGames: number;
+  multiGames: number;
+}
+
+export interface AdminRoomApi {
+  id: string;
+  roomCode: string;
+  quizTitle: string;
+  host: string;
+  players: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface AdminLogApi {
+  id: string;
+  type: string;
+  level: string;
+  title: string;
+  description: string;
+  actor: string;
+  time: string;
+  date: string;
+  icon: string;
+  createdAt: string;
+}
+
+export interface AdminSettingsApi {
+  id?: string;
+
+  platformName: string;
+  platformDescription: string;
+  supportEmail: string;
+  contactPhone: string;
+  defaultLanguage: string;
+  defaultTimezone: string;
+  copyrightText: string;
+
+  allowRegistration: boolean;
+  requireEmailVerification: boolean;
+  allowGoogleLogin: boolean;
+  allowFacebookLogin: boolean;
+  allowAvatarUpload: boolean;
+  maxAvatarSize: number;
+  minUsernameLength: number;
+  maxUsernameLength: number;
+
+  defaultVisibility: string;
+  defaultDifficulty: string;
+  maxQuizzesPerUser: number;
+  maxQuestions: number;
+  maxAnswersPerQuestion: number;
+  allowQuizCloning: boolean;
+  allowPublicQuizSearch: boolean;
+
+  maxRoomSize: number;
+  roomTimeout: number;
+  lobbyCountdown: number;
+  questionTimeLimit: number;
+  allowRejoin: boolean;
+  allowSpectatorMode: boolean;
+  autoKickInactivePlayers: boolean;
+
+  enableLeaderboard: boolean;
+  enableXpSystem: boolean;
+  xpPerQuiz: number;
+  xpPerWin: number;
+  enableAchievements: boolean;
+  achievementNotification: boolean;
+  dailyRewards: boolean;
+
+  maintenanceMode: boolean;
+  maxLoginAttempts: number;
+  sessionTimeout: number;
+  enableRateLimiting: boolean;
+  enableAuditLogs: boolean;
+  requireStrongPassword: boolean;
+  autoBanSuspiciousUsers: boolean;
+
+  primaryColor: string;
+  secondaryColor: string;
+  themeMode: string;
+  platformLogo: string;
+  favicon: string;
+  homepageBanner: string;
+
+  smtpHost: string;
+  smtpPort: number;
+  smtpUsername: string;
+  smtpPassword: string;
+  senderEmail: string;
+  senderName: string;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 @Injectable({
@@ -72,21 +183,52 @@ export class AdminApi {
     );
   }
 
-  getAdminQuizzes(): Observable<AdminQuizApi[]> {
-    return this.http.get<AdminQuizApi[]>(
-      `${this.apiUrl}/admin/quizzes`
-    );
-  }
-
   getAdminUsers(): Observable<AdminUserApi[]> {
     return this.http.get<AdminUserApi[]>(
       `${this.apiUrl}/admin/users`
     );
   }
 
+  getAdminQuizzes(): Observable<AdminQuizApi[]> {
+    return this.http.get<AdminQuizApi[]>(
+      `${this.apiUrl}/admin/quizzes`
+    );
+  }
+
   getAdminReviews(): Observable<AdminReviewApi[]> {
     return this.http.get<AdminReviewApi[]>(
       `${this.apiUrl}/admin/reviews`
+    );
+  }
+
+  getAnalytics(range: string = '30'): Observable<AnalyticsApi> {
+    return this.http.get<AnalyticsApi>(
+      `${this.apiUrl}/admin/analytics?range=${range}`
+    );
+  }
+
+  getAdminRooms(): Observable<AdminRoomApi[]> {
+    return this.http.get<AdminRoomApi[]>(
+      `${this.apiUrl}/admin/rooms`
+    );
+  }
+
+  getAdminLogs(): Observable<AdminLogApi[]> {
+    return this.http.get<AdminLogApi[]>(
+      `${this.apiUrl}/admin/logs`
+    );
+  }
+
+  getAdminSettings(): Observable<AdminSettingsApi> {
+    return this.http.get<AdminSettingsApi>(
+      `${this.apiUrl}/admin/settings`
+    );
+  }
+
+  updateAdminSettings(payload: AdminSettingsApi): Observable<AdminSettingsApi> {
+    return this.http.put<AdminSettingsApi>(
+      `${this.apiUrl}/admin/settings`,
+      payload
     );
   }
 }

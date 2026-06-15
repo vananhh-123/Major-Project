@@ -1,6 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import {
+  AdminApi,
+  AdminLogApi
+} from '../../../services/admin-api';
 
 type LogType = 'User' | 'Quiz' | 'Room' | 'Review' | 'System';
 type LogLevel = 'Success' | 'Info' | 'Warning' | 'Danger';
@@ -24,110 +29,80 @@ interface AdminLog {
   templateUrl: './admin-logs.html',
   styleUrl: './admin-logs.css'
 })
-export class AdminLogs {
+export class AdminLogs implements OnInit {
   searchText = '';
   activeTab: 'All' | LogType = 'All';
 
   currentPage = 1;
   pageSize = 6;
 
-  logs: AdminLog[] = [
-    {
-      id: 'LOG001',
-      type: 'User',
-      level: 'Success',
-      title: 'New user registered',
-      description: 'nguyenvana@example.com joined JUST4QUIZ.',
-      actor: 'System',
-      time: '10:20 AM',
-      date: 'Jun 10, 2026',
-      icon: 'person_add'
-    },
-    {
-      id: 'LOG002',
-      type: 'Quiz',
-      level: 'Info',
-      title: 'Quiz created',
-      description: 'English Basic Quiz was created by Nguyen Van A.',
-      actor: 'Nguyen Van A',
-      time: '10:28 AM',
-      date: 'Jun 10, 2026',
-      icon: 'quiz'
-    },
-    {
-      id: 'LOG003',
-      type: 'Room',
-      level: 'Success',
-      title: 'Multiplayer room started',
-      description: 'Room PIN 482913 started with 18 players.',
-      actor: 'Tran Thi B',
-      time: '10:35 AM',
-      date: 'Jun 10, 2026',
-      icon: 'sports_esports'
-    },
-    {
-      id: 'LOG004',
-      type: 'Review',
-      level: 'Warning',
-      title: 'Review hidden',
-      description: 'Review RV004 was hidden by admin.',
-      actor: 'Admin',
-      time: '10:42 AM',
-      date: 'Jun 10, 2026',
-      icon: 'visibility_off'
-    },
-    {
-      id: 'LOG005',
-      type: 'System',
-      level: 'Info',
-      title: 'Settings updated',
-      description: 'Default quiz visibility changed to Private.',
-      actor: 'Admin',
-      time: '11:05 AM',
-      date: 'Jun 10, 2026',
-      icon: 'settings'
-    },
-    {
-      id: 'LOG006',
-      type: 'Quiz',
-      level: 'Danger',
-      title: 'Quiz deleted',
-      description: 'Old draft quiz was removed from Quiz Bank.',
-      actor: 'Admin',
-      time: '11:18 AM',
-      date: 'Jun 10, 2026',
-      icon: 'delete'
-    },
-    {
-      id: 'LOG007',
-      type: 'Room',
-      level: 'Warning',
-      title: 'Room closed',
-      description: 'Room PIN 650312 was manually closed.',
-      actor: 'Admin',
-      time: '11:42 AM',
-      date: 'Jun 10, 2026',
-      icon: 'do_not_disturb_on'
-    },
-    {
-      id: 'LOG008',
-      type: 'User',
-      level: 'Danger',
-      title: 'User blocked',
-      description: 'sara@example.com was blocked from ranking.',
-      actor: 'Admin',
-      time: '12:05 PM',
-      date: 'Jun 10, 2026',
-      icon: 'block'
+  logs: AdminLog[] = [];
+  loading = false;
+
+  constructor(
+    private adminApi: AdminApi,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadLogs();
+  }
+
+  loadLogs(): void {
+    this.loading = true;
+
+    this.adminApi.getAdminLogs().subscribe({
+      next: (data: AdminLogApi[]) => {
+        this.logs = data.map(item => ({
+          id: item.id,
+          type: this.normalizeType(item.type),
+          level: this.normalizeLevel(item.level),
+          title: item.title,
+          description: item.description,
+          actor: item.actor,
+          time: item.time,
+          date: item.date,
+          icon: item.icon
+        }));
+
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        console.error('Load logs failed:', err);
+        this.logs = [];
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private normalizeType(value: string): LogType {
+    const text = value as LogType;
+
+    if (['User', 'Quiz', 'Room', 'Review', 'System'].includes(text)) {
+      return text;
     }
-  ];
+
+    return 'System';
+  }
+
+  private normalizeLevel(value: string): LogLevel {
+    const text = value as LogLevel;
+
+    if (['Success', 'Info', 'Warning', 'Danger'].includes(text)) {
+      return text;
+    }
+
+    return 'Info';
+  }
 
   get totalLogs(): number {
     return this.logs.length;
   }
 
   get todayEvents(): number {
-    return this.logs.filter(log => log.date === 'Jun 10, 2026').length;
+    return this.logs.filter(log => log.date === 'Today').length;
   }
 
   get userActivities(): number {
@@ -139,9 +114,9 @@ export class AdminLogs {
   }
 
   get filteredLogs(): AdminLog[] {
-    return this.logs.filter(log => {
-      const keyword = this.searchText.toLowerCase();
+    const keyword = this.searchText.toLowerCase();
 
+    return this.logs.filter(log => {
       const matchesSearch =
         log.id.toLowerCase().includes(keyword) ||
         log.title.toLowerCase().includes(keyword) ||

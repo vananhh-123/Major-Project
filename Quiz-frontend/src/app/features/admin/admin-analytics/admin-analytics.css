@@ -232,3 +232,16 @@
     grid-template-columns: 1fr;
   }
 }
+.range-select {
+  border: 1.5px solid rgba(110, 18, 248, .2);
+  outline: none;
+  border-radius: var(--radius-full);
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  padding: .7rem 1.1rem;
+  font-family: var(--font-body);
+  font-size: .82rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(57, 38, 76, .04);
+}

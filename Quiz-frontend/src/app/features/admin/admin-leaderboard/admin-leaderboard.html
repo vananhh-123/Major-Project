@@ -9,7 +9,7 @@
     </p>
   </div>
 
-  <button class="primary-action-btn">
+  <button class="primary-action-btn" (click)="showComingSoon()">
     <span class="material-symbols-outlined">download</span>
     Export Ranking
   </button>
@@ -25,7 +25,7 @@
     </div>
 
     <div class="kpi-value">{{ totalRankedUsers }}</div>
-    <div class="kpi-trend text-primary">Users on leaderboard</div>
+    <div class="kpi-trend text-muted">Users on leaderboard</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
@@ -37,7 +37,7 @@
     </div>
 
     <div class="kpi-value">{{ soloPlayers }}</div>
-    <div class="kpi-trend text-tertiary">Solo ranked users</div>
+    <div class="kpi-trend text-muted">Solo ranked users</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
@@ -49,19 +49,19 @@
     </div>
 
     <div class="kpi-value">{{ multiPlayers }}</div>
-    <div class="kpi-trend text-primary">Multiplayer ranked users</div>
+    <div class="kpi-trend text-muted">Multiplayer ranked users</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
     <div class="kpi-top">
-      <span class="kpi-label">Highest Score</span>
+      <span class="kpi-label">Highest Points</span>
       <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
         emoji_events
       </span>
     </div>
 
-    <div class="kpi-value">{{ highestScore }}%</div>
-    <div class="kpi-trend text-muted">Current top score</div>
+    <div class="kpi-value">{{ highestScore }}</div>
+    <div class="kpi-trend text-muted">Current top points</div>
   </div>
 </section>
 
@@ -97,13 +97,13 @@
 
     <input
       type="text"
-      placeholder="Search player, category or badge..."
+      placeholder="Search player or badge..."
       [(ngModel)]="searchText"
     />
   </div>
 </section>
 
-<section class="top-player-grid">
+<section class="top-player-grid" *ngIf="topPlayers.length > 0">
   <article
     class="top-player-card animate-fade-up"
     *ngFor="let player of topPlayers"
@@ -119,18 +119,23 @@
 
     <img
       class="top-avatar"
-      [src]="'https://api.dicebear.com/8.x/avataaars/svg?seed=' + player.avatarSeed + '&size=72&backgroundColor=b6e3f4'"
+      [src]="getAvatar(player)"
       alt="Player avatar"
     />
 
     <h3>{{ player.username }}</h3>
-    <p>{{ player.category }} · {{ player.badge }}</p>
 
-    <div class="top-score">{{ player.score }}%</div>
+    <p>
+      {{ player.mode }} · {{ player.badge }}
+    </p>
+
+    <div class="top-score">
+      {{ player.points }} pts
+    </div>
 
     <div class="top-meta">
       <span>{{ player.games }} games</span>
-      <span>🔥 {{ player.streak }}d</span>
+      <span>{{ player.badgeIcon }} {{ player.badge }}</span>
     </div>
   </article>
 </section>
@@ -169,10 +174,10 @@
         <tr>
           <th>Rank</th>
           <th>Player</th>
-          <th>Category</th>
-          <th>Score</th>
+          <th>Mode</th>
+          <th>Points</th>
+          <th>Score Bar</th>
           <th>Games</th>
-          <th>Streak</th>
           <th>Badge</th>
           <th class="right">Actions</th>
         </tr>
@@ -181,7 +186,7 @@
       <tbody>
         <tr
           *ngFor="let player of paginatedPlayers"
-          [class.highlight-row]="player.rank === 3"
+          [class.highlight-row]="player.rank <= 3"
           [class.blocked-row]="player.status === 'Blocked'"
         >
           <td>
@@ -209,18 +214,24 @@
           <td>
             <div class="player-cell">
               <img
-                [src]="'https://api.dicebear.com/8.x/avataaars/svg?seed=' + player.avatarSeed + '&size=48&backgroundColor=b6e3f4'"
+                [src]="getAvatar(player)"
                 alt="Player avatar"
               />
 
               <div>
                 <strong>{{ player.username }}</strong>
-                <span>{{ player.email }}</span>
+                <span>{{ player.id }}</span>
               </div>
             </div>
           </td>
 
-          <td>{{ player.category }}</td>
+          <td>{{ player.mode }}</td>
+
+          <td>
+            <div class="score-cell">
+              <strong>{{ player.points }} pts</strong>
+            </div>
+          </td>
 
           <td>
             <div class="score-cell">
@@ -237,10 +248,6 @@
           </td>
 
           <td>
-            🔥 {{ player.streak }}d
-          </td>
-
-          <td>
             {{ player.badgeIcon }} {{ player.badge }}
           </td>
 
@@ -249,6 +256,7 @@
               <button
                 class="icon-action view-btn"
                 title="View Player"
+                (click)="showComingSoon()"
               >
                 <span class="material-symbols-outlined">account_circle</span>
               </button>
@@ -256,6 +264,7 @@
               <button
                 class="icon-action message-btn"
                 title="Message"
+                (click)="showComingSoon()"
               >
                 <span class="material-symbols-outlined">chat_bubble</span>
               </button>

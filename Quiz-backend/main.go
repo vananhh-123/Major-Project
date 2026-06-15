@@ -110,10 +110,7 @@ func main() {
 		api.GET("/quizzes", controllers.GetQuizzes)
 		api.GET("/quizzes/:id", controllers.GetQuiz)
 		api.PUT("/quizzes/:id", controllers.UpdateQuiz)
-
-		// THIẾU ROUTE NÀY TRƯỚC ĐÓ
 		api.PATCH("/quizzes/:id/visibility", controllers.UpdateQuizVisibility)
-
 		api.DELETE("/quizzes/:id", controllers.DeleteQuiz)
 
 		// =====================
@@ -146,7 +143,7 @@ func main() {
 		api.PATCH("/admin/users/:id/status", controllers.ToggleUserStatus)
 
 		// =====================
-		// Admin Quizzes
+		// Admin Quiz Bank
 		// =====================
 		api.GET("/admin/quizzes", controllers.GetAdminQuizzes)
 
@@ -154,11 +151,25 @@ func main() {
 		// Admin Reviews
 		// =====================
 		api.GET("/admin/reviews", controllers.GetAdminReviews)
+		api.DELETE("/admin/reviews/:id", controllers.DeleteAdminReview)
+
+		// =====================
+		// Admin Analytics
+		// =====================
+		api.GET("/admin/analytics", controllers.GetAnalytics)
+
+		// =====================
+		// Admin Multiplayer Rooms
+		// =====================
+		api.GET("/admin/rooms", controllers.GetAdminRooms)
+
+		// =====================
+		// Admin Logs
+		// =====================
+		api.GET("/admin/logs", controllers.GetAdminLogs)
+
 	}
 
-	// =========================
-	// Start Server
-	// =========================
 	log.Println("Server running at :8080")
 
 	if err := r.Run(":8080"); err != nil {

@@ -1,22 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-type RoomStatus = 'Waiting' | 'Playing' | 'Ended';
-type RoomVisibility = 'Public' | 'Private';
+import {
+  AdminApi,
+  AdminRoomApi
+} from '../../../services/admin-api';
 
-interface MultiplayerRoom {
+type RoomStatus = 'Waiting' | 'Playing' | 'Finished';
+
+interface AdminRoom {
   id: string;
-  pin: string;
+  roomCode: string;
   quizTitle: string;
   host: string;
-  hostAvatar: string;
   players: number;
-  maxPlayers: number;
-  visibility: RoomVisibility;
   status: RoomStatus;
-  startedAt: string;
-  duration: string;
+  createdAt: string;
 }
 
 @Component({
@@ -26,150 +26,115 @@ interface MultiplayerRoom {
   templateUrl: './admin-multiplayer.html',
   styleUrl: './admin-multiplayer.css'
 })
-export class AdminMultiplayer {
+export class AdminMultiplayer implements OnInit {
   searchText = '';
-  activeTab: 'All' | RoomStatus = 'All';
-  visibilityFilter = '';
+  statusFilter = '';
 
-  rooms: MultiplayerRoom[] = [
-    {
-      id: 'RM001',
-      pin: '482913',
-      quizTitle: 'English Basic Quiz',
-      host: 'Nguyen Van A',
-      hostAvatar: 'NguyenVanA',
-      players: 18,
-      maxPlayers: 30,
-      visibility: 'Public',
-      status: 'Playing',
-      startedAt: '10:20 AM',
-      duration: '12m'
-    },
-    {
-      id: 'RM002',
-      pin: '193845',
-      quizTitle: 'Math Challenge',
-      host: 'Tran Thi B',
-      hostAvatar: 'TranThiB',
-      players: 9,
-      maxPlayers: 20,
-      visibility: 'Private',
-      status: 'Waiting',
-      startedAt: '10:35 AM',
-      duration: '0m'
-    },
-    {
-      id: 'RM003',
-      pin: '774201',
-      quizTitle: 'Programming Quiz',
-      host: 'Le Minh C',
-      hostAvatar: 'LeMinhC',
-      players: 24,
-      maxPlayers: 40,
-      visibility: 'Public',
-      status: 'Playing',
-      startedAt: '09:58 AM',
-      duration: '28m'
-    },
-    {
-      id: 'RM004',
-      pin: '650312',
-      quizTitle: 'History Quick Test',
-      host: 'Pham Hoang D',
-      hostAvatar: 'PhamHoangD',
-      players: 12,
-      maxPlayers: 25,
-      visibility: 'Private',
-      status: 'Ended',
-      startedAt: '09:10 AM',
-      duration: '35m'
-    },
-    {
-      id: 'RM005',
-      pin: '829104',
-      quizTitle: 'Science Speed Run',
-      host: 'Sara M.',
-      hostAvatar: 'SaraM',
-      players: 6,
-      maxPlayers: 15,
-      visibility: 'Public',
-      status: 'Waiting',
-      startedAt: '10:45 AM',
-      duration: '0m'
-    },
-    {
-      id: 'RM006',
-      pin: '508721',
-      quizTitle: 'World Geography',
-      host: 'Admin Team',
-      hostAvatar: 'AdminTeam',
-      players: 31,
-      maxPlayers: 50,
-      visibility: 'Public',
-      status: 'Playing',
-      startedAt: '08:40 AM',
-      duration: '46m'
+  rooms: AdminRoom[] = [];
+  loading = false;
+
+  selectedRoom: AdminRoom | null = null;
+
+  constructor(
+    private adminApi: AdminApi,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadRooms();
+  }
+
+  loadRooms(): void {
+    this.loading = true;
+
+    this.adminApi.getAdminRooms().subscribe({
+      next: (data: AdminRoomApi[]) => {
+        this.rooms = data.map(item => this.mapRoom(item));
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        console.error('Cannot load multiplayer rooms:', err);
+        this.rooms = [];
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private mapRoom(item: AdminRoomApi): AdminRoom {
+    return {
+      id: item.id,
+      roomCode: item.roomCode || 'N/A',
+      quizTitle: item.quizTitle || 'Unknown Quiz',
+      host: item.host || 'Unknown Host',
+      players: Number(item.players || 0),
+      status: this.normalizeStatus(item.status),
+      createdAt: item.createdAt || 'N/A'
+    };
+  }
+
+  private normalizeStatus(value?: string): RoomStatus {
+    const text = (value || '').toLowerCase();
+
+    if (text === 'playing' || text === 'started') {
+      return 'Playing';
     }
-  ];
+
+    if (text === 'finished' || text === 'ended') {
+      return 'Finished';
+    }
+
+    return 'Waiting';
+  }
 
   get totalRooms(): number {
     return this.rooms.length;
-  }
-
-  get playingRooms(): number {
-    return this.rooms.filter(room => room.status === 'Playing').length;
   }
 
   get waitingRooms(): number {
     return this.rooms.filter(room => room.status === 'Waiting').length;
   }
 
-  get endedRooms(): number {
-    return this.rooms.filter(room => room.status === 'Ended').length;
+  get playingRooms(): number {
+    return this.rooms.filter(room => room.status === 'Playing').length;
+  }
+
+  get finishedRooms(): number {
+    return this.rooms.filter(room => room.status === 'Finished').length;
   }
 
   get totalPlayers(): number {
     return this.rooms.reduce((sum, room) => sum + room.players, 0);
   }
 
-  get filteredRooms(): MultiplayerRoom[] {
+  get filteredRooms(): AdminRoom[] {
+    const keyword = this.searchText.toLowerCase();
+
     return this.rooms.filter(room => {
-      const keyword = this.searchText.toLowerCase();
-
       const matchesSearch =
-        room.id.toLowerCase().includes(keyword) ||
-        room.pin.toLowerCase().includes(keyword) ||
+        room.roomCode.toLowerCase().includes(keyword) ||
         room.quizTitle.toLowerCase().includes(keyword) ||
-        room.host.toLowerCase().includes(keyword);
+        room.host.toLowerCase().includes(keyword) ||
+        room.id.toLowerCase().includes(keyword);
 
-      const matchesTab =
-        this.activeTab === 'All' ||
-        room.status === this.activeTab;
+      const matchesStatus =
+        this.statusFilter === '' ||
+        room.status === this.statusFilter;
 
-      const matchesVisibility =
-        this.visibilityFilter === '' ||
-        room.visibility === this.visibilityFilter;
-
-      return matchesSearch && matchesTab && matchesVisibility;
+      return matchesSearch && matchesStatus;
     });
   }
 
-  setTab(tab: 'All' | RoomStatus): void {
-    this.activeTab = tab;
+  viewRoom(room: AdminRoom): void {
+    this.selectedRoom = room;
   }
 
-  closeRoom(room: MultiplayerRoom): void {
-    room.status = 'Ended';
-    room.duration = room.duration === '0m' ? '1m' : room.duration;
+  closeModal(): void {
+    this.selectedRoom = null;
   }
 
-  deleteRoom(id: string): void {
-    const confirmed = confirm('Are you sure you want to delete this room?');
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.rooms = this.rooms.filter(room => room.id !== id);
+  closeRoom(room: AdminRoom): void {
+    alert('This feature is not yet developed. Please wait for future updates!');
   }
 }

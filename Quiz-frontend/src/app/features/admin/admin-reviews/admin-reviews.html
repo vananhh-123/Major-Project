@@ -1,18 +1,18 @@
 <section class="page-header-row">
   <div>
-    <p class="page-eyebrow">Feedback Center</p>
+    <p class="page-eyebrow">Review Center</p>
 
-    <h2 class="page-headline">Reviews & Comments</h2>
+    <h2 class="page-headline">Quiz Reviews</h2>
 
     <p class="page-subline">
-      Manage quiz reviews and user comments in one unified screen.
+      Manage all user reviews submitted for quizzes.
     </p>
   </div>
 
   <div class="header-actions">
-    <button class="primary-action-btn">
+    <button class="primary-action-btn" (click)="showComingSoon()">
       <span class="material-symbols-outlined">download</span>
-      Export Feedback
+      Export Reviews
     </button>
   </div>
 </section>
@@ -20,50 +20,26 @@
 <section class="kpi-grid">
   <div class="kpi-card animate-fade-up">
     <div class="kpi-top">
-      <span class="kpi-label">Total Feedback</span>
+      <span class="kpi-label">Total Reviews</span>
       <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
-        forum
-      </span>
-    </div>
-
-    <div class="kpi-value">{{ totalFeedback }}</div>
-    <div class="kpi-trend text-primary">Reviews and comments</div>
-  </div>
-
-  <div class="kpi-card animate-fade-up">
-    <div class="kpi-top">
-      <span class="kpi-label">Reviews</span>
-      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
         rate_review
       </span>
     </div>
 
     <div class="kpi-value">{{ totalReviews }}</div>
-    <div class="kpi-trend text-tertiary">Quiz ratings</div>
+    <div class="kpi-trend text-muted">Submitted reviews</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
     <div class="kpi-top">
-      <span class="kpi-label">Comments</span>
-      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
-        chat_bubble
+      <span class="kpi-label">Reviewed Quizzes</span>
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
+        quiz
       </span>
     </div>
 
-    <div class="kpi-value">{{ totalComments }}</div>
-    <div class="kpi-trend text-primary">User discussions</div>
-  </div>
-
-  <div class="kpi-card animate-fade-up">
-    <div class="kpi-top">
-      <span class="kpi-label">Hidden</span>
-      <span class="kpi-icon bg-error-soft text-error material-symbols-outlined">
-        visibility_off
-      </span>
-    </div>
-
-    <div class="kpi-value error-value">{{ hiddenCount }}</div>
-    <div class="kpi-trend text-error">Hidden feedback</div>
+    <div class="kpi-value">{{ reviewedQuizzes }}</div>
+    <div class="kpi-trend text-muted">Quizzes with reviews</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
@@ -75,92 +51,79 @@
     </div>
 
     <div class="kpi-value">{{ averageRating }}</div>
-    <div class="kpi-trend text-tertiary">Review average</div>
+    <div class="kpi-trend text-muted">Overall rating</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">5-Star Reviews</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined filled">
+        hotel_class
+      </span>
+    </div>
+
+    <div class="kpi-value">{{ fiveStarReviews }}</div>
+    <div class="kpi-trend text-muted">Highest ratings</div>
   </div>
 </section>
 
 <section class="feedback-summary-grid">
   <div class="chart-card rating-card">
     <div class="section-title">Rating Breakdown</div>
-    <div class="section-subtitle">Distribution across quiz reviews</div>
+    <div class="section-subtitle">
+      Distribution for {{ quizFilter || 'all quizzes' }}
+    </div>
 
     <div class="rating-list">
-      <div class="rating-row">
-        <span>5</span>
-        <span class="material-symbols-outlined filled">star</span>
-        <div class="rating-bar">
-          <div style="width: 62%"></div>
-        </div>
-        <strong>62%</strong>
-      </div>
+      <div class="rating-row" *ngFor="let star of [5,4,3,2,1]">
+        <span>{{ star }}</span>
 
-      <div class="rating-row">
-        <span>4</span>
-        <span class="material-symbols-outlined filled">star</span>
-        <div class="rating-bar">
-          <div style="width: 22%"></div>
-        </div>
-        <strong>22%</strong>
-      </div>
+        <span class="material-symbols-outlined filled">
+          star
+        </span>
 
-      <div class="rating-row">
-        <span>3</span>
-        <span class="material-symbols-outlined filled">star</span>
         <div class="rating-bar">
-          <div style="width: 10%"></div>
+          <div [style.width.%]="getRatingPercentage(star)"></div>
         </div>
-        <strong>10%</strong>
-      </div>
 
-      <div class="rating-row">
-        <span>2</span>
-        <span class="material-symbols-outlined filled">star</span>
-        <div class="rating-bar">
-          <div style="width: 4%"></div>
-        </div>
-        <strong>4%</strong>
-      </div>
-
-      <div class="rating-row">
-        <span>1</span>
-        <span class="material-symbols-outlined filled">star</span>
-        <div class="rating-bar">
-          <div style="width: 2%"></div>
-        </div>
-        <strong>2%</strong>
+        <strong>{{ getRatingPercentage(star) }}%</strong>
       </div>
     </div>
   </div>
 
   <div class="chart-card discussion-card">
-    <div class="section-title">Discussion Overview</div>
-    <div class="section-subtitle">Comment activity summary</div>
+    <div class="section-title">Quiz Review Selector</div>
+    <div class="section-subtitle">
+      Choose a quiz to view its reviews
+    </div>
 
     <div class="discussion-list">
-      <div class="discussion-item">
-        <span class="material-symbols-outlined">thumb_up</span>
+      <div
+        class="discussion-item"
+        [class.danger]="quizFilter === ''"
+        (click)="quizFilter = ''"
+        style="cursor:pointer;"
+      >
+        <span class="material-symbols-outlined">apps</span>
 
         <div>
-          <strong>374 total likes</strong>
-          <p>Across visible comments and reviews</p>
+          <strong>All Quizzes</strong>
+          <p>{{ reviews.length }} total reviews</p>
         </div>
       </div>
 
-      <div class="discussion-item">
-        <span class="material-symbols-outlined">reply</span>
+      <div
+        class="discussion-item"
+        *ngFor="let quiz of quizCards"
+        [class.danger]="quizFilter === quiz.title"
+        (click)="quizFilter = quiz.title"
+        style="cursor:pointer;"
+      >
+        <span class="material-symbols-outlined">quiz</span>
 
         <div>
-          <strong>49 replies</strong>
-          <p>Conversation activity from users</p>
-        </div>
-      </div>
-
-      <div class="discussion-item">
-        <span class="material-symbols-outlined">visibility_off</span>
-
-        <div>
-          <strong>{{ hiddenCount }} hidden items</strong>
-          <p>Feedback hidden by admin</p>
+          <strong>{{ quiz.title }}</strong>
+          <p>{{ quiz.count }} reviews • {{ quiz.avgRating }} avg rating</p>
         </div>
       </div>
     </div>
@@ -171,34 +134,50 @@
   <div class="tab-row">
     <button
       class="tab-pill"
-      [class.active]="activeTab === 'all'"
-      (click)="setTab('all')"
+      [class.active]="ratingFilter === ''"
+      (click)="ratingFilter = ''"
     >
-      All
+      All Reviews
     </button>
 
     <button
       class="tab-pill"
-      [class.active]="activeTab === 'reviews'"
-      (click)="setTab('reviews')"
+      [class.active]="ratingFilter === '5'"
+      (click)="ratingFilter = '5'"
     >
-      Reviews
+      5 Stars
     </button>
 
     <button
       class="tab-pill"
-      [class.active]="activeTab === 'comments'"
-      (click)="setTab('comments')"
+      [class.active]="ratingFilter === '4'"
+      (click)="ratingFilter = '4'"
     >
-      Comments
+      4 Stars
     </button>
 
     <button
       class="tab-pill"
-      [class.active]="activeTab === 'popular'"
-      (click)="setTab('popular')"
+      [class.active]="ratingFilter === '3'"
+      (click)="ratingFilter = '3'"
     >
-      Most Liked
+      3 Stars
+    </button>
+
+    <button
+      class="tab-pill"
+      [class.active]="ratingFilter === '2'"
+      (click)="ratingFilter = '2'"
+    >
+      2 Stars
+    </button>
+
+    <button
+      class="tab-pill"
+      [class.active]="ratingFilter === '1'"
+      (click)="ratingFilter = '1'"
+    >
+      1 Star
     </button>
   </div>
 
@@ -208,7 +187,7 @@
 
       <input
         type="text"
-        placeholder="Search users, quizzes, reviews or comments..."
+        placeholder="Search users, quizzes or review content..."
         [(ngModel)]="searchText"
       />
     </div>
@@ -224,23 +203,14 @@
       </option>
     </select>
 
-    <select [(ngModel)]="statusFilter">
-      <option value="">Status: All</option>
-      <option value="Visible">Visible</option>
-      <option value="Hidden">Hidden</option>
-    </select>
-
-    <select [(ngModel)]="ratingFilter">
-      <option value="">Rating: All</option>
-      <option value="5">5 Stars</option>
-      <option value="4">4 Stars</option>
-      <option value="3">3 Stars</option>
-      <option value="2">2 Stars</option>
-      <option value="1">1 Star</option>
+    <select [(ngModel)]="sortBy">
+      <option value="latest">Latest First</option>
+      <option value="highest">Highest Rating</option>
+      <option value="lowest">Lowest Rating</option>
     </select>
 
     <span class="result-count">
-      {{ filteredFeedbacks.length }} items
+      {{ filteredReviews.length }} reviews
     </span>
   </div>
 </section>
@@ -248,12 +218,12 @@
 <section class="feedback-list">
   <article
     class="feedback-card animate-fade-up"
-    *ngFor="let item of filteredFeedbacks"
+    *ngFor="let review of filteredReviews"
   >
     <div class="feedback-main">
       <img
         class="feedback-avatar"
-        [src]="'https://api.dicebear.com/8.x/avataaars/svg?seed=' + item.avatarSeed + '&size=44&backgroundColor=b6e3f4'"
+        [src]="getAvatar(review)"
         alt="User avatar"
       />
 
@@ -261,62 +231,49 @@
         <div class="feedback-top">
           <div>
             <div class="feedback-author">
-              {{ item.user }}
-              <span>{{ item.email }}</span>
+              {{ review.user }}
+              <span>{{ review.email }}</span>
             </div>
 
             <div class="feedback-meta">
-              <strong>{{ item.quizTitle }}</strong>
-              <span>{{ item.quizId }}</span>
-              <span>{{ item.createdAt }}</span>
+              <strong>{{ review.quizTitle }}</strong>
+              <span>{{ review.quizId }}</span>
+              <span>{{ review.createdAt }}</span>
             </div>
           </div>
 
           <div class="feedback-badges">
-            <span
-              class="type-badge"
-              [class.review]="item.type === 'Review'"
-              [class.comment]="item.type === 'Comment'"
-            >
-              {{ item.type }}
-            </span>
-
-            <span
-              class="badge-status"
-              [class.visible-status]="item.status === 'Visible'"
-              [class.hidden-status]="item.status === 'Hidden'"
-            >
-              {{ item.status }}
+            <span class="type-badge review">
+              Review
             </span>
           </div>
         </div>
 
-        <div
-          class="stars"
-          *ngIf="item.type === 'Review'"
-        >
+        <div class="stars">
           <span
             class="material-symbols-outlined filled"
-            *ngFor="let star of getStars(item.rating)"
+            *ngFor="let star of getStars(review.rating)"
+          >
+            star
+          </span>
+
+          <span
+            class="material-symbols-outlined"
+            *ngFor="let star of getEmptyStars(review.rating)"
           >
             star
           </span>
         </div>
 
         <p class="feedback-text">
-          {{ item.content }}
+          {{ review.content || 'No review comment provided.' }}
         </p>
 
         <div class="feedback-footer">
           <div class="feedback-stats">
             <span>
-              <span class="material-symbols-outlined">thumb_up</span>
-              {{ item.likes }} likes
-            </span>
-
-            <span>
-              <span class="material-symbols-outlined">reply</span>
-              {{ item.replies }} replies
+              <span class="material-symbols-outlined">grade</span>
+              {{ review.rating }}/5 rating
             </span>
           </div>
 
@@ -324,32 +281,15 @@
             <button
               class="topbar-icon-btn action-btn view-btn"
               title="View Details"
-            >
-              <span class="material-symbols-outlined">visibility</span>
-            </button>
-
-            <button
-              *ngIf="item.status === 'Visible'"
-              class="topbar-icon-btn action-btn hide-btn"
-              title="Hide Feedback"
-              (click)="toggleStatus(item)"
-            >
-              <span class="material-symbols-outlined">visibility_off</span>
-            </button>
-
-            <button
-              *ngIf="item.status === 'Hidden'"
-              class="topbar-icon-btn action-btn show-btn"
-              title="Show Feedback"
-              (click)="toggleStatus(item)"
+              (click)="showComingSoon()"
             >
               <span class="material-symbols-outlined">visibility</span>
             </button>
 
             <button
               class="topbar-icon-btn action-btn delete-btn"
-              title="Delete Feedback"
-              (click)="deleteFeedback(item.id)"
+              title="Delete Review"
+              (click)="deleteReview(review.id)"
             >
               <span class="material-symbols-outlined">delete</span>
             </button>
@@ -361,8 +301,8 @@
 
   <div
     class="empty-state"
-    *ngIf="filteredFeedbacks.length === 0"
+    *ngIf="filteredReviews.length === 0"
   >
-    No reviews or comments found.
+    No reviews found.
   </div>
 </section>

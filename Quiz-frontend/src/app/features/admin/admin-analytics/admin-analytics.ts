@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   NgApexchartsModule,
   ApexAxisChartSeries,
@@ -14,6 +15,8 @@ import {
   ApexMarkers,
   ApexLegend
 } from 'ng-apexcharts';
+
+import { AdminApi, AnalyticsApi } from '../../../services/admin-api';
 
 interface AnalyticsKpi {
   label: string;
@@ -42,211 +45,321 @@ export type ChartOptions = {
 @Component({
   selector: 'app-admin-analytics',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, NgApexchartsModule],
   templateUrl: './admin-analytics.html',
   styleUrl: './admin-analytics.css'
 })
-export class AdminAnalytics {
-  kpis: AnalyticsKpi[] = [
-    {
-      label: 'Page Views',
-      value: '2.4M',
-      note: '+18.3%',
-      icon: 'visibility',
-      iconClass: 'bg-primary-soft text-primary',
-      trendClass: 'text-tertiary'
-    },
-    {
-      label: 'Avg Session',
-      value: '8.4m',
-      note: '+2.1%',
-      icon: 'timer',
-      iconClass: 'bg-secondary-soft text-secondary',
-      trendClass: 'text-primary'
-    },
-    {
-      label: 'Bounce Rate',
-      value: '21.7%',
-      note: '-3.2%',
-      icon: 'logout',
-      iconClass: 'bg-tertiary-soft text-tertiary',
-      trendClass: 'text-tertiary'
-    },
-    {
-      label: 'Completion Rate',
-      value: '74.2%',
-      note: '+6.8%',
-      icon: 'check_circle',
-      iconClass: 'bg-primary-soft text-primary',
-      trendClass: 'text-primary'
+export class AdminAnalytics implements OnInit {
+  selectedRange = '30';
+
+  soloGames = 0;
+  multiGames = 0;
+  totalReviews = 0;
+  activeRooms = 0;
+
+  kpis: AnalyticsKpi[] = [];
+
+  chartOptions: ChartOptions = this.buildChartOptions([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]);
+
+  constructor(
+    private adminApi: AdminApi,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadAnalytics();
+  }
+
+  changeRange(): void {
+    this.loadAnalytics();
+  }
+
+  loadAnalytics(): void {
+    this.adminApi.getAnalytics(this.selectedRange).subscribe({
+      next: (data: AnalyticsApi) => {
+        const totalGames = Number(data.totalResults || 0);
+        const solo = Number(data.soloGames || 0);
+        const multi = Number(data.multiGames || 0);
+        const reviews = Number(data.totalReviews || 0);
+
+        this.soloGames = solo;
+        this.multiGames = multi;
+        this.totalReviews = reviews;
+        this.activeRooms = 0;
+
+        this.kpis = [
+          {
+            label: 'Total Users',
+            value: this.formatNumber(data.totalUsers || 0),
+            note: this.getRangeLabel(),
+            icon: 'group',
+            iconClass: 'bg-primary-soft text-primary',
+            trendClass: 'text-primary'
+          },
+          {
+            label: 'Total Quizzes',
+            value: this.formatNumber(data.totalQuizzes || 0),
+            note: 'Created quiz content',
+            icon: 'quiz',
+            iconClass: 'bg-secondary-soft text-secondary',
+            trendClass: 'text-primary'
+          },
+          {
+            label: 'Total Results',
+            value: this.formatNumber(totalGames),
+            note: `${solo} solo / ${multi} multi`,
+            icon: 'sports_esports',
+            iconClass: 'bg-tertiary-soft text-tertiary',
+            trendClass: 'text-tertiary'
+          },
+          {
+            label: 'Reviews',
+            value: this.formatNumber(reviews),
+            note: 'Community feedback',
+            icon: 'rate_review',
+            iconClass: 'bg-primary-soft text-primary',
+            trendClass: 'text-primary'
+          }
+        ];
+
+        this.chartOptions = this.buildChartOptions(
+          this.makeTrendSeries(solo),
+          this.makeTrendSeries(multi)
+        );
+
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.setFallbackData();
+      }
+    });
+  }
+
+  getRangeLabel(): string {
+    if (this.selectedRange === 'today') return 'Today';
+    if (this.selectedRange === '7') return 'Last 7 days';
+    if (this.selectedRange === '30') return 'Last 30 days';
+    return 'All time';
+  }
+
+  private setFallbackData(): void {
+    this.soloGames = 0;
+    this.multiGames = 0;
+    this.totalReviews = 0;
+    this.activeRooms = 0;
+
+    this.kpis = [
+      {
+        label: 'Total Users',
+        value: '0',
+        note: 'Backend unavailable',
+        icon: 'group',
+        iconClass: 'bg-primary-soft text-primary',
+        trendClass: 'text-primary'
+      },
+      {
+        label: 'Total Quizzes',
+        value: '0',
+        note: 'Backend unavailable',
+        icon: 'quiz',
+        iconClass: 'bg-secondary-soft text-secondary',
+        trendClass: 'text-primary'
+      },
+      {
+        label: 'Total Results',
+        value: '0',
+        note: 'Backend unavailable',
+        icon: 'sports_esports',
+        iconClass: 'bg-tertiary-soft text-tertiary',
+        trendClass: 'text-tertiary'
+      },
+      {
+        label: 'Reviews',
+        value: '0',
+        note: 'Backend unavailable',
+        icon: 'rate_review',
+        iconClass: 'bg-primary-soft text-primary',
+        trendClass: 'text-primary'
+      }
+    ];
+
+    this.chartOptions = this.buildChartOptions(
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0]
+    );
+
+    this.cdr.detectChanges();
+  }
+
+  private makeTrendSeries(total: number): number[] {
+    const value = Math.max(Number(total || 0), 0);
+
+    if (value === 0) {
+      return [0, 0, 0, 0, 0, 0, 0];
     }
-  ];
 
-  chartOptions: ChartOptions = {
-    series: [
-      {
-        name: 'Active Users',
-        data: [
-          4300, 4100, 4700, 3600, 4250,
-          4200, 4650, 3400, 3650, 2550,
-          2950, 3450, 3850, 3650, 2550,
-          4400, 3650, 4420, 4300, 4380,
-          4520, 4870, 3250, 2920, 4320,
-          3150, 2450, 2420, 2480, 3200
-        ]
-      },
-      {
-        name: '7-day Avg',
-        data: [
-          null, null, null, null, null,
-          null, 4200, 4100, 4050, 3820,
-          3600, 3450, 3350, 3200, 3250,
-          3400, 3600, 3750, 3850, 3950,
-          4100, 4350, 4200, 4100, 4080,
-          3900, 3650, 3400, 3000, 3250
-        ]
-      }
-    ],
+    return [
+      Math.max(Math.round(value * 0.12), 1),
+      Math.max(Math.round(value * 0.2), 1),
+      Math.max(Math.round(value * 0.32), 1),
+      Math.max(Math.round(value * 0.45), 1),
+      Math.max(Math.round(value * 0.62), 1),
+      Math.max(Math.round(value * 0.78), 1),
+      value
+    ];
+  }
 
-    chart: {
-      type: 'area',
-      height: 360,
-      toolbar: {
-        show: false
-      },
-      zoom: {
-        enabled: false
-      },
-      animations: {
-        enabled: true,
-        speed: 950,
-        animateGradually: {
-          enabled: true,
-          delay: 80
+  private buildChartOptions(soloData: number[], multiData: number[]): ChartOptions {
+    const maxValue = Math.max(...soloData, ...multiData, 5);
+
+    return {
+      series: [
+        {
+          name: 'Solo Games',
+          data: soloData
         },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 500
+        {
+          name: 'Multi Games',
+          data: multiData
         }
-      },
-      fontFamily: 'Manrope, Arial, sans-serif',
-      foreColor: '#68537c'
-    },
-
-    colors: ['#6e12f8', '#b30064'],
-
-    stroke: {
-      curve: 'smooth',
-      width: [4, 2],
-      dashArray: [0, 6]
-    },
-
-    fill: {
-      type: 'gradient',
-      opacity: [0.28, 0],
-      gradient: {
-        shadeIntensity: 0.2,
-        opacityFrom: 0.28,
-        opacityTo: 0.03,
-        stops: [0, 90, 100]
-      }
-    },
-
-    dataLabels: {
-      enabled: false
-    },
-
-    markers: {
-      size: 0,
-      strokeWidth: 3,
-      strokeColors: '#ffffff',
-      hover: {
-        size: 7
-      }
-    },
-
-    grid: {
-      borderColor: 'rgba(188, 164, 209, 0.24)',
-      strokeDashArray: 0,
-      xaxis: {
-        lines: {
-          show: false
-        }
-      },
-      yaxis: {
-        lines: {
-          show: true
-        }
-      },
-      padding: {
-        left: 8,
-        right: 8,
-        top: 8,
-        bottom: 0
-      }
-    },
-
-    xaxis: {
-      categories: [
-        'Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5',
-        'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10',
-        'Day 11', 'Day 12', 'Day 13', 'Day 14', 'Day 15',
-        'Day 16', 'Day 17', 'Day 18', 'Day 19', 'Day 20',
-        'Day 21', 'Day 22', 'Day 23', 'Day 24', 'Day 25',
-        'Day 26', 'Day 27', 'Day 28', 'Day 29', 'Day 30'
       ],
-      tickAmount: 7,
-      labels: {
-        style: {
-          colors: '#8a78a0',
-          fontSize: '12px',
-          fontWeight: 700
-        }
-      },
-      axisBorder: {
-        show: false
-      },
-      axisTicks: {
-        show: false
-      },
-      tooltip: {
-        enabled: false
-      }
-    },
 
-    yaxis: {
-      min: 2000,
-      max: 5000,
-      tickAmount: 6,
-      labels: {
-        formatter: (value: number): string => {
-          return `${value / 1000}k`;
+      chart: {
+        type: 'area',
+        height: 360,
+        toolbar: {
+          show: false
         },
-        style: {
-          colors: '#8a78a0',
-          fontSize: '12px',
-          fontWeight: 700
-        }
-      }
-    },
-
-    tooltip: {
-      enabled: true,
-      shared: true,
-      intersect: false,
-      theme: 'light',
-      marker: {
-        show: true
+        zoom: {
+          enabled: false
+        },
+        animations: {
+          enabled: true,
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 80
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 400
+          }
+        },
+        fontFamily: 'Manrope, Arial, sans-serif',
+        foreColor: '#68537c'
       },
-      y: {
-        formatter: (value: number): string => {
-          return `${value.toLocaleString()}`;
-        }
-      }
-    },
 
-    legend: {
-      show: false
-    }
-  };
+      colors: ['#6e12f8', '#b30064'],
+
+      stroke: {
+        curve: 'smooth',
+        width: [4, 3],
+        dashArray: [0, 6]
+      },
+
+      fill: {
+        type: 'gradient',
+        opacity: [0.28, 0.08],
+        gradient: {
+          shadeIntensity: 0.2,
+          opacityFrom: 0.3,
+          opacityTo: 0.03,
+          stops: [0, 90, 100]
+        }
+      },
+
+      dataLabels: {
+        enabled: false
+      },
+
+      markers: {
+        size: 0,
+        strokeWidth: 3,
+        strokeColors: '#ffffff',
+        hover: {
+          size: 7
+        }
+      },
+
+      grid: {
+        borderColor: 'rgba(188, 164, 209, 0.24)',
+        strokeDashArray: 0,
+        xaxis: {
+          lines: {
+            show: false
+          }
+        },
+        yaxis: {
+          lines: {
+            show: true
+          }
+        },
+        padding: {
+          left: 8,
+          right: 8,
+          top: 8,
+          bottom: 0
+        }
+      },
+
+      xaxis: {
+        categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: {
+          style: {
+            colors: '#8a78a0',
+            fontSize: '12px',
+            fontWeight: 700
+          }
+        },
+        axisBorder: {
+          show: false
+        },
+        axisTicks: {
+          show: false
+        },
+        tooltip: {
+          enabled: false
+        }
+      },
+
+      yaxis: {
+        min: 0,
+        max: Math.ceil(maxValue * 1.2),
+        tickAmount: 5,
+        labels: {
+          formatter: (value: number): string => {
+            return `${Math.round(value)}`;
+          },
+          style: {
+            colors: '#8a78a0',
+            fontSize: '12px',
+            fontWeight: 700
+          }
+        }
+      },
+
+      tooltip: {
+        enabled: true,
+        shared: true,
+        intersect: false,
+        theme: 'light',
+        marker: {
+          show: true
+        },
+        y: {
+          formatter: (value: number): string => {
+            return `${Math.round(value)} games`;
+          }
+        }
+      },
+
+      legend: {
+        show: false
+      }
+    };
+  }
+
+  formatNumber(value: number): string {
+    return Number(value || 0).toLocaleString();
+  }
 }

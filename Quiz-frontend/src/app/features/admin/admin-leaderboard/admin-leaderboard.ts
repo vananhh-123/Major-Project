@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { API_CONFIG } from '../../../config/api.config';
 
 type LeaderboardMode = 'All' | 'Solo' | 'Multi';
 type TimeFilter = 'All Time' | 'This Month' | 'This Week';
@@ -9,12 +11,13 @@ interface LeaderboardUser {
   id: string;
   rank: number;
   trend: 'up' | 'down' | 'same';
-  name: string;
   username: string;
   email: string;
+  avatar: string;
   avatarSeed: string;
-  mode: 'Solo' | 'Multi';
+  mode: 'Solo' | 'Multi' | 'All';
   category: string;
+  points: number;
   score: number;
   games: number;
   streak: number;
@@ -26,223 +29,98 @@ interface LeaderboardUser {
 @Component({
   selector: 'app-admin-leaderboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './admin-leaderboard.html',
   styleUrl: './admin-leaderboard.css'
 })
-export class AdminLeaderboard {
+export class AdminLeaderboard implements OnInit {
+  private http = inject(HttpClient);
+
   searchText = '';
   activeTab: LeaderboardMode = 'All';
-  timeFilter: TimeFilter = 'This Week';
+  timeFilter: TimeFilter = 'All Time';
 
   currentPage = 1;
   pageSize = 5;
 
-  players: LeaderboardUser[] = [
-    {
-      id: 'U001',
-      rank: 1,
-      trend: 'same',
-      name: 'NeuroQueen',
-      username: '@NeuroQueen',
-      email: 'neuroqueen@example.com',
-      avatarSeed: 'NeuroQueen',
-      mode: 'Solo',
-      category: 'Science',
-      score: 99.8,
-      games: 842,
-      streak: 47,
-      badge: 'Legend',
-      badgeIcon: '🏆',
-      status: 'Active'
-    },
-    {
-      id: 'U002',
-      rank: 2,
-      trend: 'up',
-      name: 'HistoHero',
-      username: '@HistoHero',
-      email: 'histohero@example.com',
-      avatarSeed: 'HistoHero',
-      mode: 'Multi',
-      category: 'History',
-      score: 98.4,
-      games: 631,
-      streak: 31,
-      badge: 'Master',
-      badgeIcon: '⭐',
-      status: 'Active'
-    },
-    {
-      id: 'U003',
-      rank: 3,
-      trend: 'down',
-      name: 'SportzKing',
-      username: '@SportzKing',
-      email: 'sportzking@example.com',
-      avatarSeed: 'SportzKing',
-      mode: 'Solo',
-      category: 'Sports',
-      score: 97.1,
-      games: 509,
-      streak: 22,
-      badge: 'Expert',
-      badgeIcon: '🔥',
-      status: 'Active'
-    },
-    {
-      id: 'U004',
-      rank: 4,
-      trend: 'up',
-      name: 'CodeWizard',
-      username: '@CodeWizard',
-      email: 'codewizard@example.com',
-      avatarSeed: 'CodeWizard',
-      mode: 'Multi',
-      category: 'Tech',
-      score: 95.6,
-      games: 741,
-      streak: 18,
-      badge: 'Pro',
-      badgeIcon: '💡',
-      status: 'Active'
-    },
-    {
-      id: 'U005',
-      rank: 5,
-      trend: 'same',
-      name: 'CulturePro',
-      username: '@CulturePro',
-      email: 'culturepro@example.com',
-      avatarSeed: 'CulturePro',
-      mode: 'Solo',
-      category: 'Culture',
-      score: 94.2,
-      games: 388,
-      streak: 14,
-      badge: 'Pro',
-      badgeIcon: '🎭',
-      status: 'Active'
-    },
-    {
-      id: 'U006',
-      rank: 6,
-      trend: 'up',
-      name: 'QuizMaster42',
-      username: '@QuizMaster42',
-      email: 'quizmaster@example.com',
-      avatarSeed: 'QuizMaster42',
-      mode: 'Multi',
-      category: 'Mixed',
-      score: 92.8,
-      games: 1102,
-      streak: 9,
-      badge: 'Elite',
-      badgeIcon: '💎',
-      status: 'Active'
-    },
-    {
-      id: 'U007',
-      rank: 7,
-      trend: 'down',
-      name: 'TriviaGod',
-      username: '@TriviaGod',
-      email: 'triviagod@example.com',
-      avatarSeed: 'TriviaGod',
-      mode: 'Solo',
-      category: 'History',
-      score: 91.5,
-      games: 275,
-      streak: 21,
-      badge: 'Expert',
-      badgeIcon: '☀️',
-      status: 'Blocked'
-    },
-    {
-      id: 'U008',
-      rank: 8,
-      trend: 'up',
-      name: 'BrainStorm88',
-      username: '@BrainStorm88',
-      email: 'brainstorm@example.com',
-      avatarSeed: 'BrainStorm88',
-      mode: 'Multi',
-      category: 'Science',
-      score: 90.3,
-      games: 494,
-      streak: 7,
-      badge: 'Pro',
-      badgeIcon: '⚡',
-      status: 'Active'
-    },
-    {
-      id: 'U009',
-      rank: 9,
-      trend: 'same',
-      name: 'AcePlayer',
-      username: '@AcePlayer',
-      email: 'aceplayer@example.com',
-      avatarSeed: 'AcePlayer',
-      mode: 'Solo',
-      category: 'Mixed',
-      score: 89.7,
-      games: 612,
-      streak: 5,
-      badge: 'Pro',
-      badgeIcon: '🎯',
-      status: 'Active'
-    },
-    {
-      id: 'U010',
-      rank: 10,
-      trend: 'down',
-      name: 'QuizPhenom',
-      username: '@QuizPhenom',
-      email: 'quizphenom@example.com',
-      avatarSeed: 'QuizPhenom',
-      mode: 'Multi',
-      category: 'Culture',
-      score: 88.9,
-      games: 338,
-      streak: 12,
-      badge: 'Expert',
-      badgeIcon: '✨',
-      status: 'Active'
+  players: LeaderboardUser[] = [];
+
+  ngOnInit(): void {
+    this.loadLeaderboard();
+  }
+
+  loadLeaderboard(): void {
+    const period = this.getPeriodParam();
+    const mode = this.getModeParam();
+
+    let url = `${API_CONFIG.API_BASE}/leaderboard?period=${period}`;
+
+    if (mode) {
+      url += `&mode=${mode}`;
     }
-  ];
+
+    this.http.get<any[]>(url).subscribe({
+      next: (res) => {
+        const maxPoints = Math.max(...res.map(x => Number(x.points ?? 0)), 1);
+
+        this.players = res.map((item, index): LeaderboardUser => {
+          const points = Number(item.points ?? 0);
+
+          return {
+            id: String(item.userId ?? item.user_id ?? ''),
+            rank: Number(item.rank ?? index + 1),
+            trend: 'same',
+            username: String(item.name ?? 'Unknown Player'),
+            email: '',
+            avatar: String(item.avatar ?? ''),
+            avatarSeed: String(item.name ?? item.userId ?? 'player'),
+            mode: this.activeTab === 'All' ? 'All' : this.activeTab,
+            category: this.activeTab,
+            points,
+            score: Math.round((points / maxPoints) * 100),
+            games: Number(item.games ?? 0),
+            streak: Number(item.streak ?? 0),
+            badge: this.getBadge(points),
+            badgeIcon: this.getBadgeIcon(points),
+            status: 'Active'
+          };
+        });
+
+        this.currentPage = 1;
+      },
+      error: (err) => {
+        console.error('Load leaderboard failed:', err);
+      }
+    });
+  }
 
   get totalRankedUsers(): number {
     return this.players.length;
   }
 
   get soloPlayers(): number {
-    return this.players.filter(player => player.mode === 'Solo').length;
+    return this.activeTab === 'Solo' ? this.players.length : 0;
   }
 
   get multiPlayers(): number {
-    return this.players.filter(player => player.mode === 'Multi').length;
+    return this.activeTab === 'Multi' ? this.players.length : 0;
   }
 
   get highestScore(): number {
-    return Math.max(...this.players.map(player => player.score));
+    if (this.players.length === 0) return 0;
+    return Math.max(...this.players.map(p => p.points));
   }
 
   get filteredPlayers(): LeaderboardUser[] {
+    const keyword = this.searchText.trim().toLowerCase();
+
     return this.players.filter(player => {
-      const keyword = this.searchText.toLowerCase();
-
-      const matchesSearch =
-        player.name.toLowerCase().includes(keyword) ||
+      return (
+        !keyword ||
         player.username.toLowerCase().includes(keyword) ||
-        player.email.toLowerCase().includes(keyword) ||
-        player.category.toLowerCase().includes(keyword) ||
-        player.badge.toLowerCase().includes(keyword);
-
-      const matchesTab =
-        this.activeTab === 'All' ||
-        player.mode === this.activeTab;
-
-      return matchesSearch && matchesTab;
+        player.id.toLowerCase().includes(keyword) ||
+        player.badge.toLowerCase().includes(keyword)
+      );
     });
   }
 
@@ -253,11 +131,11 @@ export class AdminLeaderboard {
   }
 
   get rankingPlayers(): LeaderboardUser[] {
-    return this.filteredPlayers.sort((a, b) => a.rank - b.rank);
+    return [...this.filteredPlayers].sort((a, b) => a.rank - b.rank);
   }
 
   get totalPages(): number {
-    return Math.ceil(this.rankingPlayers.length / this.pageSize) || 1;
+    return Math.max(1, Math.ceil(this.rankingPlayers.length / this.pageSize));
   }
 
   get paginatedPlayers(): LeaderboardUser[] {
@@ -281,30 +159,69 @@ export class AdminLeaderboard {
   setTab(tab: LeaderboardMode): void {
     this.activeTab = tab;
     this.currentPage = 1;
+    this.loadLeaderboard();
   }
 
   setTimeFilter(filter: TimeFilter): void {
     this.timeFilter = filter;
     this.currentPage = 1;
+    this.loadLeaderboard();
   }
 
   goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
   }
 
   previousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-    }
+    this.goToPage(this.currentPage - 1);
   }
 
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-    }
+    this.goToPage(this.currentPage + 1);
   }
 
   toggleStatus(player: LeaderboardUser): void {
     player.status = player.status === 'Active' ? 'Blocked' : 'Active';
+  }
+
+  getAvatar(player: LeaderboardUser): string {
+    if (player.avatar && player.avatar.trim() !== '') {
+      return player.avatar;
+    }
+
+    return `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(player.avatarSeed)}`;
+  }
+
+  showComingSoon(): void {
+    alert('This feature is currently under development. Please check back in a future update.');
+  }
+
+  private getPeriodParam(): string {
+    if (this.timeFilter === 'This Week') return 'weekly';
+    if (this.timeFilter === 'This Month') return 'monthly';
+    return 'all';
+  }
+
+  private getModeParam(): string {
+    if (this.activeTab === 'Solo') return 'solo';
+    if (this.activeTab === 'Multi') return 'multi';
+    return '';
+  }
+
+  private getBadge(points: number): string {
+    if (points >= 5000) return 'Legend';
+    if (points >= 3000) return 'Master';
+    if (points >= 1500) return 'Expert';
+    if (points >= 500) return 'Pro';
+    return 'Rookie';
+  }
+
+  private getBadgeIcon(points: number): string {
+    if (points >= 5000) return '🏆';
+    if (points >= 3000) return '⭐';
+    if (points >= 1500) return '🔥';
+    if (points >= 500) return '💡';
+    return '🎯';
   }
 }

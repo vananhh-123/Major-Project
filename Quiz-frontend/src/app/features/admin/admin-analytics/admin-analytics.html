@@ -5,15 +5,21 @@
     <h2 class="page-headline">Analytics & Reports</h2>
 
     <p class="page-subline">
-      Deep-dive into platform performance and user behavior.
+      Deep-dive into platform performance, quiz results and user activities.
     </p>
   </div>
 
   <div class="header-actions">
-    <button class="outline-action-btn">
-      <span class="material-symbols-outlined">calendar_month</span>
-      Last 30 Days
-    </button>
+    <select
+      class="range-select"
+      [(ngModel)]="selectedRange"
+      (change)="changeRange()"
+    >
+      <option value="today">Today</option>
+      <option value="7">Last 7 Days</option>
+      <option value="30">Last 30 Days</option>
+      <option value="all">All Time</option>
+    </select>
 
     <button class="primary-action-btn">
       <span class="material-symbols-outlined">download</span>
@@ -47,8 +53,8 @@
 <section class="analytics-main-grid">
   <div class="chart-card daily-users-card">
     <div class="chart-title-block">
-      <h3>Daily Active Users</h3>
-      <p>30-day trend with 7-day rolling average</p>
+      <h3>Game Activity</h3>
+      <p>Solo and multiplayer activity based on selected time range.</p>
     </div>
 
     <apx-chart
@@ -70,47 +76,47 @@
   <div class="chart-card overview-card">
     <div class="chart-title-block">
       <h3>Game Overview</h3>
-      <p>Solo games, multiplayer games, reviews and active rooms</p>
+      <p>Solo games, multiplayer games, reviews and active rooms.</p>
     </div>
 
     <div class="overview-list">
       <div class="overview-item">
         <div class="overview-row">
           <span>Solo Games</span>
-          <strong>4,890</strong>
+          <strong>{{ soloGames }}</strong>
         </div>
         <div class="overview-bar">
-          <div class="overview-fill primary" style="width:84%"></div>
+          <div class="overview-fill primary" [style.width.%]="soloGames > 0 ? 84 : 8"></div>
         </div>
       </div>
 
       <div class="overview-item">
         <div class="overview-row">
           <span>Multi Games</span>
-          <strong>1,736</strong>
+          <strong>{{ multiGames }}</strong>
         </div>
         <div class="overview-bar">
-          <div class="overview-fill secondary" style="width:58%"></div>
+          <div class="overview-fill secondary" [style.width.%]="multiGames > 0 ? 68 : 8"></div>
         </div>
       </div>
 
       <div class="overview-item">
         <div class="overview-row">
           <span>Reviews</span>
-          <strong>892</strong>
+          <strong>{{ totalReviews }}</strong>
         </div>
         <div class="overview-bar">
-          <div class="overview-fill tertiary" style="width:66%"></div>
+          <div class="overview-fill tertiary" [style.width.%]="totalReviews > 0 ? 58 : 8"></div>
         </div>
       </div>
 
       <div class="overview-item">
         <div class="overview-row">
           <span>Active Rooms</span>
-          <strong>24</strong>
+          <strong>{{ activeRooms }}</strong>
         </div>
         <div class="overview-bar">
-          <div class="overview-fill primary" style="width:34%"></div>
+          <div class="overview-fill primary" [style.width.%]="activeRooms > 0 ? 34 : 8"></div>
         </div>
       </div>
     </div>

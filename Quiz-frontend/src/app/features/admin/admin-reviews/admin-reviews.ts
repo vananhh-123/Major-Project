@@ -1,235 +1,221 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { API_CONFIG } from '../../../config/api.config';
 
-import {
-  AdminApi,
-  AdminReviewApi
-} from '../../../services/admin-api';
-
-type FeedbackType = 'Review' | 'Comment';
-type FeedbackStatus = 'Visible' | 'Hidden';
-
-interface FeedbackItem {
+interface AdminReview {
   id: string;
-  type: FeedbackType;
   user: string;
   email: string;
-  avatarSeed: string;
-  quizTitle: string;
+  avatar: string;
   quizId: string;
+  quizTitle: string;
   content: string;
-  rating?: number;
-  likes: number;
-  replies: number;
-  status: FeedbackStatus;
+  rating: number;
   createdAt: string;
+}
+
+interface AdminQuiz {
+  id: string;
+  title: string;
 }
 
 @Component({
   selector: 'app-admin-reviews',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './admin-reviews.html',
   styleUrl: './admin-reviews.css'
 })
 export class AdminReviews implements OnInit {
+  private http = inject(HttpClient);
+
+  reviews: AdminReview[] = [];
+  allQuizzes: AdminQuiz[] = [];
+
   searchText = '';
-  activeTab: 'all' | 'reviews' | 'comments' | 'popular' = 'all';
-  statusFilter = '';
   quizFilter = '';
   ratingFilter = '';
-
-  feedbacks: FeedbackItem[] = [];
-
-  constructor(private adminApi: AdminApi) {}
+  sortBy = 'latest';
 
   ngOnInit(): void {
     this.loadReviews();
+    this.loadQuizzes();
   }
 
   loadReviews(): void {
-    this.adminApi.getAdminReviews().subscribe({
-      next: (data: AdminReviewApi[]) => {
-        this.feedbacks = data.map((item: AdminReviewApi) =>
-          this.mapReview(item)
-        );
+    this.http.get<any[]>(`${API_CONFIG.API_BASE}/admin/reviews`).subscribe({
+      next: (res) => {
+        this.reviews = res.map((r) => ({
+          id: String(r.id ?? ''),
+          user: String(r.user ?? r.username ?? 'Anonymous User'),
+          email: String(r.email ?? ''),
+          avatar: String(r.avatar ?? ''),
+          quizId: String(r.quizId ?? r.quiz_id ?? ''),
+          quizTitle: String(r.quizTitle ?? r.title ?? 'Unknown Quiz'),
+          content: String(r.content ?? r.comment ?? ''),
+          rating: Number(r.rating ?? 0),
+          createdAt: String(r.createdAt ?? r.created_at ?? '')
+        }));
       },
-      error: () => {
-        alert('Cannot load reviews from backend.');
-        this.feedbacks = [];
+      error: (err) => {
+        console.error('Load admin reviews failed:', err);
+        this.reviews = [];
       }
     });
   }
 
-  private mapReview(item: AdminReviewApi): FeedbackItem {
-    const rating = item.rating || 0;
-    const username =
-      item.username ||
-      item.email ||
-      item.user_id ||
-      'Unknown User';
-
-    return {
-      id: item.id,
-      type: rating > 0 ? 'Review' : 'Comment',
-      user: username,
-      email: item.email || 'N/A',
-      avatarSeed: username,
-      quizTitle:
-        item.quizTitle ||
-        item.title ||
-        item.quiz_id ||
-        'Unknown Quiz',
-      quizId: item.quiz_id || 'N/A',
-      content: item.content || 'No content',
-      rating: rating > 0 ? rating : undefined,
-      likes: item.likes || 0,
-      replies: item.replies || 0,
-      status:
-        item.status?.toLowerCase() === 'hidden'
-          ? 'Hidden'
-          : 'Visible',
-      createdAt: this.formatDate(item.created_at)
-    };
-  }
-
-  private formatDate(value?: string): string {
-    if (!value) {
-      return 'N/A';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric'
+  loadQuizzes(): void {
+    this.http.get<any[]>(`${API_CONFIG.API_BASE}/quizzes`).subscribe({
+      next: (res) => {
+        this.allQuizzes = res.map((q) => ({
+          id: String(q.id ?? q.ID ?? ''),
+          title: String(q.title ?? 'Untitled Quiz')
+        }));
+      },
+      error: (err) => {
+        console.error('Load quizzes failed:', err);
+        this.allQuizzes = [];
+      }
     });
-  }
-
-  get totalFeedback(): number {
-    return this.feedbacks.length;
   }
 
   get totalReviews(): number {
-    return this.feedbacks.filter(item => item.type === 'Review').length;
+    return this.reviews.length;
   }
 
-  get totalComments(): number {
-    return this.feedbacks.filter(item => item.type === 'Comment').length;
-  }
-
-  get hiddenCount(): number {
-    return this.feedbacks.filter(item => item.status === 'Hidden').length;
+  get reviewedQuizzes(): number {
+    return new Set(this.reviews.map((r) => r.quizId)).size;
   }
 
   get averageRating(): string {
-    const reviews = this.feedbacks.filter(
-      item => item.type === 'Review' && item.rating
-    );
-
-    if (reviews.length === 0) {
+    if (this.reviews.length === 0) {
       return '0.0';
     }
 
-    const total = reviews.reduce(
-      (sum, item) => sum + (item.rating || 0),
-      0
-    );
-
-    return (total / reviews.length).toFixed(1);
+    const total = this.reviews.reduce((sum, r) => sum + r.rating, 0);
+    return (total / this.reviews.length).toFixed(1);
   }
 
-  get quizzes(): string[] {
-    return Array.from(
-      new Set(this.feedbacks.map(item => item.quizTitle))
-    );
+  get fiveStarReviews(): number {
+    return this.reviews.filter((r) => r.rating === 5).length;
   }
 
-  get filteredFeedbacks(): FeedbackItem[] {
-    let list = [...this.feedbacks];
+  get quizzes(): AdminQuiz[] {
+    return this.allQuizzes;
+  }
 
-    if (this.activeTab === 'reviews') {
-      list = list.filter(item => item.type === 'Review');
-    }
+  get filteredReviews(): AdminReview[] {
+    const keyword = this.searchText.trim().toLowerCase();
 
-    if (this.activeTab === 'comments') {
-      list = list.filter(item => item.type === 'Comment');
-    }
-
-    if (this.activeTab === 'popular') {
-      list = list.sort((a, b) => b.likes - a.likes);
-    }
-
-    const keyword = this.searchText.toLowerCase();
-
-    return list.filter(item => {
+    let list = this.reviews.filter((r) => {
       const matchesSearch =
-        item.user.toLowerCase().includes(keyword) ||
-        item.email.toLowerCase().includes(keyword) ||
-        item.quizTitle.toLowerCase().includes(keyword) ||
-        item.quizId.toLowerCase().includes(keyword) ||
-        item.content.toLowerCase().includes(keyword) ||
-        item.id.toLowerCase().includes(keyword);
-
-      const matchesStatus =
-        this.statusFilter === '' ||
-        item.status === this.statusFilter;
+        !keyword ||
+        r.user.toLowerCase().includes(keyword) ||
+        r.email.toLowerCase().includes(keyword) ||
+        r.quizTitle.toLowerCase().includes(keyword) ||
+        r.content.toLowerCase().includes(keyword);
 
       const matchesQuiz =
-        this.quizFilter === '' ||
-        item.quizTitle === this.quizFilter;
+        !this.quizFilter || r.quizId === this.quizFilter;
 
       const matchesRating =
-        this.ratingFilter === '' ||
-        (
-          item.type === 'Review' &&
-          item.rating === Number(this.ratingFilter)
-        );
+        !this.ratingFilter || r.rating === Number(this.ratingFilter);
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesQuiz &&
-        matchesRating
-      );
+      return matchesSearch && matchesQuiz && matchesRating;
     });
+
+    if (this.sortBy === 'highest') {
+      list = [...list].sort((a, b) => b.rating - a.rating);
+    }
+
+    if (this.sortBy === 'lowest') {
+      list = [...list].sort((a, b) => a.rating - b.rating);
+    }
+
+    if (this.sortBy === 'latest') {
+      list = [...list].sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+
+        return dateB - dateA;
+      });
+    }
+
+    return list;
   }
 
-  getStars(rating?: number): number[] {
-    return Array.from(
-      { length: rating || 0 },
-      (_, index) => index + 1
-    );
+  getStars(rating: number): number[] {
+    return Array.from({ length: Math.max(rating, 0) });
   }
 
-  setTab(tab: 'all' | 'reviews' | 'comments' | 'popular'): void {
-    this.activeTab = tab;
+  getEmptyStars(rating: number): number[] {
+    return Array.from({ length: Math.max(5 - rating, 0) });
   }
 
-  toggleStatus(item: FeedbackItem): void {
-    item.status =
-      item.status === 'Visible'
-        ? 'Hidden'
-        : 'Visible';
+  getRatingPercentage(star: number): number {
+    const source = this.quizFilter
+      ? this.reviews.filter((r) => r.quizId === this.quizFilter)
+      : this.reviews;
+
+    if (source.length === 0) {
+      return 0;
+    }
+
+    const count = source.filter((r) => r.rating === star).length;
+    return Math.round((count / source.length) * 100);
   }
 
-  deleteFeedback(id: string): void {
-    const confirmed = confirm(
-      'Are you sure you want to delete this feedback?'
-    );
+  getAvatar(review: AdminReview): string {
+    if (review.avatar && review.avatar.trim() !== '') {
+      return review.avatar;
+    }
 
-    if (!confirmed) {
+    return `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(
+      review.email || review.user || review.id
+    )}`;
+  }
+
+  deleteReview(id: string): void {
+    if (!confirm('Are you sure you want to delete this review?')) {
       return;
     }
 
-    this.feedbacks = this.feedbacks.filter(
-      item => item.id !== id
+    this.http.delete(`${API_CONFIG.API_BASE}/admin/reviews/${id}`).subscribe({
+      next: () => this.loadReviews(),
+      error: (err) => console.error('Delete review failed:', err)
+    });
+  }
+
+  showComingSoon(): void {
+    alert(
+      'This feature is currently under development. Please check back in a future update.'
     );
+  }
+
+  get quizCards(): {
+    id: string;
+    title: string;
+    count: number;
+    avgRating: string;
+  }[] {
+    return this.allQuizzes.map((quiz) => {
+      const items = this.reviews.filter((r) => r.quizId === quiz.id);
+      const totalRating = items.reduce(
+        (sum, item) => sum + item.rating,
+        0
+      );
+
+      return {
+        id: quiz.id,
+        title: quiz.title,
+        count: items.length,
+        avgRating:
+          items.length > 0
+            ? (totalRating / items.length).toFixed(1)
+            : '0.0'
+      };
+    });
   }
 }

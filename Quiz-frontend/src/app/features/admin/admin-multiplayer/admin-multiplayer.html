@@ -1,21 +1,21 @@
-<section class="multiplayer-header">
+<section class="page-header-row">
   <div>
-    <p class="page-eyebrow">Live Games</p>
+    <p class="page-eyebrow">Live Game Control</p>
 
     <h2 class="page-headline">Multiplayer Rooms</h2>
 
     <p class="page-subline">
-      Monitor active quiz rooms, room PINs, hosts and players.
+      Monitor active quiz rooms, player count, room status and host activity.
     </p>
   </div>
 
-  <button class="primary-action-btn">
-    <span class="material-symbols-outlined">add</span>
-    Create Room
+  <button class="primary-action-btn" (click)="loadRooms()">
+    <span class="material-symbols-outlined">refresh</span>
+    Refresh
   </button>
 </section>
 
-<section class="multiplayer-kpi-grid">
+<section class="kpi-grid">
   <div class="kpi-card animate-fade-up">
     <div class="kpi-top">
       <span class="kpi-label">Total Rooms</span>
@@ -23,21 +23,19 @@
         meeting_room
       </span>
     </div>
-
     <div class="kpi-value">{{ totalRooms }}</div>
-    <div class="kpi-trend text-primary">All multiplayer rooms</div>
+    <div class="kpi-trend text-primary">All created rooms</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
     <div class="kpi-top">
       <span class="kpi-label">Playing</span>
       <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
-        stadia_controller
+        sports_esports
       </span>
     </div>
-
     <div class="kpi-value">{{ playingRooms }}</div>
-    <div class="kpi-trend text-primary">Live now</div>
+    <div class="kpi-trend text-secondary">Live now</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
@@ -47,175 +45,197 @@
         hourglass_top
       </span>
     </div>
-
     <div class="kpi-value">{{ waitingRooms }}</div>
-    <div class="kpi-trend text-tertiary">In lobby</div>
+    <div class="kpi-trend text-muted">Lobby rooms</div>
+  </div>
+
+  <div class="kpi-card animate-fade-up">
+    <div class="kpi-top">
+      <span class="kpi-label">Finished</span>
+      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+        flag
+      </span>
+    </div>
+    <div class="kpi-value">{{ finishedRooms }}</div>
+    <div class="kpi-trend text-muted">Completed games</div>
   </div>
 
   <div class="kpi-card animate-fade-up">
     <div class="kpi-top">
       <span class="kpi-label">Players</span>
-      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
+      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
         groups
       </span>
     </div>
-
     <div class="kpi-value">{{ totalPlayers }}</div>
-    <div class="kpi-trend text-muted">Current participants</div>
+    <div class="kpi-trend text-secondary">Joined players</div>
   </div>
 </section>
 
-<section class="room-toolbar">
-  <div class="filter-tabs">
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'All'"
-      (click)="setTab('All')"
-    >
-      All
-    </button>
-
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'Waiting'"
-      (click)="setTab('Waiting')"
-    >
-      Waiting
-    </button>
-
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'Playing'"
-      (click)="setTab('Playing')"
-    >
-      Playing
-    </button>
-
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'Ended'"
-      (click)="setTab('Ended')"
-    >
-      Ended
-    </button>
-  </div>
-
-  <div class="toolbar-right">
+<section class="chart-card filter-card">
+  <div class="filter-row">
     <div class="mini-search">
       <span class="material-symbols-outlined">search</span>
 
       <input
         type="text"
-        placeholder="Search PIN, quiz or host..."
+        placeholder="Search room code, quiz, host..."
         [(ngModel)]="searchText"
       />
     </div>
 
-    <select [(ngModel)]="visibilityFilter">
-      <option value="">Visibility: All</option>
-      <option value="Public">Public</option>
-      <option value="Private">Private</option>
+    <select [(ngModel)]="statusFilter">
+      <option value="">Status: All</option>
+      <option value="Waiting">Waiting</option>
+      <option value="Playing">Playing</option>
+      <option value="Finished">Finished</option>
     </select>
+
+    <span class="result-count">
+      {{ filteredRooms.length }} rooms
+    </span>
   </div>
 </section>
 
-<section class="room-grid">
-  <article
-    class="room-card animate-fade-up"
-    *ngFor="let room of filteredRooms"
-    [class.ended-card]="room.status === 'Ended'"
-  >
-    <div class="room-card-top">
-      <div>
-        <div class="pin-label">PIN</div>
-        <div class="pin-code">{{ room.pin }}</div>
-      </div>
+<section class="chart-card table-card">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Room</th>
+        <th>Quiz</th>
+        <th>Host</th>
+        <th class="center">Players</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th class="right">Actions</th>
+      </tr>
+    </thead>
 
-      <span
-        class="room-status"
-        [class.waiting]="room.status === 'Waiting'"
-        [class.playing]="room.status === 'Playing'"
-        [class.ended]="room.status === 'Ended'"
-      >
-        <span></span>
-        {{ room.status }}
-      </span>
+    <tbody>
+      <tr class="room-row" *ngFor="let room of filteredRooms">
+        <td>
+          <div class="room-cell">
+            <span class="room-icon material-symbols-outlined">
+              tag
+            </span>
+
+            <div>
+              <div class="room-code">{{ room.roomCode }}</div>
+              <div class="room-id">{{ room.id }}</div>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <div class="strong-text">{{ room.quizTitle }}</div>
+        </td>
+
+        <td>
+          {{ room.host }}
+        </td>
+
+        <td class="center strong-text">
+          {{ room.players }}
+        </td>
+
+        <td>
+          <span
+            class="badge-status"
+            [class.waiting-status]="room.status === 'Waiting'"
+            [class.playing-status]="room.status === 'Playing'"
+            [class.finished-status]="room.status === 'Finished'"
+          >
+            {{ room.status }}
+          </span>
+        </td>
+
+        <td class="muted-text">
+          {{ room.createdAt }}
+        </td>
+
+        <td class="right">
+          <div class="action-group">
+            <button
+              class="topbar-icon-btn action-btn"
+              title="View"
+              (click)="viewRoom(room)"
+            >
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
+
+            <button
+              class="topbar-icon-btn action-btn danger"
+              title="Close Room"
+              (click)="closeRoom(room)"
+            >
+              <span class="material-symbols-outlined">cancel</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      <tr *ngIf="!loading && filteredRooms.length === 0">
+        <td colspan="7" class="empty-cell">
+          No multiplayer rooms found.
+        </td>
+      </tr>
+
+      <tr *ngIf="loading">
+        <td colspan="7" class="empty-cell">
+          Loading multiplayer rooms...
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="room-modal-backdrop" *ngIf="selectedRoom" (click)="closeModal()">
+  <div class="room-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeModal()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <div class="modal-icon">
+      <span class="material-symbols-outlined">meeting_room</span>
     </div>
 
-    <div class="room-quiz-block">
-      <div class="room-icon">
-        <span class="material-symbols-outlined">quiz</span>
+    <p class="modal-eyebrow">Room Details</p>
+
+    <h2>{{ selectedRoom.roomCode }}</h2>
+
+    <div class="modal-info-grid">
+      <div>
+        <span>Quiz</span>
+        <strong>{{ selectedRoom.quizTitle }}</strong>
       </div>
 
       <div>
-        <h3>{{ room.quizTitle }}</h3>
-        <p>{{ room.id }} · {{ room.visibility }}</p>
+        <span>Host</span>
+        <strong>{{ selectedRoom.host }}</strong>
       </div>
-    </div>
-
-    <div class="host-block">
-      <img
-        [src]="'https://api.dicebear.com/8.x/avataaars/svg?seed=' + room.hostAvatar + '&size=40&backgroundColor=b6e3f4'"
-        alt="Host avatar"
-      />
 
       <div>
-        <span>Hosted by</span>
-        <strong>{{ room.host }}</strong>
-      </div>
-    </div>
-
-    <div class="room-progress">
-      <div class="room-progress-top">
         <span>Players</span>
-        <strong>{{ room.players }}/{{ room.maxPlayers }}</strong>
-      </div>
-
-      <div class="progress-bar">
-        <div
-          class="progress-fill"
-          [style.width.%]="(room.players / room.maxPlayers) * 100"
-        ></div>
-      </div>
-    </div>
-
-    <div class="room-info-grid">
-      <div>
-        <span>Started</span>
-        <strong>{{ room.startedAt }}</strong>
+        <strong>{{ selectedRoom.players }}</strong>
       </div>
 
       <div>
-        <span>Duration</span>
-        <strong>{{ room.duration }}</strong>
+        <span>Status</span>
+        <strong>{{ selectedRoom.status }}</strong>
+      </div>
+
+      <div>
+        <span>Created</span>
+        <strong>{{ selectedRoom.createdAt }}</strong>
+      </div>
+
+      <div>
+        <span>Room ID</span>
+        <strong class="room-id-text">{{ selectedRoom.id }}</strong>
       </div>
     </div>
 
-    <div class="room-actions">
-      <button class="room-action view-action">
-        <span class="material-symbols-outlined">visibility</span>
-        View
-      </button>
-
-      <button
-        class="room-action close-action"
-        *ngIf="room.status !== 'Ended'"
-        (click)="closeRoom(room)"
-      >
-        <span class="material-symbols-outlined">do_not_disturb_on</span>
-        Close
-      </button>
-
-      <button
-        class="room-action delete-action"
-        (click)="deleteRoom(room.id)"
-      >
-        <span class="material-symbols-outlined">delete</span>
-      </button>
-    </div>
-  </article>
-
-  <div class="empty-state" *ngIf="filteredRooms.length === 0">
-    No multiplayer rooms found.
+    <button class="modal-primary-btn" (click)="closeModal()">
+      OK
+    </button>
   </div>
+</div>
 </section>
