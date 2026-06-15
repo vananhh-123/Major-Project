@@ -81,14 +81,18 @@
 
     <div class="avatar-wrap">
       <img
-        class="profile-avatar"
-        src="https://api.dicebear.com/8.x/avataaars/svg?seed=Just4QuizAdmin&backgroundColor=b6e3f4"
-        alt="Admin avatar"
-      />
+  class="profile-avatar"
+  [src]="adminAvatar"
+  alt="Admin avatar"
+/>
 
-      <button class="avatar-edit-btn" title="Change Avatar">
-        <span class="material-symbols-outlined">edit</span>
-      </button>
+<button
+  class="avatar-edit-btn"
+  title="Change Avatar"
+  (click)="changeAvatar()"
+>
+  <span class="material-symbols-outlined">edit</span>
+</button>
     </div>
 
     <h3>{{ adminName }}</h3>

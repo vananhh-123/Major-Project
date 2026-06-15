@@ -62,7 +62,8 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminLayout,
     children: [
-      { path: '', component: AdminDashboard },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: AdminDashboard },
       { path: 'analytics', component: AdminAnalytics },
       { path: 'users', component: AdminUsers },
       { path: 'quiz-bank', component: AdminQuizBank },
@@ -75,8 +76,8 @@ export const routes: Routes = [
       { path: 'logs', component: AdminLogs },
       { path: 'profile', component: AdminProfile },
       { path: 'notifications', component: AdminNotifications },
-      { path: 'logout', component: AdminLogout },
-      { path: 'system-health', component: AdminSystemHealth }
+      { path: 'system-health', component: AdminSystemHealth },
+      { path: 'logout', component: AdminLogout }
     ]
   },
 
@@ -94,6 +95,7 @@ export const routes: Routes = [
     path: 'app',
     component: MainLayout,
     children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard },
       { path: 'quizzes', component: QuizList },
       { path: 'create-quiz', component: CreateQuiz },
