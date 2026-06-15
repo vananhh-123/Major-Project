@@ -1,186 +1,22 @@
-<section class="achievement-header">
-  <div>
-    <p class="page-eyebrow">Gamification</p>
+<section class="coming-soon-page">
+  <div class="coming-soon-card">
+    <div class="coming-soon-icon">
+      <span class="material-symbols-outlined">emoji_events</span>
+    </div>
 
-    <h2 class="page-headline">Achievements</h2>
+    <h2>Achievements Module</h2>
 
-    <p class="page-subline">
-      Design and manage player achievement badges and milestones.
+    <h3>Updating Soon</h3>
+
+    <p>
+      The Achievements Management module is currently under development.
+      Achievement rules, rewards, player badges and progress tracking will
+      be available in future updates.
     </p>
-  </div>
 
-  <button class="primary-action-btn">
-    <span class="material-symbols-outlined">add</span>
-    New Achievement
-  </button>
-</section>
-
-<section class="achievement-kpi-grid">
-  <div class="kpi-card animate-fade-up">
-    <div class="kpi-top">
-      <span class="kpi-label">Total Achievements</span>
-      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
-        emoji_events
-      </span>
+    <div class="coming-soon-badge">
+      <span class="material-symbols-outlined">schedule</span>
+      Coming Soon
     </div>
-
-    <div class="kpi-value">{{ totalAchievements }}</div>
-    <div class="kpi-trend text-primary">Across 5 rarities</div>
-  </div>
-
-  <div class="kpi-card animate-fade-up">
-    <div class="kpi-top">
-      <span class="kpi-label">Unlocked Today</span>
-      <span class="kpi-icon bg-secondary-soft text-secondary material-symbols-outlined">
-        lock_open
-      </span>
-    </div>
-
-    <div class="kpi-value">{{ unlockedToday }}</div>
-    <div class="kpi-trend text-tertiary">+8.2%</div>
-  </div>
-
-  <div class="kpi-card animate-fade-up">
-    <div class="kpi-top">
-      <span class="kpi-label">Rarest Unlocked</span>
-      <span class="kpi-icon bg-tertiary-soft text-tertiary material-symbols-outlined">
-        favorite
-      </span>
-    </div>
-
-    <div class="kpi-value small-value">{{ rarestUnlocked }}</div>
-    <div class="kpi-trend text-muted">Only 41 holders</div>
-  </div>
-
-  <div class="kpi-card animate-fade-up">
-    <div class="kpi-top">
-      <span class="kpi-label">Avg Completion</span>
-      <span class="kpi-icon bg-primary-soft text-primary material-symbols-outlined">
-        radio_button_checked
-      </span>
-    </div>
-
-    <div class="kpi-value">{{ avgCompletion }}</div>
-    <div class="kpi-trend text-primary">Per active user</div>
   </div>
 </section>
-
-<section class="achievement-toolbar">
-  <div class="filter-tabs">
-    <button
-      class="filter-tab"
-      [class.active]="activeFilter === 'All'"
-      (click)="setFilter('All')"
-    >
-      All
-    </button>
-
-    <button
-      class="filter-tab"
-      [class.active]="activeFilter === 'Common'"
-      (click)="setFilter('Common')"
-    >
-      Common
-    </button>
-
-    <button
-      class="filter-tab"
-      [class.active]="activeFilter === 'Rare'"
-      (click)="setFilter('Rare')"
-    >
-      Rare
-    </button>
-
-    <button
-      class="filter-tab"
-      [class.active]="activeFilter === 'Epic'"
-      (click)="setFilter('Epic')"
-    >
-      Epic
-    </button>
-
-    <button
-      class="filter-tab"
-      [class.active]="activeFilter === 'Legendary'"
-      (click)="setFilter('Legendary')"
-    >
-      Legendary
-    </button>
-  </div>
-
-  <div class="mini-search">
-    <span class="material-symbols-outlined">search</span>
-
-    <input
-      type="text"
-      placeholder="Search achievements..."
-      [(ngModel)]="searchText"
-    />
-  </div>
-</section>
-
-<section class="achievement-grid">
-  <article
-    class="achievement-card animate-fade-up"
-    *ngFor="let item of filteredAchievements"
-    [class.disabled]="item.status === 'Disabled'"
-  >
-    <div class="achievement-card-top">
-      <div class="achievement-icon" [ngClass]="item.colorClass">
-        <span class="material-symbols-outlined">
-          {{ item.icon }}
-        </span>
-      </div>
-
-      <div class="achievement-actions">
-        <button
-          class="mini-icon-btn status-btn"
-          [class.disabled-btn]="item.status === 'Disabled'"
-          title="Enable / Disable"
-          (click)="toggleStatus(item)"
-        >
-          <span class="material-symbols-outlined">
-            {{ item.status === 'Active' ? 'visibility' : 'visibility_off' }}
-          </span>
-        </button>
-
-        <button class="mini-icon-btn edit-btn" title="Edit">
-          <span class="material-symbols-outlined">edit</span>
-        </button>
-
-        <button
-          class="mini-icon-btn delete-btn"
-          title="Delete"
-          (click)="deleteAchievement(item.id)"
-        >
-          <span class="material-symbols-outlined">delete</span>
-        </button>
-      </div>
-    </div>
-
-    <h3>{{ item.title }}</h3>
-
-    <p>{{ item.description }}</p>
-
-    <div class="achievement-meta">
-      <span
-        class="rarity-badge"
-        [class.common]="item.rarity === 'Common'"
-        [class.rare]="item.rarity === 'Rare'"
-        [class.epic]="item.rarity === 'Epic'"
-        [class.legendary]="item.rarity === 'Legendary'"
-      >
-        {{ item.rarity }}
-      </span>
-
-      <span class="unlock-count">
-        <span class="material-symbols-outlined filled">emoji_events</span>
-        {{ item.unlocks | number }}
-      </span>
-    </div>
-  </article>
-</section>
-
-<footer class="achievement-footer">
-  © 2026 JUST4QUIZ Admin Panel · Powered by JUST4QUIZ
-</footer>
