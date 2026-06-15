@@ -87,4 +87,3 @@ export class SoloLobby implements OnInit {
     });
   }
 }
-

@@ -391,4 +391,3 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     return baseClass + ' faded-answer';
   }
 }
-

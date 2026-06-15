@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   Router,
@@ -6,6 +6,9 @@ import {
   RouterLinkActive,
   RouterOutlet
 } from '@angular/router';
+import { Subscription } from 'rxjs';
+
+import { AdminNotificationService } from '../services/admin-notification.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -19,8 +22,8 @@ import {
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.css'
 })
-export class AdminLayout implements OnInit {
-  unreadNotifications = 4;
+export class AdminLayout implements OnInit, OnDestroy {
+  unreadNotifications = 0;
   showSupportModal = false;
 
   adminName = 'Admin';
@@ -28,10 +31,21 @@ export class AdminLayout implements OnInit {
   adminRole = 'Admin';
   adminAvatar = '';
 
-  constructor(private router: Router) {}
+  private notificationSub?: Subscription;
+
+  constructor(
+    private router: Router,
+    private notificationService: AdminNotificationService
+  ) {}
 
   ngOnInit(): void {
+    localStorage.setItem('view_mode', 'admin');
     this.loadAdminInfo();
+    this.loadNotifications();
+  }
+
+  ngOnDestroy(): void {
+    this.notificationSub?.unsubscribe();
   }
 
   loadAdminInfo(): void {
@@ -58,11 +72,26 @@ export class AdminLayout implements OnInit {
     }
   }
 
+  loadNotifications(): void {
+    this.notificationService.loadNotifications();
+
+    this.notificationSub =
+      this.notificationService.notifications$.subscribe({
+        next: notifications => {
+          this.unreadNotifications = notifications.filter(
+            item => item.status === 'Unread'
+          ).length;
+        }
+      });
+  }
+
   goToUserView(): void {
+    localStorage.setItem('view_mode', 'user');
     this.router.navigate(['/app/dashboard']);
   }
 
   goToAdminConsole(): void {
+    localStorage.setItem('view_mode', 'admin');
     this.router.navigate(['/admin/dashboard']);
   }
 
@@ -82,7 +111,10 @@ export class AdminLayout implements OnInit {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
+    localStorage.removeItem('view_mode');
     localStorage.removeItem('admin_profile_preferences');
+
+    sessionStorage.clear();
 
     this.router.navigate(['/login']);
   }
@@ -95,7 +127,11 @@ export class AdminLayout implements OnInit {
   private formatRole(value: string): string {
     const role = String(value || '').toLowerCase();
 
-    if (role === 'superadmin' || role === 'super_admin' || role === 'super admin') {
+    if (
+      role === 'superadmin' ||
+      role === 'super_admin' ||
+      role === 'super admin'
+    ) {
       return 'Super Admin';
     }
 

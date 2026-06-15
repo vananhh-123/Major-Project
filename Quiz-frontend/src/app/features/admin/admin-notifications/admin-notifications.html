@@ -26,9 +26,7 @@
   <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">Total</span>
-      <span class="kpi-icon material-symbols-outlined">
-        notifications
-      </span>
+      <span class="kpi-icon material-symbols-outlined">notifications</span>
     </div>
 
     <div class="kpi-value">{{ totalNotifications }}</div>
@@ -38,9 +36,7 @@
   <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">Unread</span>
-      <span class="kpi-icon material-symbols-outlined">
-        mark_email_unread
-      </span>
+      <span class="kpi-icon material-symbols-outlined">mark_email_unread</span>
     </div>
 
     <div class="kpi-value">{{ unreadCount }}</div>
@@ -50,9 +46,7 @@
   <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">System</span>
-      <span class="kpi-icon material-symbols-outlined">
-        settings
-      </span>
+      <span class="kpi-icon material-symbols-outlined">settings</span>
     </div>
 
     <div class="kpi-value">{{ systemCount }}</div>
@@ -62,9 +56,7 @@
   <div class="kpi-card">
     <div class="kpi-top">
       <span class="kpi-label">Today</span>
-      <span class="kpi-icon material-symbols-outlined">
-        today
-      </span>
+      <span class="kpi-icon material-symbols-outlined">today</span>
     </div>
 
     <div class="kpi-value">{{ todayCount }}</div>
@@ -74,52 +66,31 @@
 
 <section class="notifications-toolbar">
   <div class="filter-tabs">
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'All'"
-      (click)="setTab('All')">
+    <button class="filter-tab" [class.active]="activeTab === 'All'" (click)="setTab('All')">
       All
     </button>
 
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'Unread'"
-      (click)="setTab('Unread')">
+    <button class="filter-tab" [class.active]="activeTab === 'Unread'" (click)="setTab('Unread')">
       Unread
     </button>
 
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'System'"
-      (click)="setTab('System')">
+    <button class="filter-tab" [class.active]="activeTab === 'System'" (click)="setTab('System')">
       System
     </button>
 
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'User'"
-      (click)="setTab('User')">
+    <button class="filter-tab" [class.active]="activeTab === 'User'" (click)="setTab('User')">
       User
     </button>
 
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'Quiz'"
-      (click)="setTab('Quiz')">
+    <button class="filter-tab" [class.active]="activeTab === 'Quiz'" (click)="setTab('Quiz')">
       Quiz
     </button>
 
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'Room'"
-      (click)="setTab('Room')">
+    <button class="filter-tab" [class.active]="activeTab === 'Room'" (click)="setTab('Room')">
       Room
     </button>
 
-    <button
-      class="filter-tab"
-      [class.active]="activeTab === 'Review'"
-      (click)="setTab('Review')">
+    <button class="filter-tab" [class.active]="activeTab === 'Review'" (click)="setTab('Review')">
       Review
     </button>
   </div>
@@ -131,6 +102,7 @@
       type="text"
       placeholder="Search notifications..."
       [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange()"
     />
   </div>
 </section>
@@ -138,7 +110,7 @@
 <section class="notifications-list">
   <article
     class="notification-card"
-    *ngFor="let item of filteredNotifications"
+    *ngFor="let item of paginatedNotifications"
     [class.unread]="item.status === 'Unread'"
     [class.high]="item.priority === 'High'"
   >
@@ -209,25 +181,48 @@
     </div>
   </article>
 
-  <div
-    class="empty-state"
-    *ngIf="filteredNotifications.length === 0"
-  >
+  <div class="empty-state" *ngIf="filteredNotifications.length === 0">
     No notifications found.
+  </div>
+
+  <div class="pagination-container" *ngIf="filteredNotifications.length > pageSize">
+    <button
+      class="page-btn"
+      type="button"
+      (click)="previousPage()"
+      [disabled]="currentPage === 1"
+    >
+      ‹
+    </button>
+
+    <button
+      class="page-btn"
+      type="button"
+      *ngFor="let page of pageNumbers"
+      [class.active]="page === currentPage"
+      (click)="goToPage(page)"
+    >
+      {{ page }}
+    </button>
+
+    <button
+      class="page-btn"
+      type="button"
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages"
+    >
+      ›
+    </button>
+
+    <span class="page-info">
+      Showing {{ rangeStart }} - {{ rangeEnd }} of {{ filteredNotifications.length }}
+    </span>
   </div>
 </section>
 
-<!-- DETAIL MODAL -->
-
-<div
-  class="notification-modal-backdrop"
-  *ngIf="selectedNotification"
->
+<div class="notification-modal-backdrop" *ngIf="selectedNotification">
   <div class="notification-modal">
-    <button
-      class="modal-close-btn"
-      (click)="closeDetail()"
-    >
+    <button class="modal-close-btn" (click)="closeDetail()">
       <span class="material-symbols-outlined">
         close
       </span>
@@ -280,10 +275,7 @@
     </div>
 
     <div class="modal-actions">
-      <button
-        class="outline-action-btn"
-        (click)="closeDetail()"
-      >
+      <button class="outline-action-btn" (click)="closeDetail()">
         Close
       </button>
 

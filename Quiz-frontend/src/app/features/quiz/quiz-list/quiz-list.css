@@ -1,6 +1,13 @@
-.quiz-list-wrapper { background-color: #F9F5FF; min-height: 100vh; padding-bottom: 80px; }
-
+.quiz-list-wrapper {
+  padding-bottom: 80px;
+}
 /* Banner giới hạn hông */
+.hero-wrapper-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0 0;
+}
+
 .hero-wrapper-container { max-width: 1200px; margin: 0 auto; padding: 20px 20px 0; }
 .hero-section-custom { background: #F4EBFF; padding: 60px; border-radius: 40px; display: flex; justify-content: flex-start; }
 .hero-content-left { text-align: left; max-width: 650px; }
@@ -25,8 +32,12 @@
 
 /* Layout Content */
 .quiz-list-main-grid {
-  max-width: 1200px; margin: 30px auto 0;
-  display: grid; grid-template-columns: 280px 1fr; gap: 30px; padding: 0 20px;
+  max-width: 1200px;
+  margin: 30px auto 0;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 30px;
+  padding: 0;
 }
 
 /* Sidebar & Filters */

@@ -458,3 +458,45 @@
   font-weight: 900;
   cursor: pointer;
 }
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin-top: 24px;
+  padding-bottom: 24px;
+}
+
+.page-btn {
+  width: 36px;
+  height: 36px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: #6e12f8;
+
+  font-weight: 900;
+  cursor: pointer;
+
+  box-shadow: 0 8px 20px rgba(110, 18, 248, 0.08);
+}
+
+.page-btn.active {
+  background: linear-gradient(135deg, #6e12f8, #ae8dff);
+  color: #ffffff;
+}
+
+.page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.page-info {
+  margin-left: 12px;
+  color: #68537c;
+  font-size: 12px;
+  font-weight: 800;
+}

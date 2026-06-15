@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { AdminApi, AdminLogApi } from '../../../services/admin-api';
 
 export type NotificationType = 'System' | 'User' | 'Quiz' | 'Room' | 'Review';
 export type NotificationStatus = 'Read' | 'Unread';
@@ -21,154 +22,171 @@ export interface AdminNotification {
   providedIn: 'root'
 })
 export class AdminNotificationService {
-  private readonly initialNotifications: AdminNotification[] = [
-    {
-      id: 'NT001',
-      type: 'User',
-      status: 'Unread',
-      title: 'New user registered',
-      message: 'nguyenvana@example.com has created a new account.',
-      time: '10:20 AM',
-      date: 'Today',
-      icon: 'person_add',
-      priority: 'Normal'
-    },
-    {
-      id: 'NT002',
-      type: 'Quiz',
-      status: 'Unread',
-      title: 'New quiz submitted',
-      message: 'English Basic Quiz was created and is now private by default.',
-      time: '10:35 AM',
-      date: 'Today',
-      icon: 'quiz',
-      priority: 'Normal'
-    },
-    {
-      id: 'NT003',
-      type: 'Room',
-      status: 'Unread',
-      title: 'Multiplayer room started',
-      message: 'Room PIN 482913 is currently playing with 18 participants.',
-      time: '10:42 AM',
-      date: 'Today',
-      icon: 'sports_esports',
-      priority: 'High'
-    },
-    {
-      id: 'NT004',
-      type: 'Review',
-      status: 'Read',
-      title: 'New review submitted',
-      message: 'A user rated Math Challenge with 4 stars and left a comment.',
-      time: '09:50 AM',
-      date: 'Today',
-      icon: 'rate_review',
-      priority: 'Normal'
-    },
-    {
-      id: 'NT005',
-      type: 'System',
-      status: 'Read',
-      title: 'System settings updated',
-      message: 'Default quiz visibility was changed to Private.',
-      time: 'Yesterday',
-      date: 'Jun 10, 2026',
-      icon: 'settings',
-      priority: 'Low'
-    },
-    {
-      id: 'NT006',
-      type: 'System',
-      status: 'Unread',
-      title: 'Security confirmation required',
-      message: 'A sensitive setting change requires Super Admin confirmation.',
-      time: 'Yesterday',
-      date: 'Jun 10, 2026',
-      icon: 'admin_panel_settings',
-      priority: 'High'
-    },
-    {
-      id: 'NT007',
-      type: 'Room',
-      status: 'Read',
-      title: 'Room closed',
-      message: 'Room PIN 650312 was closed by Admin.',
-      time: 'Yesterday',
-      date: 'Jun 10, 2026',
-      icon: 'do_not_disturb_on',
-      priority: 'Normal'
-    },
-    {
-      id: 'NT008',
-      type: 'Quiz',
-      status: 'Read',
-      title: 'Quiz status changed',
-      message: 'Programming Quiz was changed from Private to Public.',
-      time: 'Yesterday',
-      date: 'Jun 10, 2026',
-      icon: 'public',
-      priority: 'Low'
-    }
-  ];
+  private readonly readKey = 'just4quiz_admin_read_notifications';
+  private readonly deletedKey = 'just4quiz_admin_deleted_notifications';
 
   private readonly notificationsSubject =
-    new BehaviorSubject<AdminNotification[]>(this.initialNotifications);
+    new BehaviorSubject<AdminNotification[]>([]);
 
-  readonly notifications$: Observable<AdminNotification[]> =
+  public readonly notifications$: Observable<AdminNotification[]> =
     this.notificationsSubject.asObservable();
 
-  getCurrentNotifications(): AdminNotification[] {
-    return this.notificationsSubject.value;
-  }
+  constructor(private adminApi: AdminApi) {}
 
-  getUnreadCount(): number {
-    return this.notificationsSubject.value.filter(
-      (item: AdminNotification) => item.status === 'Unread'
-    ).length;
+  loadNotifications(): void {
+    this.adminApi.getAdminLogs().subscribe({
+      next: (logs: AdminLogApi[]) => {
+        const readIds = this.getStoredIds(this.readKey);
+        const deletedIds = this.getStoredIds(this.deletedKey);
+
+        const notifications = (logs || [])
+          .filter(log => !deletedIds.includes(String(log.id)))
+          .map(log => this.mapLogToNotification(log, readIds));
+
+        this.notificationsSubject.next(notifications);
+      },
+      error: err => {
+        console.error('Load notifications failed:', err);
+        this.notificationsSubject.next([]);
+      }
+    });
   }
 
   markAsRead(id: string): void {
-    const updated: AdminNotification[] =
-      this.notificationsSubject.value.map((item: AdminNotification) => {
-        if (item.id === id) {
-          return {
-            ...item,
-            status: 'Read'
-          };
-        }
+    const readIds = this.getStoredIds(this.readKey);
 
-        return item;
-      });
+    if (!readIds.includes(id)) {
+      readIds.push(id);
+      localStorage.setItem(this.readKey, JSON.stringify(readIds));
+    }
 
-    this.notificationsSubject.next(updated);
+    this.notificationsSubject.next(
+      this.notificationsSubject.value.map(item =>
+        item.id === id ? { ...item, status: 'Read' } : item
+      )
+    );
   }
 
   markAllAsRead(): void {
-    const updated: AdminNotification[] =
-      this.notificationsSubject.value.map((item: AdminNotification) => ({
+    const ids = this.notificationsSubject.value.map(item => item.id);
+    localStorage.setItem(this.readKey, JSON.stringify(ids));
+
+    this.notificationsSubject.next(
+      this.notificationsSubject.value.map(item => ({
         ...item,
         status: 'Read'
-      }));
-
-    this.notificationsSubject.next(updated);
+      }))
+    );
   }
 
   deleteNotification(id: string): void {
-    const updated: AdminNotification[] =
-      this.notificationsSubject.value.filter(
-        (item: AdminNotification) => item.id !== id
-      );
+    const deletedIds = this.getStoredIds(this.deletedKey);
 
-    this.notificationsSubject.next(updated);
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem(this.deletedKey, JSON.stringify(deletedIds));
+    }
+
+    this.notificationsSubject.next(
+      this.notificationsSubject.value.filter(item => item.id !== id)
+    );
   }
 
   clearRead(): void {
-    const updated: AdminNotification[] =
-      this.notificationsSubject.value.filter(
-        (item: AdminNotification) => item.status !== 'Read'
-      );
+    const readIds = this.notificationsSubject.value
+      .filter(item => item.status === 'Read')
+      .map(item => item.id);
 
-    this.notificationsSubject.next(updated);
+    const deletedIds = this.getStoredIds(this.deletedKey);
+    const merged = Array.from(new Set([...deletedIds, ...readIds]));
+
+    localStorage.setItem(this.deletedKey, JSON.stringify(merged));
+
+    this.notificationsSubject.next(
+      this.notificationsSubject.value.filter(item => item.status !== 'Read')
+    );
+  }
+
+  private mapLogToNotification(
+    log: AdminLogApi,
+    readIds: string[]
+  ): AdminNotification {
+    const id = String(log.id || crypto.randomUUID());
+    const type = this.normalizeType(log.type);
+    const priority = this.normalizePriority(log.level);
+
+    return {
+      id,
+      type,
+      status: readIds.includes(id) ? 'Read' : 'Unread',
+      title: log.title || 'System activity',
+      message: log.description || 'New admin activity was recorded.',
+      time: log.time || this.formatTime(log.createdAt),
+      date: log.date || this.formatDate(log.createdAt),
+      icon: log.icon || this.getIconByType(type),
+      priority
+    };
+  }
+
+  private normalizeType(value?: string): NotificationType {
+    const type = String(value || '').toLowerCase();
+
+    if (type === 'user') return 'User';
+    if (type === 'quiz') return 'Quiz';
+    if (type === 'room') return 'Room';
+    if (type === 'review') return 'Review';
+
+    return 'System';
+  }
+
+  private normalizePriority(value?: string): NotificationPriority {
+    const level = String(value || '').toLowerCase();
+
+    if (level === 'warning' || level === 'error') return 'High';
+    if (level === 'success' || level === 'info') return 'Normal';
+
+    return 'Low';
+  }
+
+  private getIconByType(type: NotificationType): string {
+    if (type === 'User') return 'person_add';
+    if (type === 'Quiz') return 'quiz';
+    if (type === 'Room') return 'sports_esports';
+    if (type === 'Review') return 'rate_review';
+    return 'settings';
+  }
+
+  private getStoredIds(key: string): string[] {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private formatTime(value?: string): string {
+    if (!value) return 'Live';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Live';
+
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  private formatDate(value?: string): string {
+    if (!value) return 'Today';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Today';
+
+    return date.toLocaleDateString([], {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   }
 }

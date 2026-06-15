@@ -2,22 +2,25 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #F9F5FF;
+
+  background:
+    radial-gradient(circle at 12% 8%, rgba(112, 41, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(238, 70, 188, 0.12), transparent 28%),
+    linear-gradient(180deg, #f5f0ff 0%, #ece3ff 100%);
 }
 
 .main-container {
-  flex: 1; /* Đẩy footer xuống đáy trang */
-  min-height: calc(100vh - 160px); /* Trừ chiều cao navbar/footer */
+  flex: 1;
+  min-height: calc(100vh - 160px);
   padding: 40px 0;
 }
 
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 80px; /* Khớp với khoảng cách lề của Navbar */
+  padding: 0 80px;
 }
 
-/* Đảm bảo các route chuyển cảnh mượt mà */
 router-outlet + * {
   display: block;
 }
@@ -27,20 +30,22 @@ router-outlet + * {
     padding: 0 40px;
   }
 }
- 
+
 @media (max-width: 768px) {
   .content-wrapper {
     padding: 0 20px;
   }
+
   .main-container {
     padding: 24px 0;
   }
 }
- 
+
 @media (max-width: 480px) {
   .content-wrapper {
     padding: 0 14px;
   }
+
   .main-container {
     padding: 16px 0;
   }

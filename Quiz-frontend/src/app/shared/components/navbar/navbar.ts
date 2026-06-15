@@ -1,60 +1,85 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './navbar.html',
-  styleUrls: ['./navbar.css']
+  styleUrl: './navbar.css'
 })
 export class Navbar implements OnInit {
-  @Input() type: 'auth' | 'home' | 'profile' | 'game' | 'auth-signin' | 'auth-signup' | 'dashboard' = 'home';
+  @Input() type: string = 'profile';
 
-  username = 'Alex Rivera';
+  username = 'JUST4QUIZ';
   avatar = '/User.png';
   isAdmin = false;
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    this.loadUser();
+    this.loadCurrentUser();
   }
 
-  loadUser(): void {
-    const storedUser = localStorage.getItem('user');
+  loadCurrentUser(): void {
+    const rawUser = localStorage.getItem('user');
+    const rawRole = localStorage.getItem('role');
 
-    if (!storedUser) {
+    if (!rawUser) {
+      this.username = 'JUST4QUIZ';
+      this.avatar = '/User.png';
+      this.isAdmin = String(rawRole || '').toLowerCase() === 'admin';
       return;
     }
 
     try {
-      const user = JSON.parse(storedUser);
+      const parsed = JSON.parse(rawUser);
+
+      const user =
+        parsed.user ||
+        parsed.data?.user ||
+        parsed.data ||
+        parsed;
 
       this.username =
-        user.user_name ||
         user.username ||
         user.name ||
-        'Alex Rivera';
+        user.full_name ||
+        user.fullName ||
+        user.email ||
+        'JUST4QUIZ Admin';
 
-      this.avatar =
-        user.avatar ||
-        '/User.png';
-
-      const role = String(user.role || '').toLowerCase();
+      const role = String(
+        user.role ||
+        parsed.role ||
+        parsed.data?.role ||
+        rawRole ||
+        ''
+      ).toLowerCase();
 
       this.isAdmin =
         role === 'admin' ||
         role === 'superadmin' ||
-        role === 'super_admin';
-    } catch (e) {
-      console.error('Error parsing user', e);
+        role === 'super_admin' ||
+        role === 'super admin';
+
+      this.avatar =
+        user.avatar ||
+        user.avatarUrl ||
+        user.photoURL ||
+        `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(this.username)}`;
+    } catch {
+      this.username = 'JUST4QUIZ Admin';
+      this.avatar =
+        'https://api.dicebear.com/8.x/avataaars/svg?seed=JUST4QUIZAdmin';
+      this.isAdmin = String(rawRole || '').toLowerCase() === 'admin';
     }
   }
 
-  goToAdmin(event: Event): void {
-    event.stopPropagation();
+  goToAdmin(event?: Event): void {
+    event?.stopPropagation();
+    localStorage.setItem('view_mode', 'admin');
     this.router.navigate(['/admin/dashboard']);
   }
 }

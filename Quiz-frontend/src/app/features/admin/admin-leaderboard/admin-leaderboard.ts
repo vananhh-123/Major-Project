@@ -1,8 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { API_CONFIG } from '../../../config/api.config';
+
+import {
+  AdminApi,
+  AdminUserApi
+} from '../../../services/admin-api';
 
 type LeaderboardMode = 'All' | 'Solo' | 'Multi';
 type TimeFilter = 'All Time' | 'This Month' | 'This Week';
@@ -29,13 +32,11 @@ interface LeaderboardUser {
 @Component({
   selector: 'app-admin-leaderboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-leaderboard.html',
   styleUrl: './admin-leaderboard.css'
 })
 export class AdminLeaderboard implements OnInit {
-  private http = inject(HttpClient);
-
   searchText = '';
   activeTab: LeaderboardMode = 'All';
   timeFilter: TimeFilter = 'All Time';
@@ -45,53 +46,90 @@ export class AdminLeaderboard implements OnInit {
 
   players: LeaderboardUser[] = [];
 
+  constructor(
+    private adminApi: AdminApi,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
     this.loadLeaderboard();
   }
 
   loadLeaderboard(): void {
-    const period = this.getPeriodParam();
-    const mode = this.getModeParam();
+    this.adminApi.getAdminUsers().subscribe({
+      next: (users: AdminUserApi[]) => {
+        const mappedUsers = users.map((user, index) => this.mapUserToLeaderboard(user, index));
 
-    let url = `${API_CONFIG.API_BASE}/leaderboard?period=${period}`;
-
-    if (mode) {
-      url += `&mode=${mode}`;
-    }
-
-    this.http.get<any[]>(url).subscribe({
-      next: (res) => {
-        const maxPoints = Math.max(...res.map(x => Number(x.points ?? 0)), 1);
-
-        this.players = res.map((item, index): LeaderboardUser => {
-          const points = Number(item.points ?? 0);
-
-          return {
-            id: String(item.userId ?? item.user_id ?? ''),
-            rank: Number(item.rank ?? index + 1),
-            trend: 'same',
-            username: String(item.name ?? 'Unknown Player'),
-            email: '',
-            avatar: String(item.avatar ?? ''),
-            avatarSeed: String(item.name ?? item.userId ?? 'player'),
-            mode: this.activeTab === 'All' ? 'All' : this.activeTab,
-            category: this.activeTab,
-            points,
-            score: Math.round((points / maxPoints) * 100),
-            games: Number(item.games ?? 0),
-            streak: Number(item.streak ?? 0),
-            badge: this.getBadge(points),
-            badgeIcon: this.getBadgeIcon(points),
-            status: 'Active'
-          };
-        });
+        this.players = mappedUsers
+          .sort((a, b) => b.points - a.points)
+          .map((player, index) => ({
+            ...player,
+            rank: index + 1,
+            score: this.calculateScore(player.points, mappedUsers)
+          }));
 
         this.currentPage = 1;
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Load leaderboard failed:', err);
+        console.error('Load admin leaderboard failed:', err);
+        this.players = [];
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  private mapUserToLeaderboard(user: AdminUserApi, index: number): LeaderboardUser {
+    const soloGames = Number(user.soloGames || 0);
+    const multiGames = Number(user.multiGames || 0);
+    const games = soloGames + multiGames;
+    const points = Number(user.score || 0);
+
+    let mode: 'Solo' | 'Multi' | 'All' = 'All';
+
+    if (soloGames > multiGames) {
+      mode = 'Solo';
+    } else if (multiGames > soloGames) {
+      mode = 'Multi';
+    }
+
+    return {
+      id: String(user.id || index + 1),
+      rank: index + 1,
+      trend: 'same',
+      username: String(user.name || user.username || 'Unknown User'),
+      email: String(user.email || ''),
+      avatar: String(user.avatar || ''),
+      avatarSeed: String(user.username || user.name || user.email || user.id || `user-${index}`),
+      mode,
+      category: mode,
+      points,
+      score: 0,
+      games,
+      streak: 0,
+      badge: this.getBadge(points),
+      badgeIcon: this.getBadgeIcon(points),
+      status: this.normalizeStatus(user.status)
+    };
+  }
+
+  private calculateScore(points: number, users: LeaderboardUser[]): number {
+    const highest = Math.max(...users.map(user => user.points), 1);
+    return Math.round((points / highest) * 100);
+  }
+
+  private normalizeStatus(status?: string): 'Active' | 'Blocked' {
+    const value = String(status || '').toLowerCase();
+
+    if (
+      value === 'blocked' ||
+      value === 'banned' ||
+      value === 'inactive'
+    ) {
+      return 'Blocked';
+    }
+
+    return 'Active';
   }
 
   get totalRankedUsers(): number {
@@ -99,28 +137,34 @@ export class AdminLeaderboard implements OnInit {
   }
 
   get soloPlayers(): number {
-    return this.activeTab === 'Solo' ? this.players.length : 0;
+    return this.players.filter(player => player.mode === 'Solo').length;
   }
 
   get multiPlayers(): number {
-    return this.activeTab === 'Multi' ? this.players.length : 0;
+    return this.players.filter(player => player.mode === 'Multi').length;
   }
 
   get highestScore(): number {
     if (this.players.length === 0) return 0;
-    return Math.max(...this.players.map(p => p.points));
+    return Math.max(...this.players.map(player => player.points));
   }
 
   get filteredPlayers(): LeaderboardUser[] {
     const keyword = this.searchText.trim().toLowerCase();
 
     return this.players.filter(player => {
-      return (
+      const matchesSearch =
         !keyword ||
         player.username.toLowerCase().includes(keyword) ||
+        player.email.toLowerCase().includes(keyword) ||
         player.id.toLowerCase().includes(keyword) ||
-        player.badge.toLowerCase().includes(keyword)
-      );
+        player.badge.toLowerCase().includes(keyword);
+
+      const matchesMode =
+        this.activeTab === 'All' ||
+        player.mode === this.activeTab;
+
+      return matchesSearch && matchesMode;
     });
   }
 
@@ -159,13 +203,11 @@ export class AdminLeaderboard implements OnInit {
   setTab(tab: LeaderboardMode): void {
     this.activeTab = tab;
     this.currentPage = 1;
-    this.loadLeaderboard();
   }
 
   setTimeFilter(filter: TimeFilter): void {
     this.timeFilter = filter;
     this.currentPage = 1;
-    this.loadLeaderboard();
   }
 
   goToPage(page: number): void {
@@ -194,19 +236,7 @@ export class AdminLeaderboard implements OnInit {
   }
 
   showComingSoon(): void {
-    alert('This feature is currently under development. Please check back in a future update.');
-  }
-
-  private getPeriodParam(): string {
-    if (this.timeFilter === 'This Week') return 'weekly';
-    if (this.timeFilter === 'This Month') return 'monthly';
-    return 'all';
-  }
-
-  private getModeParam(): string {
-    if (this.activeTab === 'Solo') return 'solo';
-    if (this.activeTab === 'Multi') return 'multi';
-    return '';
+    alert('This feature is not yet developed. Please wait for future updates!');
   }
 
   private getBadge(points: number): string {

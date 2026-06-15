@@ -1,45 +1,35 @@
-/* Tổng thể: Giới hạn độ rộng và Spacing (1200px) */
 .dashboard-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 30px;
 }
 
-/* --- 2. HERO SECTION --- */
 .hero-section {
-  background: #F4EBFF;
+  background: linear-gradient(135deg, #f3e9ff 0%, #faf7ff 100%);
+  border: 1px solid rgba(112, 41, 255, 0.08);
   border-radius: 40px;
   padding: 60px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 30px;
+  box-shadow: 0 20px 60px rgba(112, 41, 255, 0.08);
 }
 
 .hero-left h1 span {
-  background: linear-gradient(90deg, #7029FF 0%, #D8315B 50%, #3C37FF 100%);
+  background: linear-gradient(90deg, #7029ff 0%, #d8315b 50%, #3c37ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-fill-color: transparent;
-  display: inline-block;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
 }
 
 .welcome-text {
   font-size: 56px;
   font-weight: 900;
-  color: #2D0B7A;
+  color: #2d0b7a;
   line-height: 1.1;
   margin: 0;
-}
-
-.welcome-text span {
-  color: #7029FF;
 }
 
 .hero-subtext {
@@ -49,18 +39,17 @@
   max-width: 450px;
 }
 
-/* PIN BOX */
 .pin-card {
-  background: #FFFFFF;
+  position: relative;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
   padding: 30px;
   border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(112, 41, 255, 0.08);
-  margin-top: 10px;
-  position: relative;
+  border: 1px solid rgba(112, 41, 255, 0.08);
+  box-shadow: 0 22px 55px rgba(112, 41, 255, 0.12);
   width: 100%;
   max-width: 450px;
   justify-self: end;
-  box-sizing: border-box;
 }
 
 .pin-badge {
@@ -68,10 +57,10 @@
   top: -12px;
   left: 30px;
   background: white;
-  border: 1px solid #E9D7FE;
+  border: 1px solid #e9d7fe;
   padding: 4px 12px;
-  border-radius: 8px;
-  color: #7029FF;
+  border-radius: 999px;
+  color: #7029ff;
   font-weight: 700;
   font-size: 12px;
 }
@@ -79,7 +68,7 @@
 .pin-input-group {
   display: flex;
   gap: 10px;
-  background: #F4EBFF;
+  background: #f4ebff;
   padding: 20px;
   border-radius: 16px;
   justify-content: center;
@@ -90,14 +79,10 @@
 
 .hidden-pin-input {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   opacity: 0;
   cursor: text;
   z-index: 10;
-  letter-spacing: 40px;
 }
 
 .pin-field {
@@ -108,7 +93,7 @@
   text-align: center;
   font-size: 28px;
   font-weight: 800;
-  color: #7029FF;
+  color: #7029ff;
   outline: none;
   display: flex;
   align-items: center;
@@ -123,7 +108,7 @@
 .btn-join {
   width: 100%;
   margin-top: 15px;
-  background: linear-gradient(90deg, #6A1BFF, #9D7BFF);
+  background: linear-gradient(90deg, #6a1bff, #9d7bff);
   color: white;
   padding: 15px 40px;
   border-radius: 15px;
@@ -138,45 +123,36 @@
   gap: 10px;
 }
 
-.btn-join:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.bolt-icon {
-  filter: brightness(0) invert(1);
-  font-size: 20px;
-}
-
-/* --- 3. ACTION CARDS --- */
 .action-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.action-card-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+  gap: 22px;
 }
 
 .action-card-item {
-  background: white;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
   padding: 30px;
   border-radius: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(112, 41, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(112, 41, 255, 0.06);
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: 0.2s ease;
+}
+
+.action-card-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 40px rgba(112, 41, 255, 0.12);
 }
 
 .card-icon-circle {
   width: 50px;
   height: 50px;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,11 +160,18 @@
   margin-bottom: 15px;
 }
 
-.purple { background: #7029FF; }
-.pink { background: #EE46BC; }
-.blue { background: #2D9CDB; }
+.purple {
+  background: #7029ff;
+}
 
-/* --- MAIN LAYOUT --- */
+.pink {
+  background: #ee46bc;
+}
+
+.blue {
+  background: #2d9cdb;
+}
+
 .main-layout-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -196,10 +179,12 @@
 }
 
 .recommended-column {
-  background: white;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
   padding: 30px;
-  border-radius: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+  border-radius: 28px;
+  border: 1px solid rgba(112, 41, 255, 0.08);
+  box-shadow: 0 18px 40px rgba(112, 41, 255, 0.08);
 }
 
 .recommended-header {
@@ -209,14 +194,16 @@
   margin-bottom: 25px;
 }
 
-.trend-icon { color: #7029FF; }
+.trend-icon {
+  color: #7029ff;
+}
 
 .quiz-row-card {
   display: flex;
   align-items: center;
   padding: 15px;
   border-radius: 16px;
-  background: #F9FAFB;
+  background: #f9fafb;
   margin-bottom: 15px;
   cursor: pointer;
 }
@@ -226,41 +213,78 @@
   height: 60px;
   border-radius: 12px;
   margin-right: 20px;
+  object-fit: cover;
 }
 
-.quiz-card-info { flex: 1; }
-.quiz-card-info h4 { margin: 0; color: #1D2939; }
-.quiz-card-info p { margin: 5px 0 0; color: #667085; font-size: 14px; }
-.arrow-icon { color: #D0D5DD; }
+.quiz-card-info {
+  flex: 1;
+}
+
+.quiz-card-info h4 {
+  margin: 0;
+  color: #1d2939;
+}
+
+.quiz-card-info p {
+  margin: 5px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.arrow-icon {
+  color: #d0d5dd;
+}
 
 .invite-gradient-card {
-  background: linear-gradient(135deg, #7029FF 0%, #EE46BC 100%);
+  background: linear-gradient(135deg, #7029ff 0%, #ee46bc 100%);
   padding: 40px 30px;
   border-radius: 30px;
   color: white;
   text-align: center;
+  box-shadow: 0 18px 40px rgba(112, 41, 255, 0.18);
 }
 
 .btn-send-invite {
   background: white;
-  color: #7029FF;
+  color: #7029ff;
   border: none;
   padding: 14px 28px;
-  border-radius: 12px;
-  font-weight: 700;
+  border-radius: 999px;
+  font-weight: 800;
   margin-top: 25px;
   cursor: pointer;
 }
 
-.dash-meta-row { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; color: #7b7b8f; font-weight: 600; margin-top: 5px; }
-.dash-meta-row span { display: flex; align-items: center; gap: 2px; }
-.gold { color: #f1ad1d; }
-.sm { font-size: 16px; margin-right: 2px; }
+.dash-meta-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #7b7b8f;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.dash-meta-row span {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.gold {
+  color: #f1ad1d;
+}
+
+.sm {
+  font-size: 16px;
+  margin-right: 2px;
+}
 
 @media (max-width: 1100px) {
   .hero-section {
     padding: 40px;
   }
+
   .welcome-text {
     font-size: 40px;
   }
@@ -271,47 +295,21 @@
     grid-template-columns: 1fr;
     padding: 32px 28px;
   }
+
   .pin-card {
     max-width: 100%;
     justify-self: stretch;
   }
+
   .welcome-text {
     font-size: 36px;
   }
+
   .main-layout-grid {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 600px) {
-  .dashboard-container {
-    padding: 20px 14px;
-    gap: 20px;
-  }
-  .hero-section {
-    padding: 24px 20px;
-    border-radius: 24px;
-  }
-  .welcome-text {
-    font-size: 28px;
-  }
-  .hero-subtext {
-    font-size: 14px;
-  }
   .action-cards-grid {
     grid-template-columns: 1fr;
-  }
-  .pin-input-group {
-    gap: 6px;
-    padding: 14px 10px;
-  }
-  .pin-field {
-    width: 32px;
-    height: 42px;
-    font-size: 22px;
-  }
-  .btn-join {
-    font-size: 15px;
-    padding: 13px 20px;
   }
 }
