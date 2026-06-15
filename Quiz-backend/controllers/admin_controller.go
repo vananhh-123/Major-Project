@@ -353,6 +353,13 @@ type AdminRoomResponse struct {
 }
 
 func GetAdminRooms(c *gin.Context) {
+	cutoff := time.Now().Add(-2 * time.Hour)
+
+	config.DB.
+		Model(&models.Room{}).
+		Where("status = ? AND created_at < ?", "waiting", cutoff).
+		Update("status", "closed")
+
 	var rooms []models.Room
 
 	if err := config.DB.
@@ -392,7 +399,7 @@ func GetAdminRooms(c *gin.Context) {
 			Host:      hostName,
 			Players:   playerCount,
 			Status:    room.Status,
-			CreatedAt: room.CreatedAt.Format("02 Jan 2006"),
+			CreatedAt: room.CreatedAt.Format(time.RFC3339),
 		})
 	}
 

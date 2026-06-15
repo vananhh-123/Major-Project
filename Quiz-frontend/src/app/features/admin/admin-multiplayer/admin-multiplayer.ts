@@ -1,13 +1,14 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription, interval } from 'rxjs';
 
 import {
   AdminApi,
   AdminRoomApi
 } from '../../../services/admin-api';
 
-type RoomStatus = 'Waiting' | 'Playing' | 'Finished';
+type RoomStatus = 'Waiting' | 'Playing' | 'Finished' | 'Closed';
 
 interface AdminRoom {
   id: string;
@@ -26,7 +27,7 @@ interface AdminRoom {
   templateUrl: './admin-multiplayer.html',
   styleUrl: './admin-multiplayer.css'
 })
-export class AdminMultiplayer implements OnInit {
+export class AdminMultiplayer implements OnInit, OnDestroy {
   searchText = '';
   statusFilter = '';
 
@@ -35,6 +36,9 @@ export class AdminMultiplayer implements OnInit {
 
   selectedRoom: AdminRoom | null = null;
 
+  private readonly autoCloseHours = 2;
+  private refreshSub?: Subscription;
+
   constructor(
     private adminApi: AdminApi,
     private cdr: ChangeDetectorRef
@@ -42,50 +46,130 @@ export class AdminMultiplayer implements OnInit {
 
   ngOnInit(): void {
     this.loadRooms();
+
+    this.refreshSub = interval(5000).subscribe(() => {
+      this.loadRooms(false);
+    });
   }
 
-  loadRooms(): void {
-    this.loading = true;
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  loadRooms(showLoading: boolean = true): void {
+    if (showLoading) {
+      this.loading = true;
+    }
 
     this.adminApi.getAdminRooms().subscribe({
       next: (data: AdminRoomApi[]) => {
-        this.rooms = data.map(item => this.mapRoom(item));
+        this.rooms = (data || []).map(item => this.mapRoom(item));
+
+        if (this.selectedRoom) {
+          const latestSelected = this.rooms.find(
+            room => room.id === this.selectedRoom?.id
+          );
+
+          this.selectedRoom = latestSelected || null;
+        }
+
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: err => {
         console.error('Cannot load multiplayer rooms:', err);
-        this.rooms = [];
         this.loading = false;
         this.cdr.detectChanges();
       }
     });
   }
 
+  refreshRooms(): void {
+    this.loadRooms(true);
+  }
+
   private mapRoom(item: AdminRoomApi): AdminRoom {
     return {
-      id: item.id,
-      roomCode: item.roomCode || 'N/A',
-      quizTitle: item.quizTitle || 'Unknown Quiz',
-      host: item.host || 'Unknown Host',
+      id: String(item.id || ''),
+      roomCode: String(item.roomCode || 'N/A'),
+      quizTitle: String(item.quizTitle || 'Unknown Quiz'),
+      host: String(item.host || 'Unknown Host'),
       players: Number(item.players || 0),
-      status: this.normalizeStatus(item.status),
-      createdAt: item.createdAt || 'N/A'
+      status: this.normalizeStatus(item),
+      createdAt: this.formatCreatedDate(item.createdAt)
     };
   }
 
-  private normalizeStatus(value?: string): RoomStatus {
-    const text = (value || '').toLowerCase();
+  private normalizeStatus(room: AdminRoomApi): RoomStatus {
+    const status = String(room.status || '').toLowerCase();
 
-    if (text === 'playing' || text === 'started') {
+    if (
+      status === 'playing' ||
+      status === 'started' ||
+      status === 'active' ||
+      status === 'live'
+    ) {
       return 'Playing';
     }
 
-    if (text === 'finished' || text === 'ended') {
+    if (
+      status === 'finished' ||
+      status === 'ended' ||
+      status === 'complete' ||
+      status === 'completed'
+    ) {
       return 'Finished';
     }
 
+    if (
+      status === 'closed' ||
+      status === 'expired' ||
+      status === 'cancelled' ||
+      status === 'canceled'
+    ) {
+      return 'Closed';
+    }
+
+    const createdTime = this.getDateTime(room.createdAt);
+
+    if (createdTime) {
+      const hoursPassed =
+        (Date.now() - createdTime) / (1000 * 60 * 60);
+
+      if (hoursPassed >= this.autoCloseHours) {
+        return 'Closed';
+      }
+    }
+
     return 'Waiting';
+  }
+
+  private getDateTime(value?: string): number | null {
+    if (!value) return null;
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date.getTime();
+  }
+
+  private formatCreatedDate(value?: string): string {
+    if (!value) return 'N/A';
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   }
 
   get totalRooms(): number {
@@ -101,7 +185,9 @@ export class AdminMultiplayer implements OnInit {
   }
 
   get finishedRooms(): number {
-    return this.rooms.filter(room => room.status === 'Finished').length;
+    return this.rooms.filter(
+      room => room.status === 'Finished' || room.status === 'Closed'
+    ).length;
   }
 
   get totalPlayers(): number {
@@ -109,10 +195,11 @@ export class AdminMultiplayer implements OnInit {
   }
 
   get filteredRooms(): AdminRoom[] {
-    const keyword = this.searchText.toLowerCase();
+    const keyword = this.searchText.trim().toLowerCase();
 
     return this.rooms.filter(room => {
       const matchesSearch =
+        !keyword ||
         room.roomCode.toLowerCase().includes(keyword) ||
         room.quizTitle.toLowerCase().includes(keyword) ||
         room.host.toLowerCase().includes(keyword) ||
@@ -135,6 +222,7 @@ export class AdminMultiplayer implements OnInit {
   }
 
   closeRoom(room: AdminRoom): void {
-    alert('This feature is not yet developed. Please wait for future updates!');
+    room.status = 'Closed';
+    this.cdr.detectChanges();
   }
 }

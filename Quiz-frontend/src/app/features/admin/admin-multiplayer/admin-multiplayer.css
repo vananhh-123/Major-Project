@@ -414,3 +414,7 @@
   cursor: pointer;
   box-shadow: var(--shadow-primary);
 }
+.closed-status {
+  background: rgba(100, 116, 139, .14);
+  color: #475569;
+}

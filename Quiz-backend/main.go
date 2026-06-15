@@ -102,6 +102,8 @@ func main() {
 		// =====================
 		api.POST("/rooms", controllers.CreateRoom)
 		api.POST("/rooms/join", controllers.JoinRoom)
+		api.PATCH("/rooms/:roomCode/status", controllers.UpdateRoomStatus)
+		api.PATCH("/rooms/close-expired", controllers.CloseExpiredRooms)
 
 		// =====================
 		// Quizzes

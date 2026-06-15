@@ -89,6 +89,7 @@
       <option value="Waiting">Waiting</option>
       <option value="Playing">Playing</option>
       <option value="Finished">Finished</option>
+      <option value="Closed">Closed</option>
     </select>
 
     <span class="result-count">
@@ -140,13 +141,14 @@
 
         <td>
           <span
-            class="badge-status"
-            [class.waiting-status]="room.status === 'Waiting'"
-            [class.playing-status]="room.status === 'Playing'"
-            [class.finished-status]="room.status === 'Finished'"
-          >
-            {{ room.status }}
-          </span>
+  class="badge-status"
+  [class.waiting-status]="room.status === 'Waiting'"
+  [class.playing-status]="room.status === 'Playing'"
+  [class.finished-status]="room.status === 'Finished'"
+  [class.closed-status]="room.status === 'Closed'"
+>
+  {{ room.status }}
+</span>
         </td>
 
         <td class="muted-text">
