@@ -174,11 +174,16 @@
 
         <td class="right">
           <div class="action-group">
-            <button class="topbar-icon-btn action-btn" title="View">
+            <button
+              class="topbar-icon-btn action-btn" title="View"
+               [routerLink]="['/app/quiz-detail', quiz.id]">
               <span class="material-symbols-outlined">visibility</span>
             </button>
 
-            <button class="topbar-icon-btn action-btn" title="Edit">
+            <button
+              class="topbar-icon-btn action-btn"
+              title="Edit"
+              [routerLink]="['/app/quiz/edit', quiz.id]">
               <span class="material-symbols-outlined">edit</span>
             </button>
 

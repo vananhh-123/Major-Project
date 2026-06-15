@@ -14,13 +14,18 @@ export interface AdminDashboardStats {
 export interface AdminQuizApi {
   id: string;
   title: string;
-  username?: string;
+  description?: string;
   creator?: string;
-  difficulty?: string;
+  creator_id?: string;
+  username?: string;
   level?: string;
+  difficulty?: string;
   visibility?: string;
   status?: string;
+  cover_image?: string;
+  plays?: number;
   rating?: number;
+  reviewCount?: number;
   questions?: number;
   questionCount?: number;
   created_at?: string;
@@ -35,6 +40,22 @@ export interface AdminUserApi {
   created_at?: string;
   avatar?: string;
   status?: string;
+}
+
+export interface AdminReviewApi {
+  id: string;
+  content?: string;
+  rating?: number;
+  created_at?: string;
+  user_id?: string;
+  quiz_id?: string;
+  username?: string;
+  email?: string;
+  quizTitle?: string;
+  title?: string;
+  status?: string;
+  likes?: number;
+  replies?: number;
 }
 
 @Injectable({
@@ -60,6 +81,12 @@ export class AdminApi {
   getAdminUsers(): Observable<AdminUserApi[]> {
     return this.http.get<AdminUserApi[]>(
       `${this.apiUrl}/admin/users`
+    );
+  }
+
+  getAdminReviews(): Observable<AdminReviewApi[]> {
+    return this.http.get<AdminReviewApi[]>(
+      `${this.apiUrl}/admin/reviews`
     );
   }
 }

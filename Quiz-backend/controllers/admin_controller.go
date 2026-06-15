@@ -13,6 +13,7 @@ type AdminUserResponse struct {
 	ID         string  `json:"id"`
 	Name       string  `json:"name"`
 	Email      string  `json:"email"`
+	Avatar     string  `json:"avatar"`
 	Role       string  `json:"role"`
 	Status     string  `json:"status"`
 	Quizzes    int64   `json:"quizzes"`
@@ -82,10 +83,16 @@ func GetAdminUsers(c *gin.Context) {
 			avgScore = totalPercent / float64(countQuiz)
 		}
 
+		avatar := ""
+		if user.Avatar != nil {
+			avatar = *user.Avatar
+		}
+
 		response = append(response, AdminUserResponse{
 			ID:         user.ID.String(),
 			Name:       user.Username,
 			Email:      user.Email,
+			Avatar:     avatar,
 			Role:       capitalize(user.Role),
 			Status:     capitalize(user.Status),
 			Quizzes:    quizzes,
@@ -137,29 +144,102 @@ func GetAdminUserStats(c *gin.Context) {
 }
 
 func ToggleUserStatus(c *gin.Context) {
-
 	id := c.Param("id")
 
 	var user models.User
 
-	if err := config.DB.
-		First(&user, "id = ?", id).
-		Error; err != nil {
-
-		c.JSON(404, gin.H{
-			"error": "User not found",
-		})
-
+	if err := config.DB.First(&user, "id = ?", id).Error; err != nil {
+		c.JSON(404, gin.H{"error": "User not found"})
 		return
 	}
 
-	if user.Status == "active" {
+	status := strings.ToLower(user.Status)
+
+	if status == "active" {
 		user.Status = "blocked"
 	} else {
 		user.Status = "active"
 	}
 
-	config.DB.Save(&user)
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to update user status"})
+		return
+	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User status updated",
+		"id":      user.ID,
+		"status":  user.Status,
+	})
+}
+
+type AdminReviewResponse struct {
+	ID        string `json:"id"`
+	User      string `json:"user"`
+	Email     string `json:"email"`
+	Avatar    string `json:"avatar"`
+	QuizID    string `json:"quizId"`
+	QuizTitle string `json:"quizTitle"`
+	Content   string `json:"content"`
+	Rating    int    `json:"rating"`
+	CreatedAt string `json:"createdAt"`
+}
+
+func GetAdminReviews(c *gin.Context) {
+	var reviews []models.Review
+
+	if err := config.DB.
+		Preload("User").
+		Preload("Quiz").
+		Order("created_at desc").
+		Find(&reviews).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch reviews"})
+		return
+	}
+
+	var response []AdminReviewResponse
+
+	for _, r := range reviews {
+		userName := "Anonymous User"
+		email := ""
+		avatar := ""
+
+		if r.User != nil {
+			userName = r.User.Username
+			email = r.User.Email
+			if r.User.Avatar != nil {
+				avatar = *r.User.Avatar
+			}
+		}
+
+		quizTitle := "Unknown Quiz"
+		if r.Quiz != nil {
+			quizTitle = r.Quiz.Title
+		}
+
+		response = append(response, AdminReviewResponse{
+			ID:        r.ID.String(),
+			User:      userName,
+			Email:     email,
+			Avatar:    avatar,
+			QuizID:    r.QuizID.String(),
+			QuizTitle: quizTitle,
+			Content:   r.Comment,
+			Rating:    r.Rating,
+			CreatedAt: r.CreatedAt.Format("02 Jan 2006"),
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func DeleteAdminReview(c *gin.Context) {
+	id := c.Param("id")
+
+	if err := config.DB.Delete(&models.Review{}, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete review"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Review deleted"})
 }

@@ -1,237 +1,184 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
 import { QuizService } from '../../../services/quiz.service';
-import { HttpClient } from '@angular/common/http';
 import { API_CONFIG } from '../../../config/api.config';
+
+interface ReviewItem {
+  id: string;
+  user: string;
+  email: string;
+  avatar: string;
+  rating: number;
+  content: string;
+  createdAt: string;
+}
 
 @Component({
   selector: 'app-quiz-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './quiz-detail.html',
   styleUrl: './quiz-detail.css'
 })
 export class QuizDetail implements OnInit {
-  private route = inject(ActivatedRoute);
-  private quizService = inject(QuizService);
-  private router = inject(Router);
-  private cd = inject(ChangeDetectorRef);
-  private http = inject(HttpClient);
+  quizId = '';
+  loading = true;
+  reviewSort = 'latest';
 
-  isOwner: boolean = false;
-  selectedVisibility: string = 'private';
-  quizId: string = '';
-  currentUser: any = null;
-  apiUrl = API_CONFIG.API_BASE;
+  quiz: any = null;
+  reviews: ReviewItem[] = [];
 
-  // Dữ liệu cho danh sách Review (Dành cho Guest)
-  reviews: any[] = [];
-  sortBy = 'latest';
-  currentReviewPage = 1;
-  reviewsPerPage = 4;
-  totalReviewPages = 1;
-
-  quizData: any = {
-    title: 'Loading...',
-    plays: '0',
-    comments: '0',
-    rating: '0',
-    questionsCount: 0,
-    duration: '0 min Avg.',
-    level: 'Loading...',
-    engagementRate: 0,
-    createdAt: '',
-    lastUpdated: '',
-    category: 'Loading...',
-    author: 'Loading...',
-    description: '',
-    imageUser: '/Cyber Security Theme.png',
-    imageGuest: '/Cyber security concept.png'
-  };
-
-  questions: any[] = [];
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private quizService: QuizService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        this.currentUser = JSON.parse(userStr);
-      } catch (e) {}
+    this.quizId = this.route.snapshot.paramMap.get('id') || '';
+
+    if (!this.quizId) {
+      this.router.navigate(['/app/quizzes']);
+      return;
     }
 
-    this.route.paramMap.subscribe(params => {
-      this.quizId = params.get('id') || '';
-      if (this.quizId) {
-        this.fetchQuizDetail();
-      }
-    });
+    this.loadQuiz();
   }
- 
-  fetchQuizDetail() {
+
+  loadQuiz(): void {
+    this.loading = true;
+
     this.quizService.getQuiz(this.quizId).subscribe({
-      next: (res) => {
-        if (!res) return;
+      next: (res: any) => {
+        this.quiz = this.normalizeQuiz(res);
+        this.reviews = this.normalizeReviews(res.reviews || res.Reviews || []);
+        this.applyReviewSort();
 
-        // Code gốc: Kiểm tra quyền sở hữu
-        if (this.currentUser && res.created_by === this.currentUser.id) {
-          this.isOwner = true;          this.loadReviews();        } else {
-          this.isOwner = false;
-          this.loadReviews(); // Guest mới tải reviews
-        }
-
-        this.selectedVisibility = res.visibility || 'private';
-
-        let totalSeconds = res.questions ? res.questions.reduce((acc: number, q: any) => acc + (q.time_limit || 20), 0) : 0;
-        const totalMinutes = Math.ceil(totalSeconds / 60);
-
-        let calculatedComments = res.comments || 0;
-        let calculatedRating: number | string = res.rating || 0;
-        if (res.reviews && res.reviews.length > 0) {
-            calculatedComments = res.reviews.length;
-            const sum = res.reviews.reduce((a: number, b: any) => a + b.rating, 0);
-            calculatedRating = (sum / calculatedComments).toFixed(1);
-        }
-
-        this.quizData = {
-          ...this.quizData,
-          id: res.id,
-          title: res.title || 'Untitled',
-          plays: res.plays || 0,
-          comments: calculatedComments,
-          rating: calculatedRating,
-          author: res.creator?.username || 'Unknown',
-          description: res.description || '',
-          level: res.level || 'Easy',
-          category: 'General', 
-          questionsCount: res.questions ? res.questions.length : 0,
-          duration: totalMinutes + ' min',
-          imageUser: res.cover_image || '/Cyber Security Theme.png',
-          imageGuest: res.cover_image || '/Cyber security concept.png',
-          createdAt: new Date(res.created_at).toLocaleDateString(),
-          lastUpdated: new Date(res.updated_at || res.created_at).toLocaleDateString()
-        };
-
-        if (res.questions) {
-          this.questions = res.questions.map((q: any, i: number) => {
-            let options = [];
-            if (typeof q.options === 'string') {
-              try { options = JSON.parse(q.options); } catch (e) {}
-            } else if (Array.isArray(q.options)) {
-              options = q.options;
-            }
-
-            return {
-              id: i + 1,
-              type: q.multiple_correct ? 'MULTIPLE CHOICE' : 'SINGLE CHOICE',
-              points: q.points || 100,
-              time: (q.time_limit || 20) + 's',
-              text: q.content || 'Question content',
-              options: options
-            };
-          });
-        }
-        this.cd.detectChanges();
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error fetching quiz detail', err);
-        this.cd.detectChanges();
+        console.error('Cannot load quiz detail:', err);
+        this.loading = false;
+        this.cdr.detectChanges();
+        alert('Cannot load quiz detail.');
+        this.router.navigate(['/app/quizzes']);
       }
     });
   }
 
-  // Chức năng Review dành cho Guest
-  loadReviews() {
-    this.http.get(`${this.apiUrl}/quizzes/${this.quizId}/reviews`).subscribe({
-      next: (res: any) => {
-        this.reviews = res || [];
-        this.quizData.comments = this.reviews.length;
-        const totalRating = this.reviews.reduce((sum: number, r: any) => sum + r.rating, 0);
-        this.quizData.rating = this.reviews.length ? (totalRating / this.reviews.length).toFixed(1) : 0;
-        this.sortReviews();
-        this.cd.detectChanges();
-      },
-      error: (err) => console.error('Reviews API error:', err)
+  normalizeQuiz(q: any): any {
+    const creator = q.creator || q.Creator || {};
+    const questions = q.questions || q.Questions || [];
+
+    return {
+      id: q.id || q.ID,
+      title: q.title || 'Untitled Quiz',
+      description: q.description || 'No description available.',
+      level: q.level || 'Easy',
+      visibility: q.visibility || 'public',
+      image: this.getCoverImage(q.cover_image || q.CoverImage),
+      author: creator.username || creator.Username || 'Unknown',
+      createdAt: this.formatDate(q.created_at || q.CreatedAt),
+      updatedAt: this.formatDate(q.updated_at || q.UpdatedAt || q.created_at || q.CreatedAt),
+      plays: q.plays || q.Plays || 0,
+      questionCount: questions.length,
+      questions
+    };
+  }
+
+  normalizeReviews(data: any[]): ReviewItem[] {
+    return data.map((item: any) => {
+      const userObj = item.user || item.User || {};
+      const username =
+        userObj.username ||
+        userObj.Username ||
+        item.username ||
+        item.user_id ||
+        'Unknown User';
+
+      return {
+        id: item.id || item.ID,
+        user: username,
+        email: userObj.email || userObj.Email || item.email || 'N/A',
+        avatar:
+          userObj.avatar ||
+          userObj.Avatar ||
+          `https://api.dicebear.com/8.x/avataaars/svg?seed=${username}`,
+        rating: Number(item.rating || item.Rating || 0),
+        content: item.comment || item.Comment || item.content || 'No content',
+        createdAt: this.formatDate(item.created_at || item.CreatedAt)
+      };
     });
   }
 
-  sortReviews() {
-    if (!this.reviews.length) return;
-    switch (this.sortBy) {
-      case 'latest': this.reviews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); break;
-      case 'oldest': this.reviews.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); break;
-      case 'highest': this.reviews.sort((a, b) => b.rating - a.rating); break;
-      case 'lowest': this.reviews.sort((a, b) => a.rating - b.rating); break;
+  getCoverImage(value?: string): string {
+    if (!value) return '/Tech.png';
+
+    if (value.startsWith('data:image') || value.startsWith('http')) {
+      return value;
     }
-    this.currentReviewPage = 1;
-    this.updateReviewPagination();
-    this.cd.detectChanges();
+
+    return value;
   }
 
-  updateReviewPagination() {
-    this.totalReviewPages = Math.ceil(this.reviews.length / this.reviewsPerPage) || 1;
-    if (this.currentReviewPage > this.totalReviewPages) {
-      this.currentReviewPage = this.totalReviewPages;
-    }
-    if (this.currentReviewPage < 1) {
-      this.currentReviewPage = 1;
-    }
-  }
+  formatDate(value?: string): string {
+    if (!value) return 'N/A';
 
-  get pagedReviews(): any[] {
-    const startIndex = (this.currentReviewPage - 1) * this.reviewsPerPage;
-    return this.reviews.slice(startIndex, startIndex + this.reviewsPerPage);
-  }
+    const date = new Date(value);
 
-  goToReviewPage(page: number) {
-    if (page >= 1 && page <= this.totalReviewPages) {
-      this.currentReviewPage = page;
-      this.cd.detectChanges();
-    }
-  }
+    if (Number.isNaN(date.getTime())) return value;
 
-  getReviewPagesArray(): number[] {
-    return Array.from({ length: this.totalReviewPages }, (_, i) => i + 1);
-  }
-
-  getStars(rating: any): number[] { return Array(Math.max(0, Math.floor(Number(rating) || 0))).fill(0); }
-  getEmptyStars(rating: any): number[] { return Array(Math.max(0, 5 - Math.floor(Number(rating) || 0))).fill(0); }
-
-  // Chức năng cập nhật tính hiển thị
-  updateVisibility(visibility: string) {
-    if (!this.isOwner) return;
-    this.quizService.updateVisibility(this.quizId, visibility).subscribe({
-      next: () => { this.selectedVisibility = visibility; this.cd.detectChanges(); },
-      error: (err) => console.error('Visibility update error', err)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric'
     });
   }
 
-  startGame() {
-    this.router.navigate(['/play/mode'], { 
-      queryParams: { id: this.quizId, title: this.quizData.title, desc: this.quizData.description, level: this.quizData.level, length: this.quizData.questionsCount } 
+  get averageRating(): string {
+    if (this.reviews.length === 0) return '0.0';
+
+    const total = this.reviews.reduce((sum, item) => sum + item.rating, 0);
+    return (total / this.reviews.length).toFixed(1);
+  }
+
+  getStars(rating: number): number[] {
+    return Array.from({ length: rating }, (_, index) => index + 1);
+  }
+
+  applyReviewSort(): void {
+    if (this.reviewSort === 'latest') {
+      this.reviews.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
+
+    if (this.reviewSort === 'highest') {
+      this.reviews.sort((a, b) => b.rating - a.rating);
+    }
+
+    if (this.reviewSort === 'lowest') {
+      this.reviews.sort((a, b) => a.rating - b.rating);
+    }
+  }
+
+  startGame(): void {
+    this.router.navigate(['/play/mode'], {
+      queryParams: { quizId: this.quizId }
     });
   }
 
-  shareQuiz() {
-    alert('Tính năng này hiện tại chưa được phát triển. Vui lòng chờ cập nhật trong tương lai!');
+  editQuiz(): void {
+    this.router.navigate(['/app/quiz/edit', this.quizId]);
   }
-    // B? sung ch?c nang Delete
-  deleteQuiz() {
-    if (!this.isOwner) return;
-    const confirmDelete = confirm('Are you sure you want to delete this quiz? This action cannot be undone.');
-    if (confirmDelete) {
-      this.http.delete(`${this.apiUrl}/quizzes/${this.quizId}`).subscribe({
-        next: () => {
-          alert('Quiz deleted successfully!');
-          this.router.navigate(['/app/dashboard']);
-        },
-        error: (err) => {
-          console.error('Error deleting quiz:', err);
-          alert('Failed to delete quiz.');
-        }
-      });
-    }
+
+  goBack(): void {
+    this.router.navigate(['/app/quizzes']);
   }
 }
-

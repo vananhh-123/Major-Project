@@ -9,7 +9,7 @@ import { API_CONFIG } from '../../config/api.config';
   standalone: true,
   imports: [CommonModule, RouterModule, HttpClientModule],
   templateUrl: './profile.html',
-  styleUrls: ['./profile.css']
+  styleUrl: './profile.css'
 })
 export class Profile implements OnInit {
   private http = inject(HttpClient);

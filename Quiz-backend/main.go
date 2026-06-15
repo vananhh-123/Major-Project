@@ -14,14 +14,21 @@ import (
 )
 
 func main() {
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
+	// =========================
+	// WebSocket Hub
+	// =========================
 	hub := sockets.NewHub()
 	go hub.Run()
 
+	// =========================
+	// Gin
+	// =========================
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -46,6 +53,9 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 
+	// =========================
+	// Database
+	// =========================
 	config.ConnectDatabase()
 
 	config.DB.AutoMigrate(
@@ -58,9 +68,15 @@ func main() {
 		&models.Player{},
 	)
 
+	// =========================
+	// Public APIs
+	// =========================
 	r.GET("/api/leaderboard", controllers.GetLeaderboard)
 	r.GET("/api/network-info", controllers.GetNetworkInfo)
 
+	// =========================
+	// Auth
+	// =========================
 	auth := r.Group("/auth")
 	{
 		auth.POST("/register", controllers.Register)
@@ -69,34 +85,83 @@ func main() {
 		auth.PATCH("/profile", controllers.UpdateProfile)
 	}
 
+	// =========================
+	// Main API
+	// =========================
 	api := r.Group("/api")
 	{
+		// =====================
+		// WebSocket
+		// =====================
 		api.GET("/ws", func(c *gin.Context) {
 			sockets.ServeWs(hub, c)
 		})
 
+		// =====================
+		// Rooms
+		// =====================
 		api.POST("/rooms", controllers.CreateRoom)
 		api.POST("/rooms/join", controllers.JoinRoom)
 
+		// =====================
+		// Quizzes
+		// =====================
 		api.POST("/quizzes", controllers.CreateQuiz)
 		api.GET("/quizzes", controllers.GetQuizzes)
 		api.GET("/quizzes/:id", controllers.GetQuiz)
 		api.PUT("/quizzes/:id", controllers.UpdateQuiz)
+
+		// THIẾU ROUTE NÀY TRƯỚC ĐÓ
+		api.PATCH("/quizzes/:id/visibility", controllers.UpdateQuizVisibility)
+
 		api.DELETE("/quizzes/:id", controllers.DeleteQuiz)
 
+		// =====================
+		// Reviews
+		// =====================
+		api.GET("/quizzes/:id/reviews", controllers.GetReviewsByQuiz)
+		api.POST("/reviews", controllers.CreateReview)
+
+		// =====================
+		// Results
+		// =====================
 		api.POST("/results", controllers.SubmitResult)
+
+		// =====================
+		// Stats
+		// =====================
 		api.GET("/stats/:id", controllers.GetUserStats)
 		api.GET("/users/:id/history", controllers.GetUserHistory)
 
+		// =====================
+		// Admin Dashboard
+		// =====================
 		api.GET("/admin/dashboard", controllers.GetAdminDashboard)
 
+		// =====================
+		// Admin Users
+		// =====================
 		api.GET("/admin/users", controllers.GetAdminUsers)
 		api.GET("/admin/users/stats", controllers.GetAdminUserStats)
 		api.PATCH("/admin/users/:id/status", controllers.ToggleUserStatus)
 
+		// =====================
+		// Admin Quizzes
+		// =====================
 		api.GET("/admin/quizzes", controllers.GetAdminQuizzes)
+
+		// =====================
+		// Admin Reviews
+		// =====================
 		api.GET("/admin/reviews", controllers.GetAdminReviews)
 	}
 
-	r.Run(":8080")
+	// =========================
+	// Start Server
+	// =========================
+	log.Println("Server running at :8080")
+
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

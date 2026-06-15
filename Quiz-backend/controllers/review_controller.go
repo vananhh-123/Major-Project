@@ -73,3 +73,21 @@ func GetQuizReviews(c *gin.Context) {
 
 	c.JSON(http.StatusOK, reviews)
 }
+func GetReviewsByQuiz(c *gin.Context) {
+	quizID := c.Param("id")
+
+	var reviews []models.Review
+
+	if err := config.DB.
+		Where("quiz_id = ?", quizID).
+		Order("created_at DESC").
+		Find(&reviews).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to load reviews",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, reviews)
+}

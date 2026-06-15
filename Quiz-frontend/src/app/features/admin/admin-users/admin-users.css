@@ -148,3 +148,20 @@ select {
 .status-dot-text.blocked-status span {
   background: var(--error);
 }
+
+.admin-table tbody tr {
+  display: table-row !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.admin-table tbody td {
+  display: table-cell !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: var(--on-surface) !important;
+}
+
+.admin-table tbody {
+  display: table-row-group !important;
+}

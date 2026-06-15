@@ -1,4 +1,6 @@
 @import "primeicons/primeicons.css";
+@import './assets/admin/admin.css';
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 body {
   margin: 0;

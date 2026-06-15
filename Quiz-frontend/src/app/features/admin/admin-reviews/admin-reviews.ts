@@ -1,6 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import {
+  AdminApi,
+  AdminReviewApi
+} from '../../../services/admin-api';
 
 type FeedbackType = 'Review' | 'Comment';
 type FeedbackStatus = 'Visible' | 'Hidden';
@@ -28,131 +33,84 @@ interface FeedbackItem {
   templateUrl: './admin-reviews.html',
   styleUrl: './admin-reviews.css'
 })
-export class AdminReviews {
+export class AdminReviews implements OnInit {
   searchText = '';
   activeTab: 'all' | 'reviews' | 'comments' | 'popular' = 'all';
   statusFilter = '';
   quizFilter = '';
   ratingFilter = '';
 
-  feedbacks: FeedbackItem[] = [
-    {
-      id: 'RV001',
-      type: 'Review',
-      user: 'Sara M.',
-      email: 'sara@example.com',
-      avatarSeed: 'Sara',
-      quizTitle: 'English Basic Quiz',
-      quizId: 'QZ001',
-      content: 'This quiz is very clear and useful. The questions are well organized and suitable for beginners.',
-      rating: 5,
-      likes: 42,
-      replies: 3,
-      status: 'Visible',
-      createdAt: 'Jun 10, 2026'
-    },
-    {
-      id: 'CM001',
-      type: 'Comment',
-      user: '@devGuru',
-      email: 'devguru@example.com',
-      avatarSeed: 'DevGuru',
-      quizTitle: 'Programming Quiz',
-      quizId: 'QZ003',
-      content: 'The Python section was perfect for interview prep. It covered fundamentals clearly.',
-      likes: 89,
-      replies: 12,
-      status: 'Visible',
-      createdAt: 'Jun 10, 2026'
-    },
-    {
-      id: 'RV002',
-      type: 'Review',
-      user: 'Tran Thi B',
-      email: 'tranthib@example.com',
-      avatarSeed: 'TranThiB',
-      quizTitle: 'Math Challenge',
-      quizId: 'QZ002',
-      content: 'Good quiz, but some questions are quite difficult. It would be better with explanations after each answer.',
-      rating: 4,
-      likes: 27,
-      replies: 5,
-      status: 'Visible',
-      createdAt: 'Jun 09, 2026'
-    },
-    {
-      id: 'CM002',
-      type: 'Comment',
-      user: '@historyBuff',
-      email: 'history@example.com',
-      avatarSeed: 'History',
-      quizTitle: 'History Quick Test',
-      quizId: 'QZ004',
-      content: 'Great quiz. I would love more questions about important events and historical figures.',
-      likes: 31,
-      replies: 4,
-      status: 'Visible',
-      createdAt: 'Jun 09, 2026'
-    },
-    {
-      id: 'CM003',
-      type: 'Comment',
-      user: '@quizNerd',
-      email: 'quiznerd@example.com',
-      avatarSeed: 'QuizNerd',
-      quizTitle: 'English Basic Quiz',
-      quizId: 'QZ001',
-      content: 'Best quiz platform I have used. The UI is clean and the questions are well written.',
-      likes: 112,
-      replies: 15,
-      status: 'Visible',
-      createdAt: 'Jun 08, 2026'
-    },
-    {
-      id: 'RV003',
-      type: 'Review',
-      user: 'Le Minh C',
-      email: 'leminhc@example.com',
-      avatarSeed: 'LeMinhC',
-      quizTitle: 'Programming Quiz',
-      quizId: 'QZ003',
-      content: 'Great for practicing programming fundamentals. The difficulty is fair and the quiz flow is smooth.',
-      rating: 5,
-      likes: 58,
-      replies: 8,
-      status: 'Visible',
-      createdAt: 'Jun 08, 2026'
-    },
-    {
-      id: 'CM004',
-      type: 'Comment',
-      user: '@learnerVN',
-      email: 'learnervn@example.com',
-      avatarSeed: 'LearnerVN',
-      quizTitle: 'Math Challenge',
-      quizId: 'QZ002',
-      content: 'I hope this quiz will have more medium-level math questions in the next update.',
-      likes: 18,
-      replies: 2,
-      status: 'Hidden',
-      createdAt: 'Jun 07, 2026'
-    },
-    {
-      id: 'RV004',
-      type: 'Review',
-      user: 'Pham Hoang D',
-      email: 'phamhoangd@example.com',
-      avatarSeed: 'PhamHoangD',
-      quizTitle: 'History Quick Test',
-      quizId: 'QZ004',
-      content: 'The quiz is okay, but it needs more detailed explanation after incorrect answers.',
-      rating: 3,
-      likes: 14,
-      replies: 2,
-      status: 'Hidden',
-      createdAt: 'Jun 07, 2026'
+  feedbacks: FeedbackItem[] = [];
+
+  constructor(private adminApi: AdminApi) {}
+
+  ngOnInit(): void {
+    this.loadReviews();
+  }
+
+  loadReviews(): void {
+    this.adminApi.getAdminReviews().subscribe({
+      next: (data: AdminReviewApi[]) => {
+        this.feedbacks = data.map((item: AdminReviewApi) =>
+          this.mapReview(item)
+        );
+      },
+      error: () => {
+        alert('Cannot load reviews from backend.');
+        this.feedbacks = [];
+      }
+    });
+  }
+
+  private mapReview(item: AdminReviewApi): FeedbackItem {
+    const rating = item.rating || 0;
+    const username =
+      item.username ||
+      item.email ||
+      item.user_id ||
+      'Unknown User';
+
+    return {
+      id: item.id,
+      type: rating > 0 ? 'Review' : 'Comment',
+      user: username,
+      email: item.email || 'N/A',
+      avatarSeed: username,
+      quizTitle:
+        item.quizTitle ||
+        item.title ||
+        item.quiz_id ||
+        'Unknown Quiz',
+      quizId: item.quiz_id || 'N/A',
+      content: item.content || 'No content',
+      rating: rating > 0 ? rating : undefined,
+      likes: item.likes || 0,
+      replies: item.replies || 0,
+      status:
+        item.status?.toLowerCase() === 'hidden'
+          ? 'Hidden'
+          : 'Visible',
+      createdAt: this.formatDate(item.created_at)
+    };
+  }
+
+  private formatDate(value?: string): string {
+    if (!value) {
+      return 'N/A';
     }
-  ];
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  }
 
   get totalFeedback(): number {
     return this.feedbacks.length;
@@ -171,19 +129,26 @@ export class AdminReviews {
   }
 
   get averageRating(): string {
-    const reviews = this.feedbacks.filter(item => item.type === 'Review' && item.rating);
+    const reviews = this.feedbacks.filter(
+      item => item.type === 'Review' && item.rating
+    );
 
     if (reviews.length === 0) {
       return '0.0';
     }
 
-    const total = reviews.reduce((sum, item) => sum + (item.rating || 0), 0);
+    const total = reviews.reduce(
+      (sum, item) => sum + (item.rating || 0),
+      0
+    );
 
     return (total / reviews.length).toFixed(1);
   }
 
   get quizzes(): string[] {
-    return Array.from(new Set(this.feedbacks.map(item => item.quizTitle)));
+    return Array.from(
+      new Set(this.feedbacks.map(item => item.quizTitle))
+    );
   }
 
   get filteredFeedbacks(): FeedbackItem[] {
@@ -248,9 +213,10 @@ export class AdminReviews {
   }
 
   toggleStatus(item: FeedbackItem): void {
-    item.status = item.status === 'Visible'
-      ? 'Hidden'
-      : 'Visible';
+    item.status =
+      item.status === 'Visible'
+        ? 'Hidden'
+        : 'Visible';
   }
 
   deleteFeedback(id: string): void {

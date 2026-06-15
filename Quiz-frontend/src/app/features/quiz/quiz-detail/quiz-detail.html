@@ -1,197 +1,190 @@
-<div class="quiz-detail-container">
-  <div class="main-layout-grid">
-   
-    <!-- C?T TR�I -->
-    <div class="main-content">
-     
-      @if (isOwner) {
-        <!-- HERO AREA FOR OWNER -->
-        <div class="hero-card hero-owner" [style.backgroundImage]="'url(' + quizData.imageUser + ')'">
-          <div class="hero-info">
-            <h1 class="main-title">{{ quizData.title }}</h1>
-            <div class="stats-bar" style="flex-wrap: wrap;">
-              <span class="stat-item"><i class="pi pi-play-circle"></i> {{ quizData.plays }} Plays</span>
-              <span class="stat-item"><i class="pi pi-comment"></i> {{ quizData.comments }} Comments</span>
-              <span class="stat-item"><i class="pi pi-star-fill"></i> {{ quizData.rating }} Rating</span>
-              <span class="stat-item"><i class="pi pi-list"></i> {{ quizData.questionsCount }} Questions</span>
-              <span class="stat-item"><i class="pi pi-clock"></i> {{ quizData.duration }} Avg.</span>
-              <span class="stat-item"><i class="pi pi-trophy"></i> {{ quizData.level }}</span>
-            </div>
-          </div>
-        </div>
+<section class="detail-loading" *ngIf="loading">
+  <span class="material-symbols-outlined">hourglass_top</span>
+  Loading quiz detail...
+</section>
 
-        <!-- MANAGE VISIBILITY (Ch? hi?n khi l� Host) -->
-        <div class="visibility-section" style="text-align: center;">
-          <div class="section-header" style="justify-content: center; margin-bottom: 1.5rem;">
-            <i class="pi pi-eye"></i>
-            <h3>Manage Visibility</h3>
-          </div>
-          <div class="visibility-grid" style="display: flex; justify-content: center; gap: 1.5rem;">
-            <div class="v-card" [class.active]="selectedVisibility === 'public'" (click)="updateVisibility('public')" style="flex: 0 1 200px;">
-              <i class="pi pi-globe"></i>
-              <strong>Public</strong>
-              <span>Visible to everyone</span>
-            </div>
-            <div class="v-card" [class.active]="selectedVisibility === 'private'" (click)="updateVisibility('private')" style="flex: 0 1 200px;">
-              <i class="pi pi-link"></i>
-              <strong>Private</strong>
-              <span>Link access only</span>
-            </div>
-          </div>
-        </div>
+<section class="quiz-detail-page" *ngIf="!loading && quiz">
+  <aside class="detail-sidebar">
+    <button class="back-btn" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Back to Quiz List
+    </button>
 
-        <!-- PREVIEW QUESTIONS (GI? NGUY�N CHO HOST) -->
-        <div class="preview-section">
-          <div class="preview-header">
-            <h2>Question Preview</h2>
-            <span class="total-count">{{ quizData.questionsCount }} total questions</span>
-          </div>
-          <div class="questions-list">
-            <div class="q-card" *ngFor="let q of questions">
-              <div class="q-index">{{ q.id }}</div>
-              <div class="q-content" style="width: 100%;">
-                <div class="q-meta">
-                  <span class="q-tag type-tag">{{ q.type }}</span>
-                  <span class="q-tag time-tag"><i class="pi pi-clock"></i> {{ q.time }}</span>
-                  <span class="q-tag points-tag">{{ q.points }} PTS</span>
-                </div>
-                <p class="q-text" style="font-weight: 600; font-size: 1.1rem; margin-top: 1rem; margin-bottom: 1rem;">{{ q.text }}</p>
-                <div class="q-options-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                  <div *ngFor="let opt of q.options" 
-                       class="opt-card" 
-                       [ngStyle]="{'background-color': (isOwner && opt.is_correct) ? '#d1fae5' : '#f8fafc', 'border': (isOwner && opt.is_correct) ? '2px solid #10b981' : '1px solid #e2e8f0', 'padding': '1rem', 'border-radius': '12px', 'display': 'flex', 'align-items': 'center', 'gap': '0.75rem', 'font-weight': '500'}">
-                    <i class="pi" [ngClass]="(isOwner && opt.is_correct) ? 'pi-check-circle' : 'pi-circle'" [ngStyle]="{'color': (isOwner && opt.is_correct) ? '#10b981' : '#94a3b8', 'font-size': '1.2rem'}"></i>
-                    <span style="color: #334155;">{{ opt.text }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      } @else {
-        <!-- HERO AREA FOR GUEST -->
-        <div class="hero-card hero-guest-full">
-          <div class="guest-hero-layout">
-            <div class="guest-hero-img-box"><img [src]="quizData.imageGuest" alt="Quiz Cover"></div>
-            <div class="guest-hero-info">
-              <div class="guest-top-meta"><span class="cat-tag">{{ quizData.category }}</span></div>
-              <h1 class="guest-main-title">{{ quizData.title }}</h1>
-              <div class="guest-stats-row" style="flex-wrap: wrap;">
-                <span class="g-stat"><i class="pi pi-play"></i> {{ quizData.plays }} Plays</span>
-                <span class="g-stat"><i class="pi pi-comment"></i> {{ quizData.comments }} Comments</span>
-                <span class="g-stat"><i class="pi pi-star-fill"></i> {{ quizData.rating }} Rating</span>
-              </div>
-              <div class="guest-cta-btns">
-                <button class="btn-play-now" (click)="startGame()"><i class="pi pi-play"></i> START GAME</button>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div class="side-card">
+      <p class="side-label">Quick Actions</p>
 
-        <!-- REVIEWS LIST (THAY TH? PREVIEW QUESTIONS CHO GUEST) -->
-        <div class="reviews-section-guest">
-          <div class="section-header-review">
-            <h2>Community Reviews</h2>
-            <div class="sort-wrapper">
-              <span class="sort-label">Sort by:</span>
-              <select class="sort-select" [(ngModel)]="sortBy" (change)="sortReviews()">
-                <option value="latest">Latest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="highest">Highest Rating</option>
-                <option value="lowest">Lowest Rating</option>
-              </select>
-            </div>
-          </div>
+      <button class="side-action primary" (click)="startGame()">
+        <span class="material-symbols-outlined">play_arrow</span>
+        Start Game
+      </button>
 
-          <div *ngIf="!reviews.length" class="empty-state">No reviews yet for this quiz.</div>
-
-          @for (rev of pagedReviews; track rev.id) {
-            <div class="review-card-item">
-              <div class="card-top-review">
-                <div class="user-block-review">
-                  <img [src]="rev.user?.avatar || 'User.png'" onerror="this.src='User.png'" class="user-avatar-review">
-                  <div class="user-info-review">
-                    <h3>{{ rev.user.username || 'Anonymous' }}</h3>
-                    <p>{{ rev.created_at | date:'mediumDate' }}</p>
-                  </div>
-                </div>
-                <div class="stars-display-review">
-                  @for (s of getStars(rev.rating); track $index) { <i class="pi pi-star-fill"></i> }
-                  @for (s of getEmptyStars(rev.rating); track $index) { <i class="pi pi-star"></i> }
-                </div>
-              </div>
-              <p class="comment-text-review">{{ rev.comment }}</p>
-            </div>
-          }
-
-          <div class="review-pagination-container" *ngIf="totalReviewPages > 1">
-            <button class="review-page-btn" (click)="goToReviewPage(currentReviewPage - 1)" [disabled]="currentReviewPage === 1">
-              <span class="material-icons">chevron_left</span>
-            </button>
-
-            <button
-              *ngFor="let page of getReviewPagesArray()"
-              class="review-page-btn"
-              [class.active]="currentReviewPage === page"
-              (click)="goToReviewPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button class="review-page-btn" (click)="goToReviewPage(currentReviewPage + 1)" [disabled]="currentReviewPage === totalReviewPages">
-              <span class="material-icons">chevron_right</span>
-            </button>
-          </div>
-        </div>
-      }
+      <button class="side-action" (click)="editQuiz()">
+        <span class="material-symbols-outlined">edit</span>
+        Edit Quiz
+      </button>
     </div>
 
-    <!-- C?T PH?I (SIDEBAR G?C) -->
-    <aside class="sidebar">
-      @if (isOwner) {
-        <div class="side-card quick-actions-card">
-          <span class="side-label">QUICK ACTIONS</span>
-          <div class="action-list">
-            <button class="action-item" [routerLink]="['/app/quiz/edit', quizId]">
-              <i class="pi pi-align-left"></i><span>Edit Quiz</span>
-            </button>
-            <button class="action-item" (click)="shareQuiz()">
-              <i class="pi pi-share-alt"></i><span>Share Quiz</span>
-            </button>
-            <button class="action-item" [routerLink]="['/app/review', quizId]">
-              <i class="pi pi-star"></i><span>Review</span>
-            </button>
-            <button class="action-item delete" (click)="deleteQuiz()">
-              <i class="pi pi-trash"></i><span>Delete Quiz</span>
-            </button>
-          </div>
-        </div>
-      } @else {
-        <div class="side-card quick-actions-card">
-          <span class="side-label">QUICK ACTIONS</span>
-          <div class="action-list">
-            <button class="action-item" (click)="shareQuiz()">
-              <i class="pi pi-share-alt"></i><span>Share Quiz</span>
-            </button>
-          </div>
-        </div>
-      }
+    <div class="side-card">
+      <p class="side-label">Quiz Summary</p>
 
-      <div class="side-card summary-card">
-        <span class="side-label">QUIZ SUMMARY</span>
-        <div class="summary-content" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
-          <p class="summary-text-item"><i class="pi pi-user"></i> Author: <strong>{{ quizData.author }}</strong></p>
-          <p class="summary-text-item"><i class="pi pi-clock"></i> Created: <strong>{{ quizData.createdAt }}</strong></p>
-          <p class="summary-text-item"><i class="pi pi-calendar"></i> Updated: <strong>{{ quizData.lastUpdated }}</strong></p>
-          <p class="summary-text-item"><i class="pi pi-chart-bar"></i> Level: <span class="tag-purple">{{ quizData.level }}</span></p>
+      <div class="summary-item">
+        <span class="material-symbols-outlined">person</span>
+        <div>
+          <small>Author</small>
+          <strong>{{ quiz.author }}</strong>
         </div>
       </div>
 
-      <div class="side-card summary-card">
-        <span class="side-label">DESCRIPTION</span>
-        <p class="desc-text-side">{{ quizData.description || 'No description provided.' }}</p>
+      <div class="summary-item">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <div>
+          <small>Created</small>
+          <strong>{{ quiz.createdAt }}</strong>
+        </div>
       </div>
-    </aside>
 
-  </div>
-</div>
+      <div class="summary-item">
+        <span class="material-symbols-outlined">signal_cellular_alt</span>
+        <div>
+          <small>Level</small>
+          <strong>{{ quiz.level }}</strong>
+        </div>
+      </div>
+
+      <div class="summary-item">
+        <span class="material-symbols-outlined">help</span>
+        <div>
+          <small>Questions</small>
+          <strong>{{ quiz.questionCount }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-card">
+      <p class="side-label">Description</p>
+      <p class="description-text">{{ quiz.description }}</p>
+    </div>
+  </aside>
+
+  <main class="detail-main">
+    <section class="hero-card">
+      <div class="hero-image-wrap">
+        <img [src]="quiz.image" [alt]="quiz.title" />
+      </div>
+
+      <div class="hero-content">
+        <span class="category-pill">{{ quiz.level }}</span>
+
+        <h1>{{ quiz.title }}</h1>
+
+        <p class="hero-desc">{{ quiz.description }}</p>
+
+        <div class="hero-stats">
+          <span>
+            <span class="material-symbols-outlined">play_arrow</span>
+            {{ quiz.plays }} Plays
+          </span>
+
+          <span>
+            <span class="material-symbols-outlined">forum</span>
+            {{ reviews.length }} Comments
+          </span>
+
+          <span>
+            <span class="material-symbols-outlined">star</span>
+            {{ averageRating }} Rating
+          </span>
+        </div>
+
+        <div class="hero-actions">
+          <button class="start-btn" (click)="startGame()">
+            <span class="material-symbols-outlined">play_arrow</span>
+            Start Game
+          </button>
+
+          <button class="edit-btn" (click)="editQuiz()">
+            <span class="material-symbols-outlined">edit</span>
+            Edit Quiz
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-grid">
+      <div class="info-card">
+        <span class="material-symbols-outlined">quiz</span>
+        <strong>{{ quiz.questionCount }}</strong>
+        <p>Questions</p>
+      </div>
+
+      <div class="info-card">
+        <span class="material-symbols-outlined">visibility</span>
+        <strong>{{ quiz.visibility }}</strong>
+        <p>Visibility</p>
+      </div>
+
+      <div class="info-card">
+        <span class="material-symbols-outlined">rate_review</span>
+        <strong>{{ reviews.length }}</strong>
+        <p>Reviews</p>
+      </div>
+
+      <div class="info-card">
+        <span class="material-symbols-outlined">star</span>
+        <strong>{{ averageRating }}</strong>
+        <p>Average</p>
+      </div>
+    </section>
+
+    <section class="reviews-card">
+      <div class="reviews-header">
+        <div>
+          <p class="section-eyebrow">Community</p>
+          <h2>Community Reviews</h2>
+        </div>
+
+        <select [(ngModel)]="reviewSort" (change)="applyReviewSort()">
+          <option value="latest">Latest First</option>
+          <option value="highest">Highest Rating</option>
+          <option value="lowest">Lowest Rating</option>
+        </select>
+      </div>
+
+      <div class="review-list" *ngIf="reviews.length > 0">
+        <article class="review-item" *ngFor="let review of reviews">
+          <img class="review-avatar" [src]="review.avatar" [alt]="review.user" />
+
+          <div class="review-body">
+            <div class="review-top">
+              <div>
+                <h3>{{ review.user }}</h3>
+                <p>{{ review.email }}</p>
+              </div>
+
+              <span class="review-date">{{ review.createdAt }}</span>
+            </div>
+
+            <div class="stars">
+              <span
+                class="material-symbols-outlined"
+                *ngFor="let star of getStars(review.rating)"
+              >
+                star
+              </span>
+            </div>
+
+            <p class="review-content">
+              {{ review.content }}
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty-reviews" *ngIf="reviews.length === 0">
+        <span class="material-symbols-outlined">rate_review</span>
+        <h3>No reviews yet</h3>
+        <p>This quiz does not have any visible review or comment.</p>
+      </div>
+    </section>
+  </main>
+</section>
