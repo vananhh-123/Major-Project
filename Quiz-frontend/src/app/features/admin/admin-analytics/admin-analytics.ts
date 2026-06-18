@@ -16,7 +16,7 @@ import {
   ApexLegend
 } from 'ng-apexcharts';
 
-import { AdminApi, AnalyticsApi } from '../../../services/admin-api';
+import { AdminApi } from '../../../services/admin-api';
 
 interface AnalyticsKpi {
   label: string;
@@ -25,6 +25,12 @@ interface AnalyticsKpi {
   icon: string;
   iconClass: string;
   trendClass: string;
+}
+
+interface DailyActivity {
+  date: string;
+  solo: number;
+  multi: number;
 }
 
 export type ChartOptions = {
@@ -59,7 +65,11 @@ export class AdminAnalytics implements OnInit {
 
   kpis: AnalyticsKpi[] = [];
 
-  chartOptions: ChartOptions = this.buildChartOptions([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]);
+  chartOptions: ChartOptions = this.buildChartOptions(
+    ['No Data'],
+    [0],
+    [0]
+  );
 
   constructor(
     private adminApi: AdminApi,
@@ -76,16 +86,18 @@ export class AdminAnalytics implements OnInit {
 
   loadAnalytics(): void {
     this.adminApi.getAnalytics(this.selectedRange).subscribe({
-      next: (data: AnalyticsApi) => {
-        const totalGames = Number(data.totalResults || 0);
+      next: (data: any) => {
+        console.log('ANALYTICS DATA:', data);
+
         const solo = Number(data.soloGames || 0);
         const multi = Number(data.multiGames || 0);
+        const totalGames = Number(data.totalResults || solo + multi);
         const reviews = Number(data.totalReviews || 0);
 
         this.soloGames = solo;
         this.multiGames = multi;
         this.totalReviews = reviews;
-        this.activeRooms = 0;
+        this.activeRooms = Number(data.activeRooms || 0);
 
         this.kpis = [
           {
@@ -122,16 +134,48 @@ export class AdminAnalytics implements OnInit {
           }
         ];
 
+        const dailyActivity = this.normalizeDailyActivity(data.dailyActivity || []);
+
         this.chartOptions = this.buildChartOptions(
-          this.makeTrendSeries(solo),
-          this.makeTrendSeries(multi)
+          dailyActivity.map(item => item.date),
+          dailyActivity.map(item => item.solo),
+          dailyActivity.map(item => item.multi)
         );
 
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: err => {
+        console.error('Load analytics failed:', err);
         this.setFallbackData();
       }
+    });
+  }
+
+  private normalizeDailyActivity(source: any[]): DailyActivity[] {
+    if (!Array.isArray(source) || source.length === 0) {
+      return [{ date: 'No Data', solo: 0, multi: 0 }];
+    }
+
+    return source.map((item: any) => ({
+      date: this.formatChartDate(item.date || item.day || item.created_at || item.createdAt),
+      solo: Number(item.solo || item.soloGames || 0),
+      multi: Number(item.multi || item.multiGames || 0)
+    }));
+  }
+
+  private formatChartDate(value: string): string {
+    if (!value) return 'Unknown';
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
     });
   }
 
@@ -140,6 +184,31 @@ export class AdminAnalytics implements OnInit {
     if (this.selectedRange === '7') return 'Last 7 days';
     if (this.selectedRange === '30') return 'Last 30 days';
     return 'All time';
+  }
+
+  get totalGameCount(): number {
+    return this.soloGames + this.multiGames + this.totalReviews + this.activeRooms;
+  }
+
+  get soloPercent(): number {
+    return this.calcPercent(this.soloGames);
+  }
+
+  get multiPercent(): number {
+    return this.calcPercent(this.multiGames);
+  }
+
+  get reviewPercent(): number {
+    return this.calcPercent(this.totalReviews);
+  }
+
+  get activeRoomPercent(): number {
+    return this.calcPercent(this.activeRooms);
+  }
+
+  private calcPercent(value: number): number {
+    if (this.totalGameCount <= 0) return 8;
+    return Math.max(8, Math.round((Number(value || 0) / this.totalGameCount) * 100));
   }
 
   private setFallbackData(): void {
@@ -183,68 +252,29 @@ export class AdminAnalytics implements OnInit {
       }
     ];
 
-    this.chartOptions = this.buildChartOptions(
-      [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0]
-    );
-
+    this.chartOptions = this.buildChartOptions(['No Data'], [0], [0]);
     this.cdr.detectChanges();
   }
 
-  private makeTrendSeries(total: number): number[] {
-    const value = Math.max(Number(total || 0), 0);
-
-    if (value === 0) {
-      return [0, 0, 0, 0, 0, 0, 0];
-    }
-
-    return [
-      Math.max(Math.round(value * 0.12), 1),
-      Math.max(Math.round(value * 0.2), 1),
-      Math.max(Math.round(value * 0.32), 1),
-      Math.max(Math.round(value * 0.45), 1),
-      Math.max(Math.round(value * 0.62), 1),
-      Math.max(Math.round(value * 0.78), 1),
-      value
-    ];
-  }
-
-  private buildChartOptions(soloData: number[], multiData: number[]): ChartOptions {
+  private buildChartOptions(
+    categories: string[],
+    soloData: number[],
+    multiData: number[]
+  ): ChartOptions {
     const maxValue = Math.max(...soloData, ...multiData, 5);
 
     return {
       series: [
-        {
-          name: 'Solo Games',
-          data: soloData
-        },
-        {
-          name: 'Multi Games',
-          data: multiData
-        }
+        { name: 'Solo Games', data: soloData },
+        { name: 'Multi Games', data: multiData }
       ],
 
       chart: {
         type: 'area',
-        height: 360,
-        toolbar: {
-          show: false
-        },
-        zoom: {
-          enabled: false
-        },
-        animations: {
-          enabled: true,
-          speed: 800,
-          animateGradually: {
-            enabled: true,
-            delay: 80
-          },
-          dynamicAnimation: {
-            enabled: true,
-            speed: 400
-          }
-        },
+        height: 380,
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        animations: { enabled: true, speed: 600 },
         fontFamily: 'Manrope, Arial, sans-serif',
         foreColor: '#68537c'
       },
@@ -253,83 +283,58 @@ export class AdminAnalytics implements OnInit {
 
       stroke: {
         curve: 'smooth',
-        width: [4, 3],
-        dashArray: [0, 6]
+        width: [4, 4]
       },
 
       fill: {
         type: 'gradient',
-        opacity: [0.28, 0.08],
         gradient: {
-          shadeIntensity: 0.2,
-          opacityFrom: 0.3,
-          opacityTo: 0.03,
+          shadeIntensity: 0.6,
+          opacityFrom: 0.38,
+          opacityTo: 0.04,
           stops: [0, 90, 100]
         }
       },
 
-      dataLabels: {
-        enabled: false
-      },
+      dataLabels: { enabled: false },
 
       markers: {
-        size: 0,
+        size: 4,
         strokeWidth: 3,
         strokeColors: '#ffffff',
-        hover: {
-          size: 7
-        }
+        hover: { size: 7 }
       },
 
       grid: {
         borderColor: 'rgba(188, 164, 209, 0.24)',
-        strokeDashArray: 0,
-        xaxis: {
-          lines: {
-            show: false
-          }
-        },
-        yaxis: {
-          lines: {
-            show: true
-          }
-        },
-        padding: {
-          left: 8,
-          right: 8,
-          top: 8,
-          bottom: 0
-        }
+        strokeDashArray: 4,
+        yaxis: { lines: { show: true } },
+        padding: { left: 8, right: 8, top: 8, bottom: 0 }
       },
 
       xaxis: {
-        categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        categories,
         labels: {
+          rotate: -25,
+          trim: false,
+          hideOverlappingLabels: true,
           style: {
             colors: '#8a78a0',
-            fontSize: '12px',
+            fontSize: '11px',
             fontWeight: 700
           }
         },
-        axisBorder: {
-          show: false
-        },
-        axisTicks: {
-          show: false
-        },
-        tooltip: {
-          enabled: false
-        }
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        tooltip: { enabled: false }
       },
 
       yaxis: {
         min: 0,
-        max: Math.ceil(maxValue * 1.2),
+        max: Math.ceil(maxValue * 1.25),
         tickAmount: 5,
         labels: {
-          formatter: (value: number): string => {
-            return `${Math.round(value)}`;
-          },
+          formatter: (value: number): string => `${Math.round(value)}`,
           style: {
             colors: '#8a78a0',
             fontSize: '12px',
@@ -343,18 +348,18 @@ export class AdminAnalytics implements OnInit {
         shared: true,
         intersect: false,
         theme: 'light',
-        marker: {
-          show: true
-        },
         y: {
-          formatter: (value: number): string => {
-            return `${Math.round(value)} games`;
-          }
+          formatter: (value: number): string => `${Math.round(value)} games`
         }
       },
 
       legend: {
-        show: false
+        show: true,
+        position: 'top',
+        horizontalAlign: 'right',
+        fontSize: '12px',
+        fontWeight: 800,
+        labels: { colors: '#68537c' }
       }
     };
   }

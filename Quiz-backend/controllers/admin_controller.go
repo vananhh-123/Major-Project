@@ -27,61 +27,38 @@ type AdminUserResponse struct {
 }
 
 func GetAdminUsers(c *gin.Context) {
-
 	var users []models.User
 	config.DB.Find(&users)
 
 	var response []AdminUserResponse
 
 	for _, user := range users {
-
 		var quizzes int64
-		config.DB.
-			Model(&models.Quiz{}).
-			Where("created_by = ?", user.ID).
-			Count(&quizzes)
+		config.DB.Model(&models.Quiz{}).Where("created_by = ?", user.ID).Count(&quizzes)
 
 		var soloGames int64
-		config.DB.
-			Model(&models.Result{}).
-			Where("user_id = ? AND mode = ?", user.ID, "solo").
-			Count(&soloGames)
+		config.DB.Model(&models.Result{}).Where("user_id = ? AND mode = ?", user.ID, "solo").Count(&soloGames)
 
 		var multiGames int64
-		config.DB.
-			Model(&models.Result{}).
-			Where("user_id = ? AND mode = ?", user.ID, "multi").
-			Count(&multiGames)
+		config.DB.Model(&models.Result{}).Where("user_id = ? AND mode = ?", user.ID, "multi").Count(&multiGames)
 
 		var results []models.Result
-
-		config.DB.
-			Where("user_id = ?", user.ID).
-			Find(&results)
+		config.DB.Where("user_id = ?", user.ID).Find(&results)
 
 		totalPercent := 0.0
 		countQuiz := 0
 
 		for _, r := range results {
-
 			var totalQuestions int64
-
-			config.DB.
-				Model(&models.Question{}).
-				Where("quiz_id = ?", r.QuizID).
-				Count(&totalQuestions)
+			config.DB.Model(&models.Question{}).Where("quiz_id = ?", r.QuizID).Count(&totalQuestions)
 
 			if totalQuestions > 0 {
-				totalPercent +=
-					(float64(r.CorrectAnswers) /
-						float64(totalQuestions)) * 100
-
+				totalPercent += (float64(r.CorrectAnswers) / float64(totalQuestions)) * 100
 				countQuiz++
 			}
 		}
 
 		avgScore := 0.0
-
 		if countQuiz > 0 {
 			avgScore = totalPercent / float64(countQuiz)
 		}
@@ -118,25 +95,15 @@ func capitalize(s string) string {
 }
 
 func GetAdminUserStats(c *gin.Context) {
-
 	var total int64
 	var active int64
 	var admin int64
 	var blocked int64
 
 	config.DB.Model(&models.User{}).Count(&total)
-
-	config.DB.Model(&models.User{}).
-		Where("status = ?", "active").
-		Count(&active)
-
-	config.DB.Model(&models.User{}).
-		Where("role = ?", "admin").
-		Count(&admin)
-
-	config.DB.Model(&models.User{}).
-		Where("status = ?", "blocked").
-		Count(&blocked)
+	config.DB.Model(&models.User{}).Where("status = ?", "active").Count(&active)
+	config.DB.Model(&models.User{}).Where("role = ?", "admin").Count(&admin)
+	config.DB.Model(&models.User{}).Where("status = ?", "blocked").Count(&blocked)
 
 	c.JSON(http.StatusOK, gin.H{
 		"totalUsers":   total,
@@ -191,11 +158,7 @@ type AdminReviewResponse struct {
 func GetAdminReviews(c *gin.Context) {
 	var reviews []models.Review
 
-	if err := config.DB.
-		Preload("User").
-		Preload("Quiz").
-		Order("created_at desc").
-		Find(&reviews).Error; err != nil {
+	if err := config.DB.Preload("User").Preload("Quiz").Order("created_at desc").Find(&reviews).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch reviews"})
 		return
 	}
@@ -247,18 +210,42 @@ func DeleteAdminReview(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Review deleted"})
 }
 
-type AnalyticsResponse struct {
-	TotalUsers   int64 `json:"totalUsers"`
-	TotalQuizzes int64 `json:"totalQuizzes"`
-	TotalResults int64 `json:"totalResults"`
-	TotalReviews int64 `json:"totalReviews"`
+type DailyActivity struct {
+	Date  string `json:"date"`
+	Solo  int64  `json:"solo"`
+	Multi int64  `json:"multi"`
+}
 
-	SoloGames  int64 `json:"soloGames"`
-	MultiGames int64 `json:"multiGames"`
+type AnalyticsResponse struct {
+	TotalUsers    int64           `json:"totalUsers"`
+	TotalQuizzes  int64           `json:"totalQuizzes"`
+	TotalResults  int64           `json:"totalResults"`
+	TotalReviews  int64           `json:"totalReviews"`
+	SoloGames     int64           `json:"soloGames"`
+	MultiGames    int64           `json:"multiGames"`
+	ActiveRooms   int64           `json:"activeRooms"`
+	DailyActivity []DailyActivity `json:"dailyActivity"`
 }
 
 func GetAnalytics(c *gin.Context) {
 	rangeParam := c.DefaultQuery("range", "30")
+
+	now := time.Now()
+	startDate := time.Time{}
+	days := 30
+
+	if rangeParam == "today" {
+		days = 1
+		startDate = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	} else if rangeParam == "all" {
+		startDate = time.Time{}
+	} else {
+		parsedDays, err := strconv.Atoi(rangeParam)
+		if err == nil && parsedDays > 0 {
+			days = parsedDays
+		}
+		startDate = now.AddDate(0, 0, -days+1)
+	}
 
 	var users int64
 	var quizzes int64
@@ -266,80 +253,147 @@ func GetAnalytics(c *gin.Context) {
 	var reviews int64
 	var solo int64
 	var multi int64
+	var activeRooms int64
 
-	if rangeParam == "all" {
-		config.DB.Model(&models.User{}).Count(&users)
-		config.DB.Model(&models.Quiz{}).Count(&quizzes)
-		config.DB.Model(&models.Result{}).Count(&results)
-		config.DB.Model(&models.Review{}).Count(&reviews)
+	userQuery := config.DB.Model(&models.User{})
+	quizQuery := config.DB.Model(&models.Quiz{})
+	resultQuery := config.DB.Model(&models.Result{})
+	reviewQuery := config.DB.Model(&models.Review{})
 
-		config.DB.Model(&models.Result{}).
-			Where("mode = ? OR (mode IS NULL AND room_id IS NULL)", "solo").
-			Count(&solo)
-
-		config.DB.Model(&models.Result{}).
-			Where("mode = ? OR (mode IS NULL AND room_id IS NOT NULL)", "multi").
-			Count(&multi)
-
-		c.JSON(http.StatusOK, AnalyticsResponse{
-			TotalUsers:   users,
-			TotalQuizzes: quizzes,
-			TotalResults: results,
-			TotalReviews: reviews,
-			SoloGames:    solo,
-			MultiGames:   multi,
-		})
-		return
+	if !startDate.IsZero() {
+		userQuery = userQuery.Where("created_at >= ?", startDate)
+		quizQuery = quizQuery.Where("created_at >= ?", startDate)
+		resultQuery = resultQuery.Where("created_at >= ?", startDate)
+		reviewQuery = reviewQuery.Where("created_at >= ?", startDate)
 	}
 
-	if rangeParam == "today" {
-		config.DB.Model(&models.User{}).Where("created_at >= CURRENT_DATE").Count(&users)
-		config.DB.Model(&models.Quiz{}).Where("created_at >= CURRENT_DATE").Count(&quizzes)
-		config.DB.Model(&models.Result{}).Where("created_at >= CURRENT_DATE").Count(&results)
-		config.DB.Model(&models.Review{}).Where("created_at >= CURRENT_DATE").Count(&reviews)
+	userQuery.Count(&users)
+	quizQuery.Count(&quizzes)
+	resultQuery.Count(&results)
+	reviewQuery.Count(&reviews)
 
-		config.DB.Model(&models.Result{}).
-			Where("created_at >= CURRENT_DATE").
-			Where("mode = ? OR (mode IS NULL AND room_id IS NULL)", "solo").
-			Count(&solo)
+	soloQuery := config.DB.Model(&models.Result{}).
+		Where("mode = ? OR (mode IS NULL AND room_id IS NULL)", "solo")
 
-		config.DB.Model(&models.Result{}).
-			Where("created_at >= CURRENT_DATE").
-			Where("mode = ? OR (mode IS NULL AND room_id IS NOT NULL)", "multi").
-			Count(&multi)
-	} else {
-		days := "30"
+	multiQuery := config.DB.Model(&models.Result{}).
+		Where("mode = ? OR (mode IS NULL AND room_id IS NOT NULL)", "multi")
 
-		if rangeParam == "7" {
-			days = "7"
-		}
-
-		interval := days + " days"
-
-		config.DB.Model(&models.User{}).Where("created_at >= NOW() - (?::interval)", interval).Count(&users)
-		config.DB.Model(&models.Quiz{}).Where("created_at >= NOW() - (?::interval)", interval).Count(&quizzes)
-		config.DB.Model(&models.Result{}).Where("created_at >= NOW() - (?::interval)", interval).Count(&results)
-		config.DB.Model(&models.Review{}).Where("created_at >= NOW() - (?::interval)", interval).Count(&reviews)
-
-		config.DB.Model(&models.Result{}).
-			Where("created_at >= NOW() - (?::interval)", interval).
-			Where("mode = ? OR (mode IS NULL AND room_id IS NULL)", "solo").
-			Count(&solo)
-
-		config.DB.Model(&models.Result{}).
-			Where("created_at >= NOW() - (?::interval)", interval).
-			Where("mode = ? OR (mode IS NULL AND room_id IS NOT NULL)", "multi").
-			Count(&multi)
+	if !startDate.IsZero() {
+		soloQuery = soloQuery.Where("created_at >= ?", startDate)
+		multiQuery = multiQuery.Where("created_at >= ?", startDate)
 	}
+
+	soloQuery.Count(&solo)
+	multiQuery.Count(&multi)
+
+	config.DB.Model(&models.Room{}).
+		Where("LOWER(status) IN ?", []string{"waiting", "playing", "started", "active"}).
+		Count(&activeRooms)
+
+	dailyActivity := buildDailyActivity(startDate, days, rangeParam)
 
 	c.JSON(http.StatusOK, AnalyticsResponse{
-		TotalUsers:   users,
-		TotalQuizzes: quizzes,
-		TotalResults: results,
-		TotalReviews: reviews,
-		SoloGames:    solo,
-		MultiGames:   multi,
+		TotalUsers:    users,
+		TotalQuizzes:  quizzes,
+		TotalResults:  results,
+		TotalReviews:  reviews,
+		SoloGames:     solo,
+		MultiGames:    multi,
+		ActiveRooms:   activeRooms,
+		DailyActivity: dailyActivity,
 	})
+}
+
+func buildDailyActivity(startDate time.Time, days int, rangeParam string) []DailyActivity {
+	var resultList []models.Result
+
+	query := config.DB.Model(&models.Result{})
+
+	if !startDate.IsZero() {
+		query = query.Where("created_at >= ?", startDate)
+	}
+
+	query.Order("created_at asc").Find(&resultList)
+
+	dailyMap := make(map[string]*DailyActivity)
+
+	for _, result := range resultList {
+		day := result.CreatedAt.Format("2006-01-02")
+
+		if _, exists := dailyMap[day]; !exists {
+			dailyMap[day] = &DailyActivity{
+				Date:  day,
+				Solo:  0,
+				Multi: 0,
+			}
+		}
+
+		mode := ""
+		if result.Mode != nil {
+			mode = strings.ToLower(*result.Mode)
+		}
+
+		if mode == "multi" || mode == "multiplayer" || (mode == "" && result.RoomID != nil) {
+			dailyMap[day].Multi++
+		} else {
+			dailyMap[day].Solo++
+		}
+	}
+
+	if rangeParam == "all" {
+		activity := make([]DailyActivity, 0)
+
+		for _, result := range resultList {
+			day := result.CreatedAt.Format("2006-01-02")
+
+			item, exists := dailyMap[day]
+			if !exists {
+				continue
+			}
+
+			alreadyAdded := false
+
+			for _, old := range activity {
+				if old.Date == item.Date {
+					alreadyAdded = true
+					break
+				}
+			}
+
+			if !alreadyAdded {
+				activity = append(activity, *item)
+			}
+		}
+
+		if len(activity) == 0 {
+			activity = append(activity, DailyActivity{
+				Date:  time.Now().Format("2006-01-02"),
+				Solo:  0,
+				Multi: 0,
+			})
+		}
+
+		return activity
+	}
+
+	activity := make([]DailyActivity, 0)
+	now := time.Now()
+
+	for i := days - 1; i >= 0; i-- {
+		day := now.AddDate(0, 0, -i).Format("2006-01-02")
+
+		if item, exists := dailyMap[day]; exists {
+			activity = append(activity, *item)
+		} else {
+			activity = append(activity, DailyActivity{
+				Date:  day,
+				Solo:  0,
+				Multi: 0,
+			})
+		}
+	}
+
+	return activity
 }
 
 type AdminRoomResponse struct {
@@ -355,21 +409,14 @@ type AdminRoomResponse struct {
 func GetAdminRooms(c *gin.Context) {
 	cutoff := time.Now().Add(-2 * time.Hour)
 
-	config.DB.
-		Model(&models.Room{}).
+	config.DB.Model(&models.Room{}).
 		Where("status = ? AND created_at < ?", "waiting", cutoff).
 		Update("status", "closed")
 
 	var rooms []models.Room
 
-	if err := config.DB.
-		Preload("Quiz").
-		Preload("Host").
-		Order("created_at desc").
-		Find(&rooms).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch rooms",
-		})
+	if err := config.DB.Preload("Quiz").Preload("Host").Order("created_at desc").Find(&rooms).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rooms"})
 		return
 	}
 
@@ -377,10 +424,7 @@ func GetAdminRooms(c *gin.Context) {
 
 	for _, room := range rooms {
 		var playerCount int64
-
-		config.DB.Model(&models.Player{}).
-			Where("room_id = ?", room.ID).
-			Count(&playerCount)
+		config.DB.Model(&models.Player{}).Where("room_id = ?", room.ID).Count(&playerCount)
 
 		quizTitle := "Unknown Quiz"
 		if room.Quiz != nil {
@@ -425,7 +469,7 @@ func GetAdminLogs(c *gin.Context) {
 	var users []models.User
 	config.DB.Order("created_at desc").Limit(20).Find(&users)
 
-	for i, user := range users {
+	for _, user := range users {
 		level := "Success"
 		title := "User account active"
 		icon := "person"
@@ -448,8 +492,6 @@ func GetAdminLogs(c *gin.Context) {
 			Icon:        icon,
 			CreatedAt:   user.CreatedAt.Format(time.RFC3339),
 		})
-
-		_ = i
 	}
 
 	var quizzes []models.Quiz
@@ -457,6 +499,7 @@ func GetAdminLogs(c *gin.Context) {
 
 	for _, quiz := range quizzes {
 		actor := "Unknown Creator"
+
 		if quiz.Creator != nil {
 			actor = quiz.Creator.Username
 		}
@@ -505,6 +548,12 @@ func GetAdminLogs(c *gin.Context) {
 		if status == "ended" || status == "finished" {
 			level = "Success"
 			title = "Multiplayer room ended"
+			icon = "flag"
+		}
+
+		if status == "closed" || status == "expired" {
+			level = "Success"
+			title = "Multiplayer room closed"
 			icon = "flag"
 		}
 

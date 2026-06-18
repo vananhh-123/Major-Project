@@ -67,6 +67,12 @@ export interface AdminReviewApi {
   replies?: number;
 }
 
+export interface AnalyticsDailyActivity {
+  date: string;
+  solo: number;
+  multi: number;
+}
+
 export interface AnalyticsApi {
   totalUsers: number;
   totalQuizzes: number;
@@ -74,6 +80,8 @@ export interface AnalyticsApi {
   totalReviews: number;
   soloGames: number;
   multiGames: number;
+  activeRooms?: number;
+  dailyActivity?: AnalyticsDailyActivity[];
 }
 
 export interface AdminRoomApi {
